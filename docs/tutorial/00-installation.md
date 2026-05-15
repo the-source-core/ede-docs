@@ -12,10 +12,10 @@ You need:
 -   (Optional, for the frontend dev server) **[Bun](https://bun.sh/)** — npm/yarn are not used in this repo.
 -   (Optional, for production-shape testing) **PostgreSQL 14+** or **Docker**. The default development DB is SQLite — no setup needed.
 
-## 1. Clone the repository
+## 1. Obtain the source
 
 ```bash
-git clone git@github.com:the-framework/ede-framework.git
+# Obtain a copy of the framework source, then:
 cd ede-framework
 ```
 
@@ -145,8 +145,25 @@ The bundle is written to `src/ede/foundation/presentation/assets/web-client/` an
 | Login fails | Check `ede.conf` for `ADMIN_EMAIL` / `ADMIN_PASSWORD`. If unset, the seeded credentials are in the auth migration — grep `src/ede/foundation/auth/migrations/` for the bootstrap email. |
 | Frontend shows a blank page | The built bundle is stale. Run `cd src/frontend && bun run build` and reload. |
 
+## Where your code goes — `src/domains/`
+
+The repository has two roots for business logic. Knowing which is which is the single most important orientation fact before you start building.
+
+| Path | Purpose | You edit it? |
+|---|---|---|
+| `src/ede/foundation/` | Platform engines that ship with the framework — auth, approval, workflow, dataset, presentation, storage, gateway, and so on. This is **the toolkit** you build with. | No |
+| `src/domains/` | Your business logic — the apps you build using the platform. This is **your code**. | **Yes** |
+
+Every new feature you write lives under `src/domains/<your-domain>/`. A **domain** is a top-level business area you're modelling — pick a short, lower-case name (`blog`, `inventory`, `support`, …). Inside a domain you have one or more **apps**, each a coherent feature with its own manifest, models, views, and migrations.
+
+You can have as many domains as you need, and a domain may be as small as a single app. The framework boots whichever domains you list in `src/domains/settings.py` — nothing is auto-discovered.
+
+The next chapter walks through creating your first domain and your first app inside it, end-to-end.
+
+---
+
 ## What you can do next
 
-You have a working dev environment. Time to build something.
+You have a working dev environment and you know where your code is going to live. Time to build something.
 
 [:octicons-arrow-right-24: **Next — Your First Module**](01-your-first-module.md)

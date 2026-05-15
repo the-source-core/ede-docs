@@ -28,9 +28,9 @@
 
     ---
 
-    Browse the built-in foundation apps: auth, approval, workflow, dataset, dashboard, storage, gateway, and more.
+    Browse the built-in foundation features: auth, approval, workflow, dataset, dashboard, storage, gateway, and more.
 
-    [:octicons-arrow-right-24: Foundation apps](foundation-base.md)
+    [:octicons-arrow-right-24: Browse the features](features/index.md)
 
 </div>
 
@@ -81,7 +81,7 @@ EDE separates a request into five layers, each replaceable without touching the 
 ## Quick install
 
 ```bash
-git clone git@github.com:the-framework/ede-framework.git
+# 1. Obtain a copy of the framework source.
 cd ede-framework
 pip install -e ".[dev]"
 cp ede.conf.example ede.conf
@@ -100,6 +100,6 @@ Full walk-through with explanations: [Installation tutorial](tutorial/00-install
 | New developer onboarding to the platform | [Tutorial: Getting Started](tutorial/00-installation.md) → [Your First Module](tutorial/01-your-first-module.md) |
 | Adding a new domain or feature | [Developer Guide](13-dev-guide.md) → [App Structure & Loading](02-app-structure.md) |
 | Investigating the request path | [Architecture: Overview](01-overview.md) → [Command & Event Bus](04-command-event-bus.md) → [HTTP Layer](07-http-layer.md) |
-| Wiring permissions or record rules | [Permissions](18-permissions.md) → [Record Rules](foundation-record-rules.md) → [Security](foundation-security.md) |
-| Writing a foundation engine | [Foundation Apps](11-foundation-apps.md) → browse the [Foundation Apps](foundation-base.md) section |
-| Building the UI / presentation | [Presentation DSL](10-presentation-dsl.md) → [Foundation: Presentation](foundation-presentation.md) |
+| Wiring permissions or record rules | [Permissions](18-permissions.md) → [Record Rules](features/record-rules.md) → [Security & Authorization](features/security.md) |
+| Writing a foundation engine | [Foundation Apps](11-foundation-apps.md) → browse the [Features](features/index.md) section |
+| Building the UI / presentation | [Presentation DSL](10-presentation-dsl.md) → [Features: Presentation](features/presentation.md) |

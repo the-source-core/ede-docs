@@ -11,6 +11,12 @@ exclude_docs: |
     connectors/
     demo-usecase/
     README.md
+    # Roadmap-mirror docs — owned by the syncing-roadmap-to-docs skill.
+    # They live here for repo browsing but follow a status-tracking style
+    # (markers, phase tables, roadmap links) that is wrong for the public
+    # developer manual. The hand-authored equivalents live in docs/features/.
+    foundation-*.md
+    platform-*.md
 
 validation:
     omitted_files: warn
@@ -122,46 +128,25 @@ nav:
             -   Connector Framework: 16-connector-framework.md
             -   Storage Module: 17-storage-module.md
             -   Permissions: 18-permissions.md
-    -   Foundation Apps:
-            -   Base (Platform Substrate): foundation-base.md
-            -   Auth (JWT + Sessions): foundation-auth.md
-            -   Approval Workflow Engine: foundation-approval.md
-            -   Approval Engine Guide: foundation-approval-engine-guide.md
-            -   Communication (Chatter): foundation-communication.md
-            -   Connectors Framework: foundation-connectors.md
-            -   Customization (Properties): foundation-customization.md
-            -   Dashboard (BI / KPIs): foundation-dashboard.md
-            -   Dataset & Metric Engine: foundation-dataset.md
-            -   Document Engine (DML): foundation-document.md
-            -   Email (Outbound Queue): foundation-email.md
-            -   Gateway (Multi-Tenant SaaS): foundation-gateway.md
-            -   Internationalization (i18n): foundation-i18n.md
-            -   Background Jobs: foundation-jobs.md
-            -   Country Localization (l10n): foundation-l10n.md
-            -   Extension Marketplace: foundation-marketplace.md
-            -   Notifications Engine: foundation-notifications.md
-            -   Presentation (View DSL): foundation-presentation.md
-            -   Presentation — Kanban Guide: foundation-presentation-kanban-guide.md
-            -   Presentation — M2O Display: foundation-presentation-m2o-display-guide.md
-            -   QA Automation: foundation-qa-automation.md
-            -   Record Rules: foundation-record-rules.md
-            -   Reporting Engine: foundation-reporting.md
-            -   Security & Authorization: foundation-security.md
-            -   Storage (Document Store): foundation-storage.md
-            -   Workflow Engine: foundation-workflow.md
-            -   Workflow DSL: foundation-workflow-dsl.md
-            -   Company Scope: foundation-company-scope.md
-            -   Archivable Models: foundation-archivable-models.md
-            -   Model Naming: foundation-model-naming.md
-    -   Platform Internals:
-            -   ORM Active Filter: platform-01-orm-active-filter.md
-            -   Compute Field Runtime: platform-02-compute-field-runtime.md
-            -   Demo Data Loader: platform-03-demo-data-loader.md
-            -   Demo Data — Foundation Rollout: platform-04-demo-data-foundation-rollout.md
-            -   Engine Substrate: platform-05-engine-substrate.md
-            -   Universal JSON Contract: platform-06-universal-json-contract.md
-            -   Shared Safe AST Evaluator: platform-07-shared-safe-ast-evaluator.md
-            -   Active-Organization & Company Scope: platform-08-active-organization-and-company-scope.md
+    -   Features:
+            -   Overview: features/index.md
+            -   Base — Platform Substrate: features/base.md
+            -   Auth — Login & Sessions: features/auth.md
+            -   Approval Workflows: features/approval.md
+            -   Communication (Chatter): features/communication.md
+            -   Connectors: features/connectors.md
+            -   Customization (Properties): features/customization.md
+            -   Datasets & Metrics: features/dataset.md
+            -   Email (Outbound Queue): features/email.md
+            -   Multi-Tenant Gateway: features/gateway.md
+            -   Internationalization: features/i18n.md
+            -   Notifications: features/notifications.md
+            -   Presentation (View DSL): features/presentation.md
+            -   QA Automation: features/qa-automation.md
+            -   Record Rules: features/record-rules.md
+            -   Security & Authorization: features/security.md
+            -   Document Storage: features/storage.md
+            -   Workflow Engine: features/workflow.md
 
 extra:
     social:

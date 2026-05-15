@@ -22,16 +22,16 @@ src/domains/
             └── versions/       ← Alembic puts files here
 ```
 
-EDE distinguishes **domains** (logistics, crm, hr, blog…) from **apps** inside a domain (logistics has `masters`, `pricing`, `sales_crm`). A trivial domain may have a single app — that's what we're doing here.
+EDE distinguishes a **domain** (a top-level business area you're modelling — `blog`, `inventory`, `support`, whatever your codebase needs) from the **apps** inside it (each a coherent feature with its own manifest, models, views, and migrations). A trivial domain may have a single app — that's what we're doing here.
 
 ## 1. Register the new domain
 
-Edit `src/domains/settings.py` to add `blog` to `ACTIVE_DOMAINS`:
+Edit `src/domains/settings.py` to add `blog` to `ACTIVE_DOMAINS`. If the list is currently empty, this will be its only entry; if it already has other domains, append `"blog"` to them:
 
 ```python
 from __future__ import annotations
 
-ACTIVE_DOMAINS: list = ["logistics", "blog"]
+ACTIVE_DOMAINS: list = ["blog"]
 ```
 
 EDE never auto-discovers domains. If a domain isn't in this list, it never boots — even if the files exist.
@@ -117,7 +117,8 @@ class BlogPost(DomainModel):
         required=True,
         label="Title",
     )
-    body = fields.Text(
+    body = fields.Char(
+        multi_line=True,
         label="Body",
         help="Markdown-formatted post content.",
     )
