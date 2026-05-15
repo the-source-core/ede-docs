@@ -1,0 +1,171 @@
+site_name: EDE Framework
+site_description: Enterprise Domain Enabler — DDD platform kernel for Python
+site_url: https://the-source-core.github.io/ede-docs/
+repo_url: https://github.com/the-source-core/ede-docs
+repo_name: the-source-core/ede-docs
+edit_uri: ""
+docs_dir: docs
+
+exclude_docs: |
+    superpowers/
+    connectors/
+    demo-usecase/
+    README.md
+
+validation:
+    omitted_files: warn
+    absolute_links: ignore
+    unrecognized_links: ignore
+    nav:
+        omitted_files: warn
+        not_found: warn
+        absolute_links: ignore
+    links:
+        not_found: info
+        anchors: info
+        absolute_links: ignore
+        unrecognized_links: ignore
+
+theme:
+    name: material
+    features:
+        - navigation.tabs
+        - navigation.tabs.sticky
+        - navigation.sections
+        - navigation.indexes
+        - navigation.top
+        - navigation.instant
+        - navigation.tracking
+        - search.suggest
+        - search.highlight
+        - content.code.copy
+        - content.code.annotate
+        - toc.follow
+    palette:
+        -   media: "(prefers-color-scheme: light)"
+            scheme: default
+            primary: indigo
+            accent: indigo
+            toggle:
+                icon: material/brightness-7
+                name: Switch to dark mode
+        -   media: "(prefers-color-scheme: dark)"
+            scheme: slate
+            primary: indigo
+            accent: indigo
+            toggle:
+                icon: material/brightness-4
+                name: Switch to light mode
+    font:
+        text: Inter
+        code: JetBrains Mono
+    icon:
+        repo: fontawesome/brands/github
+
+markdown_extensions:
+    -   admonition
+    -   attr_list
+    -   def_list
+    -   footnotes
+    -   md_in_html
+    -   tables
+    -   toc:
+            permalink: true
+    -   pymdownx.details
+    -   pymdownx.inlinehilite
+    -   pymdownx.snippets
+    -   pymdownx.highlight:
+            anchor_linenums: true
+            line_spans: __span
+            pygments_lang_class: true
+    -   pymdownx.superfences:
+            custom_fences:
+                -   name: mermaid
+                    class: mermaid
+                    format: !!python/name:pymdownx.superfences.fence_code_format
+    -   pymdownx.tabbed:
+            alternate_style: true
+    -   pymdownx.tasklist:
+            custom_checkbox: true
+
+plugins:
+    -   search
+
+nav:
+    -   Home: index.md
+    -   Tutorial:
+            -   Getting Started: tutorial/00-installation.md
+            -   "1. Your First Module": tutorial/01-your-first-module.md
+            -   "2. Models & Fields": tutorial/02-models-and-fields.md
+            -   "3. Views & the Web Client": tutorial/03-views-and-web-client.md
+            -   "4. Commands & Events": tutorial/04-commands-and-events.md
+            -   "5. Relationships": tutorial/05-relationships.md
+            -   "6. Permissions & Security": tutorial/06-permissions.md
+            -   "7. Migrations": tutorial/07-migrations.md
+            -   "8. Deploying": tutorial/08-deploying.md
+    -   Architecture:
+            -   Overview: 01-overview.md
+            -   App Structure & Loading: 02-app-structure.md
+            -   Domain Model & Fields: 03-domain-model.md
+            -   Command & Event Bus: 04-command-event-bus.md
+            -   ORM Layer: 05-orm-layer.md
+            -   Persistence: 06-persistence.md
+            -   HTTP Layer: 07-http-layer.md
+            -   Authentication: 08-authentication.md
+            -   Tenancy: 09-tenancy.md
+            -   Presentation DSL: 10-presentation-dsl.md
+            -   Foundation Apps: 11-foundation-apps.md
+            -   Migrations: 12-migrations.md
+            -   Developer Guide: 13-dev-guide.md
+            -   Lifecycle Hooks: 14-lifecycle-hooks.md
+            -   Command & Event Guide: 15-command-event-guide.md
+            -   Connector Framework: 16-connector-framework.md
+            -   Storage Module: 17-storage-module.md
+            -   Permissions: 18-permissions.md
+    -   Foundation Apps:
+            -   Base (Platform Substrate): foundation-base.md
+            -   Auth (JWT + Sessions): foundation-auth.md
+            -   Approval Workflow Engine: foundation-approval.md
+            -   Approval Engine Guide: foundation-approval-engine-guide.md
+            -   Communication (Chatter): foundation-communication.md
+            -   Connectors Framework: foundation-connectors.md
+            -   Customization (Properties): foundation-customization.md
+            -   Dashboard (BI / KPIs): foundation-dashboard.md
+            -   Dataset & Metric Engine: foundation-dataset.md
+            -   Document Engine (DML): foundation-document.md
+            -   Email (Outbound Queue): foundation-email.md
+            -   Gateway (Multi-Tenant SaaS): foundation-gateway.md
+            -   Internationalization (i18n): foundation-i18n.md
+            -   Background Jobs: foundation-jobs.md
+            -   Country Localization (l10n): foundation-l10n.md
+            -   Extension Marketplace: foundation-marketplace.md
+            -   Notifications Engine: foundation-notifications.md
+            -   Presentation (View DSL): foundation-presentation.md
+            -   Presentation — Kanban Guide: foundation-presentation-kanban-guide.md
+            -   Presentation — M2O Display: foundation-presentation-m2o-display-guide.md
+            -   QA Automation: foundation-qa-automation.md
+            -   Record Rules: foundation-record-rules.md
+            -   Reporting Engine: foundation-reporting.md
+            -   Security & Authorization: foundation-security.md
+            -   Storage (Document Store): foundation-storage.md
+            -   Workflow Engine: foundation-workflow.md
+            -   Workflow DSL: foundation-workflow-dsl.md
+            -   Company Scope: foundation-company-scope.md
+            -   Archivable Models: foundation-archivable-models.md
+            -   Model Naming: foundation-model-naming.md
+    -   Platform Internals:
+            -   ORM Active Filter: platform-01-orm-active-filter.md
+            -   Compute Field Runtime: platform-02-compute-field-runtime.md
+            -   Demo Data Loader: platform-03-demo-data-loader.md
+            -   Demo Data — Foundation Rollout: platform-04-demo-data-foundation-rollout.md
+            -   Engine Substrate: platform-05-engine-substrate.md
+            -   Universal JSON Contract: platform-06-universal-json-contract.md
+            -   Shared Safe AST Evaluator: platform-07-shared-safe-ast-evaluator.md
+            -   Active-Organization & Company Scope: platform-08-active-organization-and-company-scope.md
+
+extra:
+    social:
+        -   icon: fontawesome/brands/github
+            link: https://github.com/the-source-core/ede-docs
+
+copyright: Copyright &copy; The Source Core
