@@ -134,6 +134,8 @@ nav:
     -   Features:
             -   Overview: features/index.md
             -   Base — Platform Substrate: features/base.md
+            -   AI Capability Layer: features/ai.md
+            -   Assistant (In-App Chat): features/assistant.md
             -   Auth — Login & Sessions: features/auth.md
             -   Approval Workflows: features/approval.md
             -   Communication (Chatter): features/communication.md
@@ -141,6 +143,7 @@ nav:
             -   Customization (Properties): features/customization.md
             -   Datasets & Metrics: features/dataset.md
             -   Email (Outbound Queue): features/email.md
+            -   Model & View Extension SDK: features/extension-sdk.md
             -   Multi-Tenant Gateway: features/gateway.md
             -   Internationalization: features/i18n.md
             -   Notifications: features/notifications.md

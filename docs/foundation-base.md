@@ -3,7 +3,7 @@
 
 **Module:** `foundation.base` (`src/ede/foundation/base/`)
 **Roadmap:** [roadmap/foundation/base/README.md](../roadmap/foundation/base/README.md)
-**Status:** ✅ Delivered (baseline — pre-roadmap)
+**Status:** ✅ Delivered — Phase 1 ✅ Delivered (baseline, pre-roadmap); [Phase 2 — Model & View Extension SDK](../roadmap/foundation/base/phase-2/README.md) ✅ Delivered 2026-05-18
 **Layer:** Foundation engine — platform substrate
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -213,8 +213,9 @@ _none — `foundation.base` masters are reference data; no per-record state mach
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
 | Phase 1 — Baseline | Platform-master + `ir.*` + health-check substrate | ✅ Delivered (baseline) | [roadmap/foundation/base/README.md](../roadmap/foundation/base/README.md) |
+| [Phase 2](../roadmap/foundation/base/phase-2/README.md) — Model & View Extension SDK | `@api.extend_model` decorator + view inheritance + registry merge + boot validator + `ir.model.extension` mirror + admin UI + 40 pytest cases + developer guide | ✅ Delivered 2026-05-18 | [phase-2/README.md](../roadmap/foundation/base/phase-2/README.md) |
 
-_No further phases planned today — additional `res.*`/`ir.*` models are added as roadmapped modules request them. Future work goes under the consuming roadmaps, not here._
+_Additional `res.*` / `ir.*` business-master models continue to be added under consumer roadmaps when they request them. Phase 2 is the exception — it's a kernel-level capability that every consumer needs, so it belongs here._
 <!-- /SYNC-BLOCK -->
 
 ### Built Capabilities
@@ -237,6 +238,7 @@ _No further phases planned today — additional `res.*`/`ir.*` models are added 
 | Data references | `ir.data.reference`, `ir.data.cleanup.log` | [models/data_reference.py](../src/ede/foundation/base/models/data_reference.py), [models/data_cleanup_log.py](../src/ede/foundation/base/models/data_cleanup_log.py) | [README.md](../roadmap/foundation/base/README.md) |
 | Notifications opt-in | `ir.notification.setting` | [models/notification_setting.py](../src/ede/foundation/base/models/notification_setting.py) | [README.md](../roadmap/foundation/base/README.md) |
 | Health-check | `ping`, `ping.listener` | [models/ping.py](../src/ede/foundation/base/models/ping.py), [models/ping_listener.py](../src/ede/foundation/base/models/ping_listener.py) | [README.md](../roadmap/foundation/base/README.md) |
+| Phase 2 — Model & View Extension SDK | `ir.model.extension` | [kernel/extensions.py](../src/ede/core/kernel/extensions.py), [registry.py](../src/ede/core/registry.py) (`register_extension` / `_merge_extension_into_base` / `validate_extensions` / `list_extensions`), [metadata_builder.py](../src/ede/core/adapters/persistence/sqlalchemy/metadata_builder.py) (soft-FK degradation), [dsl/parser.py](../src/ede/core/services/presentation/dsl/parser.py) (`<extend>` element), [view_registry.py](../src/ede/core/services/presentation/view_registry.py) (`compose_view_xml`), [ir_model_extension.py](../src/ede/foundation/base/models/ir_model_extension.py), [docs/foundation-base-extensions.md](foundation-base-extensions.md) | [Phase 2 README](../roadmap/foundation/base/phase-2/README.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
@@ -245,7 +247,7 @@ _No further phases planned today — additional `res.*`/`ir.*` models are added 
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| _none yet — this module is the substrate and is intentionally additive_ | | |
+| _none — Phase 2 closed 2026-05-18; next consumer slice is `foundation.l10n` Phase 1 (country-scope predicate on top of the SDK) or `foundation.assistant` resume (org-level default provider via `@api.extend_model`)._ | | |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -279,4 +281,4 @@ _No further phases planned today — additional `res.*`/`ir.*` models are added 
 
 ---
 
-*Last sync: 2026-05-14. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-05-18 (Phase 2 — Model & View Extension SDK — ✅ Delivered same-day: 40 pytest cases + admin UI + developer guide). To refresh, invoke the `syncing-roadmap-to-docs` skill.*

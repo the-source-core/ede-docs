@@ -54,7 +54,11 @@ The `foundation.base` module ships three families of models. Every other module 
 | `ir.rbac.decision.log` | Per-request authorization decision audit trail. |
 | `ir.rbac.binding.change.log` | Binding-change audit trail. |
 | `ir.model` | Reflection of registered domain models. |
-| `ir.model.property` | User-defined fields via [Customization](customization.md). |
+| `ir.model.field` | Reflection of every registered field. |
+| `ir.model.field.selection` | Reflection of Enum-field options. |
+| `ir.model.property.definition` | Tenant-defined property schema via [Customization (Properties)](customization.md). |
+| `ir.model.property.selection` | Option rows for selection-typed properties. |
+| `ir.model.extension` | Mirror of `@api.extend_model` registrations — see [Model & View Extension SDK](extension-sdk.md). |
 | `ir.data.reference` | XML/CSV record references for the data loader. |
 | `ir.notification.setting` | Per-user opt-in/opt-out for notification channels. |
 
@@ -156,4 +160,4 @@ Every other app must list `foundation.base` (transitively) in its `depends`:
 
 -   Source: `src/ede/foundation/base/`
 -   Architecture: [Foundation Apps](../11-foundation-apps.md) for the platform layer's design.
--   See also: [Security & Authorization](security.md) for `ir.rbac.*` deep-dive, [Customization](customization.md) for `ir.model.property`, [Internationalization](i18n.md) for translations layered on `res.language`.
+-   See also: [Security & Authorization](security.md) for `ir.rbac.*` deep-dive, [Customization (Properties)](customization.md) for `ir.model.property.definition`, [Model & View Extension SDK](extension-sdk.md) for `@api.extend_model` + `<extend ref="...">`, [Internationalization](i18n.md) for translations layered on `res.language`.

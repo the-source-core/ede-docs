@@ -1,28 +1,34 @@
 # QA Automation
 
-Browser-driven end-to-end tests via Playwright, with use-case recording and deterministic replay against demo tenants. Record a flow once in your browser, replay it on every commit.
+Record a browser flow once, replay it on every commit. The recorder captures clicks, fills, and assertions against a running dev server; the replay engine runs the same sequence on Playwright in CI and gates the merge.
 
 ```bash
-# Record a flow against a running dev server
+# Start a dev server with the worker
+ede serve --with-worker &
+
+# Record a flow into a use case
 ede e2e record --usecase blog.publish-post
 
-# Replay it as part of the test suite
-./run_tests.sh e2e
+# Replay everything in CI
+ede e2e replay --tenant qa-sandbox
 ```
 
-The recorder captures every click, fill, and assertion, normalizes timestamps and IDs, and emits a deterministic replay file that lives alongside the rest of your tests.
+A use case is a persistent record (`qa.usecase` + `qa.usecase.step`) — not a file on disk. The recorder writes steps as you click; the replay engine reads them back, runs them through Playwright, and stores results in `qa.run` / `qa.run.result`.
 
 ---
 
 ## What you get
 
--   **Playwright plumbing** — Chromium + Firefox + WebKit, headless or headed.
--   **`qa.usecase`** + **`qa.usecase.step`** models — recorded use cases are first-class records.
--   **`ede e2e record`** CLI — interactive recording into a 23-case scaffold transformer.
--   **`seed_deterministic`** primitive — byte-stable test fixtures so replays don't drift on rerun.
--   **9 foundation-primitive e2e tests** — login, navigation, list-view, form-view, kanban, search, create/read/update/delete, chatter.
--   **Visual-regression matcher** — pixel-diff against committed baselines under `qa-report/snapshots/`.
--   **CI integration** — the `qa-e2e.yml` workflow runs the suite on every PR.
+-   **`ede e2e` CLI** — five subcommands: `record`, `import`, `replay`, `polish`, `gate`. All routed through the framework's Click group.
+-   **`qa.recording` / `qa.recording.step`** — the in-browser recorder's live capture target. Rows finalise into use cases.
+-   **`qa.usecase` / `qa.usecase.step`** — frozen, replayable scenarios. Promoted from a recording once you're happy with it.
+-   **`qa.run` / `qa.run.result`** — one row per replay run plus one row per use-case result inside it. CI consumes these.
+-   **HTTP API** — `POST /api/qa/recordings`, `POST /api/qa/recordings/{id}/step`, `POST /api/qa/recordings/{id}/finalize`, `POST /api/qa/recordings/{id}/promote`, plus reads. The in-browser recorder is a thin client over this surface.
+-   **Replay gate** — `ede e2e gate --module <key>` reads the latest `qa.run` for a module and blocks merge if any use case failed within a freshness window.
+-   **Polish pipeline** — `ede e2e polish` post-processes a run into a deliverable video (card titles, narration cards, ffmpeg-stitched MP4) for sharing.
+-   **`seed_deterministic` pytest fixture** — byte-stable demo seeding so replay diffs come from your code change, not from `created_at` jitter.
+-   **`activity.type` integration** — replay results are posted as chatter messages on the parent module's record so the audit lives next to the code under review.
+-   **CI workflow** — `.github/workflows/qa-e2e.yml` runs the suite on every PR.
 
 ## How to use it
 
@@ -33,67 +39,93 @@ ede serve --with-worker &
 ede e2e record --usecase blog.publish-post
 ```
 
-A Chromium window opens. Perform the flow you want to test; the recorder writes a `qa.usecase` record + steps to your dev DB.
+Chrome opens. Perform the flow you want to test. The recorder writes a `qa.recording` + ordered `qa.recording.step` rows to the dev DB as you click.
 
-Stop the recorder when done — the use case is now persisted and ready to export as a replay script.
-
-### Replay all use cases
+Close the recorder window when done. Finalize and promote the recording to a use case:
 
 ```bash
-./run_tests.sh e2e
+ede e2e record --finalize <recording_uuid>
+ede e2e record --promote  <recording_uuid> --usecase blog.publish-post
 ```
 
-Playwright spins up a fresh demo tenant per run (the `seed_deterministic` primitive guarantees stable IDs), executes each step, and compares the result against the recorded assertions.
+Promoting freezes the steps into `qa.usecase` / `qa.usecase.step` — replays will run exactly these steps.
 
-### Replay a single use case
+### Import an existing Playwright script
 
 ```bash
-pytest src/tests/e2e/usecases/blog/test_publish_post.py
+ede e2e import --file path/to/test_flow.py --usecase blog.search-filter
 ```
 
-### Lock visual baselines
+The Playwright codegen-format script is parsed into `qa.usecase.step` rows so it joins the same replay pipeline.
 
-When a UI change is intentional and visual diffs flip:
+### Replay a use case
 
 ```bash
-./run_tests.sh e2e --update-snapshots
+ede e2e replay --tenant qa-sandbox --usecase blog.publish-post
 ```
 
-Commits the new baseline under `qa-report/snapshots/`.
+The replay engine spins up the demo tenant defined by `QA_SANDBOX_TENANT_KEY`, runs each step through Playwright, records timings + screenshots, and writes a `qa.run.result` per use case.
 
-### Write a use case by hand
+Omit `--usecase` to replay everything that targets the tenant.
+
+### Gate a merge on replay freshness
+
+```bash
+ede e2e gate --module foundation.communication --freshness-hours 24
+```
+
+The gate exits non-zero if the latest `qa.run` for `foundation.communication` failed, or if no run inside the freshness window exists. Wire it into CI as the last step before merge.
+
+### Polish a passing run into a sharable video
+
+```bash
+ede e2e polish --run <run_uuid>
+```
+
+Generates title and result cards, stitches them around the replay video with ffmpeg, and uploads the result for stakeholders.
+
+### Use `seed_deterministic` in a pytest test
 
 ```python
-from ede.foundation.qa_automation.testing import e2e_test
-
-
-@e2e_test("blog.search-filter")
-def test_search_by_author(page, env, demo_tenant):
-    page.goto(demo_tenant.url + "/wc")
-    page.fill('input[name="search"]', "alice")
-    page.click('button[data-action="apply-filter"]')
-    page.wait_for_selector("text=Showing 3 posts")
+def test_my_flow(seed_deterministic, authenticated_page, live_server):
+    seed_deterministic("res.partner", {
+        "name": "Alice",
+        "email": "alice@example.com",
+    })
+    authenticated_page.goto(live_server.url + "/wc")
+    # ... assertions
 ```
 
-## How it composes with other features
-
--   **[Demo Data Loader](../tutorial/01-your-first-module.md)** — `--with-demo=<app>` is how the e2e harness seeds tenants.
--   **[Tutorial — Your First Module](../tutorial/01-your-first-module.md)** — the example tests use the same module shape you build there.
+`seed_deterministic` writes rows with stable `record_uuid`s derived from a hash of the payload — re-running the test against a clean tenant produces the same UUIDs, so screenshot diffs and DB-state assertions are byte-stable.
 
 ## Configuration
 
 | Setting | Default | What it controls |
 |---|---|---|
-| `E2E_HEADED` | `false` | Run with visible browser. |
-| `E2E_BROWSER` | `chromium` | One of `chromium`, `firefox`, `webkit`. |
-| `E2E_BASE_URL` | `http://localhost:8000` | Where the replayed flows hit. |
+| `ENABLE_QA_AUTOMATION` | `False` | Master switch — register the module's models, routes, and CLI. |
+| `QA_E2E_ENABLED` | `False` | Toggle replay execution. Off in production. |
+| `QA_E2E_BROWSERS` | `["chromium"]` | Browsers to run replays against. Add `"firefox"` or `"webkit"` for cross-browser. |
+| `QA_E2E_HEADLESS` | `True` | Run headless; set `False` to see the browser when developing locally. |
+| `QA_E2E_VIDEO_DIR` | `qa-report/videos` | Where Playwright writes video recordings of each run. |
+| `QA_E2E_TRACE_DIR` | `qa-report/traces` | Where Playwright writes trace files for failed replays. |
+| `QA_VIDEO_FFMPEG_PATH` | `ffmpeg` | Binary used by the polish pipeline. |
+| `QA_VIDEO_RESOLUTION` | `1280x720` | Video size for polished output. |
+| `QA_VIDEO_SLOWMO_MS` | `700` | Per-action slowmo when generating sharable videos. |
+| `QA_SANDBOX_TENANT_KEY` | `qa-sandbox` | Tenant key the replay engine targets. |
+
+## How it composes with other features
+
+-   [Commands & events](../tutorial/04-commands-and-events.md) — the in-browser recorder dispatches `qa.recording.step.create` through the same command bus as any other write.
+-   [Communication (Chatter)](communication.md) — replay results post a chatter message on the related module record so reviewers see them in context.
+-   [Permissions](security.md) — recordings and runs are RBAC-gated; only QA roles can promote a recording to a frozen use case.
 
 ## Reference
 
-| Concept | Where it lives |
-|---|---|
-| `qa.usecase`, `qa.usecase.step` | `src/ede/foundation/qa_automation/models/` |
-| Recorder CLI | `src/ede/cli/e2e.py` |
-| Playwright runner | `src/ede/core/engines/playwright_runner/` |
-| Tests | `src/tests/e2e/` |
-| `seed_deterministic` | `src/ede/foundation/qa_automation/testing/seed.py` |
+-   Models: `src/ede/foundation/qa_automation/models/{recording,usecase,run}.py`
+-   HTTP controller: `src/ede/foundation/qa_automation/controllers.py` (prefix `/api/qa`)
+-   In-browser recorder: `src/ede/foundation/qa_automation/recorder/{inbrowser,codegen_bridge,scaffold}.py`
+-   Replay engine: `src/ede/foundation/qa_automation/replay/{engine,gate,junit_parser}.py`
+-   Polish pipeline: `src/ede/foundation/qa_automation/polish/{cards,pipeline}.py`
+-   Pytest fixtures (`seed_deterministic`): `src/ede/foundation/qa_automation/fixtures.py`
+-   CLI: `src/ede/cli/commands/e2e.py`
+-   CI workflow: `.github/workflows/qa-e2e.yml`

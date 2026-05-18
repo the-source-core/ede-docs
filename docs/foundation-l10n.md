@@ -3,7 +3,7 @@
 
 **Module:** `foundation.l10n` (`src/ede/foundation/l10n/`)
 **Roadmap:** [roadmap/foundation/l10n/README.md](../roadmap/foundation/l10n/README.md)
-**Status:** 🔴 Not Started (roadmap drafted 2026-05-13)
+**Status:** 🔴 Not Started — blocked on [`foundation.base` Phase 2 — Model & View Extension SDK](../roadmap/foundation/base/phase-2/README.md). Restructured 2026-05-17: the generic decorator + registry merge + view inheritance machinery were lifted out of l10n Phase 1 into base Phase 2 so every consumer (assistant, customization, marketplace, future) shares one SDK. l10n now layers country-scope + per-org activation on top.
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -173,8 +173,8 @@ _none_ — l10n has no state machine of its own. Country packs may register coun
 <!-- SYNC-BLOCK: status-snapshot -->
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
-| Phase 1 | SDK Core — Extension Decorator + Country-Scope Evaluator + Per-Org Activation | 🔴 Not Started | [phase-1](../roadmap/foundation/l10n/phase-1-implementation.md) |
-| Phase 2 | View Inheritance + Workflow Gating + First Real Pack (`l10n.in`) | 🔴 Not Started | [phase-2](../roadmap/foundation/l10n/phase-2-implementation.md) |
+| Phase 1 | Country-Scope Predicate + Per-Org Activation + Test-Fixture Pack | 🔴 Not Started — blocked on [`foundation.base` Phase 2](../roadmap/foundation/base/phase-2/README.md) | [phase-1](../roadmap/foundation/l10n/phase-1-implementation.md) |
+| Phase 2 | Workflow Gating + First Real Pack (`l10n.in`) | 🔴 Not Started | [phase-2](../roadmap/foundation/l10n/phase-2-implementation.md) |
 | Phase 3 | Multi-Country Expansion + Reporting/Document Integration | 🔴 Not Started | [phase-3](../roadmap/foundation/l10n/phase-3-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
@@ -193,9 +193,10 @@ _none_ — l10n has no state machine of its own. Country packs may register coun
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| SDK core not built — extension decorator, scope evaluator, per-org M2M absent | 🔴 | [Phase 1](../roadmap/foundation/l10n/phase-1-implementation.md) |
+| Hard prereq: model & view extension SDK not yet shipped in foundation.base | 🔴 | [`foundation.base` Phase 2](../roadmap/foundation/base/phase-2/README.md) |
+| Country-scope predicate factory, per-org activation M2M, and test-fixture pack not built | 🔴 | [Phase 1](../roadmap/foundation/l10n/phase-1-implementation.md) |
 | No country pack exists — `localizations.in` is the first pack target | 🔴 | [Phase 2](../roadmap/foundation/l10n/phase-2-implementation.md) |
-| View `<extend>` element absent in presentation DSL | 🔴 | [Phase 2 — view inheritance workstream](../roadmap/foundation/l10n/phase-2-implementation.md) |
+| View `<extend>` element — moved to `foundation.base` Phase 2 (consumer side here is just usage) | 🔴 | [`foundation.base` Phase 2](../roadmap/foundation/base/phase-2/README.md) |
 | Workflow engine has no `country_scope` field on `ir.workflow.definition` | 🔴 | [Phase 2 — workflow gating workstream](../roadmap/foundation/l10n/phase-2-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
@@ -230,4 +231,4 @@ _none_ — l10n has no state machine of its own. Country packs may register coun
 
 ---
 
-*Last sync: 2026-05-13. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-05-17 (restructure: SDK pieces lifted to `foundation.base` Phase 2; l10n Phase 1 narrowed to country-scope + per-org activation). To refresh, invoke the `syncing-roadmap-to-docs` skill.*
