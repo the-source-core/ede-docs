@@ -3,7 +3,7 @@
 
 **Module:** `foundation.jobs` (`src/ede/foundation/jobs/`)
 **Roadmap:** [roadmap/foundation/jobs/](../roadmap/foundation/jobs/README.md)
-**Status:** 🔴 Not Started (roadmap drafted 2026-05-11)
+**Status:** 🟡 In Progress (Slice 1 ✅ Delivered 2026-05-18 + Slice 2 ✅ Delivered 2026-05-19 — schema + Celery executor + jobs-worker CLI + cron scheduler + `@api.scheduled_job`/`@api.background_job` decorators + XML data path + source-aware boot reconciler; Slices 3-4 remain: retry/dead-letter/progress + admin UI/RBAC/heartbeat)
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -14,7 +14,11 @@
 
 ### What it is
 <!-- SYNC-BLOCK: what -->
-A **domain-agnostic background work engine**. Two entry points: (1) declarative scheduled jobs via `@api.scheduled_job("0 */6 * * *", name="...")` decorating any Python callable, and (2) programmatic ad-hoc submission via `env.enqueue_job(target, payload, run_at=None, priority=5)`. Both paths flow through the same `ir.job.run` lifecycle with retry/backoff/dead-letter, progress reporting, concurrency control, and a Settings → Technical → Jobs admin UI.
+A **domain-agnostic background work engine**. Two submission entry points: (1) declarative scheduled jobs via `@api.scheduled_job("0 */6 * * *", name="...")` decorating any Python callable, and (2) programmatic ad-hoc submission via `env.enqueue_job(target, payload, run_at=None, priority=5)`. Both paths flow through the same `ir.job.run` lifecycle with retry/backoff/dead-letter, progress reporting, concurrency control, and a Settings → Technical → Jobs admin UI.
+
+`ir.job` definitions can be created three ways — by the `@api.scheduled_job` decorator (`source=decorator`), by `<record model="ir.job">` in a module's `data/*.xml` (`source=xml`), or by `env.models["ir.job"].create({...})` from the admin UI / runtime (`source=runtime`). The boot reconciler only manages `source=decorator` rows; XML and runtime rows are inviolate from its perspective.
+
+Task execution is delegated to **Celery (Redis broker)** under a stable `Executor` interface. The user-facing surface (`ir.job` schema, decorator API, admin UI, RBAC, CLI) is ours; the worker pool, ack/nack semantics, and broker reliability are Celery's. The seam is one interface (`services/executor.py`) — future phases may swap in a thread-pool or alternate engine without touching the surface.
 <!-- /SYNC-BLOCK -->
 
 ### Why it exists
@@ -24,15 +28,16 @@ Today EDE has `EventQueue` for short-lived async fan-out (`@api.on_event` handle
 
 ### How a user / consumer interacts with it
 <!-- SYNC-BLOCK: how -->
-- **End-user UX** — Settings → Technical → Jobs reveals four screens: Dashboard (queue depth, due-soon, failure rate, dead-letter count), Definitions (`ir.job` list + form with a "Run Now" button), Run History (`ir.job.run` list with filter chips), Dead Letter Queue (per-run retry button + bulk "retry all failed for job X since date Y").
+- **End-user UX** — Settings → Technical → Jobs reveals four screens: Dashboard (queue depth, due-soon, failure rate, dead-letter count), Definitions (`ir.job` list + form with a "Run Now" button and a `source` badge), Run History (`ir.job.run` list with filter chips, links to `celery_task_id`), Dead Letter Queue (per-run retry button + bulk "retry all failed for job X since date Y").
 - **Programmatic entry points for other modules**:
-    - `@api.scheduled_job(name=..., cron=..., retry_policy=..., retry_max_attempts=..., priority=..., timeout_seconds=...)` — declare a cron-driven job
+    - `@api.scheduled_job(name=..., cron=..., retry_policy=..., retry_max_attempts=..., priority=..., timeout_seconds=...)` — declare a cron-driven job (code-defined, fixed schedule)
     - `@api.background_job(name=...)` — declare a callable expected to be invoked ad-hoc via enqueue
-    - `env.enqueue_job(target="dotted.path", payload={...}, run_at=None, priority=5, retry_policy=None)` — submit work
+    - `<record id="..." model="ir.job"><field name="name">.../><field name="target">.../><field name="cron">.../>...</record>` in a module's `data/*.xml` — config-defined, multi-instance, or ops-managed jobs
+    - `env.enqueue_job(target="dotted.path", payload={...}, run_at=None, priority=5, retry_policy=None)` — submit ad-hoc work
     - `env.job_progress(percent=37.5, message="upserted 12000/32000")` — progress reporting inside a job target (no-op outside)
     - Lifecycle events: `@api.on_event("ir.job.run.completed")`, `"ir.job.run.failed"`, `"ir.job.run.dead_letter"`, `"ir.job.run.started"` — for cross-module reactivity
-- **CLI** — `ede jobs list`, `ede jobs runs --since=1h`, `ede jobs run <name>`, `ede jobs disable/enable <name>`, `ede jobs retry <run-id>`.
-- **Integration boundary** — the engine PRODUCES the `ir.job.run.*` events + writes status into its own tables. It CONSUMES `notification.send` (loose coupling, via command bus) for stuck-job + dead-letter alerts.
+- **CLI** — `ede jobs list`, `ede jobs runs --since=1h`, `ede jobs run <name>`, `ede jobs disable/enable <name>`, `ede jobs retry <run-id>`. Plus operational entry points: `ede worker` (scheduler + supervisor + event drainer) and `ede jobs-worker` (Celery prefork pool, horizontally scalable). Dev one-liner: `ede serve --with-worker --with-jobs-worker`.
+- **Integration boundary** — the engine PRODUCES the `ir.job.run.*` events + writes status into its own tables. It CONSUMES `notification.send` (loose coupling, via command bus) for stuck-job + dead-letter alerts. It also CONSUMES a Redis broker (mandatory runtime dep) as the Celery transport.
 <!-- /SYNC-BLOCK -->
 
 ## 2. Technical Implementation
@@ -40,29 +45,39 @@ Today EDE has `EventQueue` for short-lived async fan-out (`@api.on_event` handle
 ### Architecture at a glance
 <!-- SYNC-BLOCK: architecture -->
 ```
-[Module]                          [foundation.jobs]
-─────────                         ─────────────────
-@api.scheduled_job("…")    ──►   ir.job  (definition row, boot-reconciled)
-                                       │
-                                       ▼ JobsScheduler thread inside `ede worker`
-                                  detects next_run_at_utc ≤ now
-                                       │
-                                       ▼
-env.enqueue_job(target, …)  ──►  ir.job.queue  (FIFO + priority)
-                                       │
-                                       ▼ JobRunner thread-pool picks
-                                       ▼
-                                  ir.job.run  (PENDING → RUNNING → SUCCESS|FAILED|DEAD_LETTER|INTERRUPTED|TIMED_OUT)
-                                       │
-                                       ├─►  env.job_progress(pct, msg)  writes back into ir.job.run.progress_pct
-                                       │
-                                       ├─►  retry policy (none/fixed/exponential/linear) reschedules on failure
-                                       │    until retry_max_attempts; then DEAD_LETTER + notification.send
-                                       │
-                                       └─►  emit ir.job.run.{started, completed, failed, dead_letter}
+[Module]                          [ede worker]                         [Redis broker]    [ede jobs-worker]
+─────────                         ──────────────                        ──────────────    ─────────────────
+@api.scheduled_job("…")    ──►   ir.job  (definition row)
+   ↘ data/*.xml (records)            │
+   ↘ env.models["ir.job"].create     ▼ JobsScheduler thread, every 10s
+                                  SELECT due ir.job rows
+                                  acquire ir.job.lock                                            (Celery prefork pool)
+                                  INSERT ir.job.run (status=pending)  ──►  send_task(execute_run, run_id)
+                                                                                          │
+                                                                                          ▼ Celery prefork child picks task
+                                                                                       execute_run wrapper:
+                                                                                         1. bootstrap Env (tenant from ir.job.run.tenant_id)
+                                                                                         2. mark run RUNNING, record celery_task_id
+                                                                                         3. set thread-local for env.job_progress
+                                                                                         4. resolve target callable
+env.enqueue_job(target, …)  ──►  INSERT ir.job.run (status=pending)  ──►  send_task ──►  5. call target(env, payload)
+                                                                                         6. capture output / exception
+                                                                                         7. apply OUR retry policy (re-enqueue with eta=)
+                                                                                         8. on exhaustion → DEAD_LETTER + notification.send
+                                                                                         9. write outcome row, release ir.job.lock
 
-Concurrency control: ir.job.lock row per active claim, Postgres SELECT FOR UPDATE SKIP LOCKED.
-Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
+Process topology:
+  ede worker              — scheduler + supervisor + event drainer (one per node)
+  ede jobs-worker         — Celery prefork pool (N replicas, horizontally scalable)
+  Redis (DB 2)            — broker; per-priority queues ede.jobs.p0 .. p9
+  Postgres                — schema + ir.job.lock (SELECT FOR UPDATE SKIP LOCKED scheduler dedup)
+
+Failure isolation:
+  Each task runs in its own Celery prefork child — a segfault or OOM in a target
+  cannot kill siblings, the scheduler, or the event drainer.
+  Worker thread death is caught by the ede worker supervisor → exit 2 → orchestrator restart.
+  Celery child crash → broker redelivers after visibility_timeout; startup reconciler reaps
+  stuck `running` rows whose celery_task_id is no longer known to the broker.
 ```
 <!-- /SYNC-BLOCK -->
 
@@ -70,14 +85,14 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 <!-- SYNC-BLOCK: models -->
 | Model Key | Purpose | Source File |
 |---|---|---|
-| _none yet — all 🔴 Not Started_ | Phase 1 will introduce: `ir.job` (definitions), `ir.job.run` (per-execution log), `ir.job.queue` (ad-hoc FIFO+priority), `ir.job.lock` (concurrency control). Phase 2 adds `ir.job.requires` (dependency graph). | (planned) `src/ede/foundation/jobs/models/...` |
+| _none yet — all 🔴 Not Started_ | Phase 1 will introduce: `ir.job` (definitions, with `source` enum: decorator \| xml \| runtime), `ir.job.run` (per-execution log, with `celery_task_id` for broker correlation), `ir.job.lock` (scheduler-side dedup via `SELECT FOR UPDATE SKIP LOCKED`). The originally-planned `ir.job.queue` is **dropped** — Celery's Redis broker is the queue. Phase 2 adds `ir.job.requires` (dependency graph). | (planned) `src/ede/foundation/jobs/models/...` |
 <!-- /SYNC-BLOCK -->
 
 ### Services & key code paths
 <!-- SYNC-BLOCK: services -->
 | Service / Class | Responsibility | Source File |
 |---|---|---|
-| _none yet_ | Phase 1 planned: `JobsScheduler` (cron-driven dispatcher, `croniter`-backed), `JobRunner` (thread-pool executor with graceful shutdown), `JobRegistry` (in-memory map of decorated callables, boot-reconciled with `ir.job` rows), `RetryPolicy` (four policies: none/fixed/exponential/linear with ±20% jitter), `ProgressReporter` (thread-local-backed `env.job_progress` plumbing). | (planned) |
+| _none yet_ | Phase 1 planned: `JobsScheduler` (cron-driven dispatcher, `croniter`-backed, dispatches via `executor.submit`), `CeleryExecutor` implementing `Executor` protocol (the swap seam — Celery lives only here), `celery_app` (Celery app construction, signal wiring for per-process SQLAlchemy pool, 10 priority queues), `execute_run` task wrapper (Env bootstrap, target call, outcome write, retry, lock release), `JobRegistry` (in-memory map of decorated callables), `BootReconciler` (creates/updates/deactivates `source=decorator` rows; never touches `source=xml` or `source=runtime`), `RetryPolicy` (four policies: none/fixed/exponential/linear with ±20% jitter), `ProgressReporter` (thread-local-backed `env.job_progress` plumbing), `StartupReconciler` (reaps `running` rows with unknown `celery_task_id` after a crash). | (planned) `src/ede/foundation/jobs/services/...` |
 <!-- /SYNC-BLOCK -->
 
 ### Commands
@@ -129,15 +144,25 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 <!-- SYNC-BLOCK: activation -->
 - `ACTIVE_MODULES` entry (in `src/ede/foundation/settings.py`): `jobs`
 - Manifest `depends`: `["base", "presentation"]` (notifications is loose-coupled via command bus, not module-load)
-- External Python dep added to `pyproject.toml`: `croniter>=2.0`
-- The `ede worker` process must be running — the scheduler thread + runner pool live inside it. Production deployments typically run 2+ worker processes for redundancy (Phase 2 adds multi-worker safety).
+- External Python deps added to `pyproject.toml`: `celery>=5.4,<6`, `croniter>=2.0`, `redis>=5.0,<6`
+- Runtime infra requirement: a reachable **Redis server** (mandatory — Celery broker). EDE uses DB 2 for jobs (gateway uses DB 0).
+- Two worker processes must be running in production: `ede worker` (scheduler + supervisor + event drainer — one per node) and `ede jobs-worker` (Celery prefork pool — N replicas, scaled horizontally). Dev convenience: `ede serve --with-worker --with-jobs-worker` spins up everything in one command.
 <!-- /SYNC-BLOCK -->
 
 ### Foundation-level settings (`FoundationSettings` / env vars)
 <!-- SYNC-BLOCK: foundation-settings -->
 | Setting Key | Type | Default | Env Var | Purpose |
 |---|---|---|---|---|
-| _none yet — Phase 1 will introduce_ | | | | Planned: `JOBS_ENABLED` (bool, true), `JOBS_SCHEDULER_TICK_SECONDS` (int, 10), `JOBS_RUNNER_POOL_SIZE` (int, 4), `JOBS_GRACEFUL_TIMEOUT_SECONDS` (int, 30), `JOBS_DEFAULT_RETRY_POLICY` (enum, "exponential"), `JOBS_DEFAULT_TIMEOUT_SECONDS` (int, 600). |
+| `JOBS_ENABLED` | bool | `True` | `JOBS_ENABLED` | Master switch — `False` disables scheduler + executor wiring |
+| `JOBS_SCHEDULER_TICK_SECONDS` | int | `10` | `JOBS_SCHEDULER_TICK_SECONDS` | How often the scheduler polls `ir.job` for due rows |
+| `JOBS_GRACEFUL_TIMEOUT_SECONDS` | int | `30` | `JOBS_GRACEFUL_TIMEOUT_SECONDS` | SIGTERM grace window before in-flight runs marked `interrupted` |
+| `JOBS_DEFAULT_RETRY_POLICY` | enum | `"exponential"` | `JOBS_DEFAULT_RETRY_POLICY` | Default `ir.job.retry_policy` |
+| `JOBS_DEFAULT_TIMEOUT_SECONDS` | int | `600` | `JOBS_DEFAULT_TIMEOUT_SECONDS` | Default `ir.job.timeout_seconds` |
+| `JOBS_CELERY_BROKER_URL` | str | `"redis://localhost:6379/2"` | `JOBS_CELERY_BROKER_URL` | Redis broker URL |
+| `JOBS_CELERY_DEFAULT_QUEUE` | str | `"ede.jobs.default"` | `JOBS_CELERY_DEFAULT_QUEUE` | Fallback queue name |
+| `JOBS_CELERY_PREFORK_CONCURRENCY` | int | `4` | `JOBS_CELERY_PREFORK_CONCURRENCY` | Prefork children per `ede jobs-worker` process |
+| `JOBS_CELERY_TASK_SERIALIZER` | str | `"json"` | `JOBS_CELERY_TASK_SERIALIZER` | Always `json` — pickle is forbidden |
+| `JOBS_CELERY_VISIBILITY_TIMEOUT_SECONDS` | int | `3600` | `JOBS_CELERY_VISIBILITY_TIMEOUT_SECONDS` | Redis visibility timeout — must exceed max `ir.job.timeout_seconds` |
 <!-- /SYNC-BLOCK -->
 
 ### Runtime config (`ir.config` keys)
@@ -158,7 +183,10 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 <!-- SYNC-BLOCK: seed-data -->
 | Data file | What it seeds |
 |---|---|
-| _none yet_ | Phase 1 will seed: `data/jobs_rbac.csv` (three roles — admin / operator / viewer), `data/jobs_menus.xml` (Settings → Technical → Jobs menu tree), `data/notification_templates.xml` (stuck-job + dead-letter templates). No seed `ir.job` rows — each consuming module registers its own jobs via `@api.scheduled_job`. |
+| `data/jobs_rbac.csv` (planned) | Three roles — `jobs.admin` / `jobs.operator` / `jobs.viewer` |
+| `data/jobs_menus.xml` (planned) | Settings → Technical → Jobs menu tree (Dashboard / Definitions / Run History / Dead Letter) |
+| `data/notification_templates.xml` (planned) | `jobs.stuck_job_alert` + `jobs.dead_letter_alert` templates |
+| `data/example_jobs.xml` (planned) | Heartbeat `ir.job` row (`source=xml`, `cron="*/2 * * * *"`) — proves the XML data path and acts as Phase 1's first-adopter |
 <!-- /SYNC-BLOCK -->
 
 ## 4. Developer & User Notes
@@ -167,7 +195,7 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 <!-- SYNC-BLOCK: status-snapshot -->
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
-| Phase 1 | Core Engine + First Adopter | 🔴 Not Started | [phase-1-implementation.md](../roadmap/foundation/jobs/phase-1-implementation.md) |
+| Phase 1 | Core Engine + First Adopter | 🟡 In Progress (Slice 1 ✅ 2026-05-18, Slice 2 ✅ 2026-05-19) | [phase-1-implementation.md](../roadmap/foundation/jobs/phase-1-implementation.md) |
 | Phase 2 | Advanced (Multi-worker + Observability) | 🔴 Not Started | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) |
 | Phase 3 | Adoption Refactor (Retire Ad-Hoc Workers) | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
 <!-- /SYNC-BLOCK -->
@@ -176,7 +204,8 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 <!-- SYNC-BLOCK: built -->
 | Feature | Model Keys | Key Files | Roadmap Source |
 |---|---|---|---|
-| _none yet_ | | | |
+| **Slice 1 — Schema + Celery executor + jobs-worker CLI** (✅ 2026-05-18) | `ir.job` (with `source` enum: decorator \| xml \| runtime) · `ir.job.run` (with `celery_task_id`) · `ir.job.lock` (unique on `lock_key`) | `src/ede/foundation/jobs/{models/job.py, models/job_run.py, models/job_lock.py, services/celery_app.py, services/executor.py, services/task_wrapper.py, services/lock.py, migrations/versions/3438ba0d57d1_jobs_init.py}` · `src/ede/cli/commands/jobs_worker.py` · `src/ede/core/env.py` (`enqueue_job` method) · `src/ede/foundation/settings.py` (10 `JOBS_*` settings) | [phase-1-implementation.md](../roadmap/foundation/jobs/phase-1-implementation.md) WS-J1 + parts of WS-J3 + parts of WS-J5 |
+| **Slice 2 — Cron scheduler + decorators + XML data path + source-aware boot reconciler** (✅ 2026-05-19) | uses existing `ir.job` schema; no new models | `src/ede/foundation/jobs/services/{cron.py, scheduler.py, job_registry.py, reconciler.py}` · `src/ede/core/api.py` (`@api.scheduled_job` / `@api.background_job` re-exports) · `src/ede/core/boot.py` (reconciler hook) · `src/ede/cli/commands/worker.py` (`--no-jobs` flag + scheduler thread) · `src/ede/foundation/jobs/data/test_jobs.xml` (test fixture) | [phase-1-implementation.md](../roadmap/foundation/jobs/phase-1-implementation.md) WS-J2 + WS-J4 + parts of WS-J5 |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
@@ -198,7 +227,7 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
-- Phase 1: introduces 4 new tables (`ir_job`, `ir_job_run`, `ir_job_queue`, `ir_job_lock`) + `croniter` dependency.
+- Phase 1: introduces 3 new tables (`ir_job` with `source` enum, `ir_job_run` with `celery_task_id` column, `ir_job_lock`) + new deps `celery>=5.4`, `croniter>=2.0`, `redis>=5.0` + Redis as a mandatory runtime dep + new `ede jobs-worker` process to deploy alongside `ede worker`.
 - Phase 2: extends `ir_job` with `requires_ids` (Many2Many self-link for dependency graph) + `tenant_concurrency_limit` integer. Adds `/metrics` endpoint.
 - Phase 3: NO schema changes — pure adoption pass. `GatewaySaasWorker`, `SlaWorker`, and notifications-webhook-dispatch are deleted from their source files; their behaviour moves into `@api.scheduled_job` / `@api.background_job` decorators on the existing target functions.
 <!-- /SYNC-BLOCK -->
@@ -221,4 +250,4 @@ Graceful shutdown: JOBS_GRACEFUL_TIMEOUT_SECONDS=30 to drain in-flight runs.
 
 ---
 
-*Last sync: 2026-05-11. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-05-19. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
