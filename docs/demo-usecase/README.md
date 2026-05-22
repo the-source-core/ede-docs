@@ -75,7 +75,7 @@ Demo files run in the dependency order set by `registry.sorted_app_specs()` — 
 | `foundation.jobs` | [modules/foundation-jobs/usecase.md](./modules/foundation-jobs/usecase.md) | (TBD — see usecase doc) | 🔴 Not yet authored |
 | `foundation.dataset` | [modules/foundation-dataset/usecase.md](./modules/foundation-dataset/usecase.md) | demo_blueprints.xml, demo_metrics_seed_data.xml | 🔴 Not yet authored |
 | `foundation.reporting` | [modules/foundation-reporting/usecase.md](./modules/foundation-reporting/usecase.md) | demo_reports.xml, demo_reports_categories.xml | 🔴 Not yet authored |
-| `foundation.document` | [modules/foundation-document/usecase.md](./modules/foundation-document/usecase.md) | demo_document_templates.xml, demo/templates/*.idml | 🔴 Not yet authored |
+| `foundation.document` | [modules/foundation-document/usecase.md](./modules/foundation-document/usecase.md) | demo_document_templates.xml, demo/templates/*.dml | 🔴 Not yet authored |
 | `foundation.dashboard` | [modules/foundation-dashboard/usecase.md](./modules/foundation-dashboard/usecase.md) | demo_kpis.xml, demo_dashboards.xml | 🔴 Not yet authored |
 | `foundation.presentation` | _no demo data — engine_ | _none_ | n/a |
 | `logistics.masters` | [modules/logistics-masters/usecase.md](./modules/logistics-masters/usecase.md) | demo_ports.xml, demo_equipment.xml, demo_commodities.xml | 🔴 Not yet authored |

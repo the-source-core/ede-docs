@@ -2,7 +2,7 @@
 
 **Module:** `ede.foundation.document`
 **App key:** `foundation.document`
-**Demo manifest entries** (planned, Phase 1): `demo/demo_document_templates.xml`, `demo/templates/*.idml`
+**Demo manifest entries** (planned, Phase 1): `demo/demo_document_templates.xml`, `demo/templates/*.dml`
 **Status:** 🔴 Not authored (module itself is 🔴 Not Started — see [roadmap/foundation/document/](../../../../roadmap/foundation/document/))
 
 ---
@@ -34,16 +34,16 @@ The document engine ships **4 demo templates** demonstrating the four load-beari
 | `document.demo_rate_sheet` | `ir.document.template` | `pricing.rate_sheet` | `RateSheet` | _none_ |
 | `document.demo_sales_ack` | `ir.document.template` | `crm.sales.acknowledgement` | `SalesAcknowledgement` | _none_ |
 
-### `demo/templates/*.idml`
+### `demo/templates/*.dml`
 
-Four Intellex DML XML template body files, each authored by hand:
+Four DML XML template body files, each authored by hand:
 
 | File | Notes |
 |---|---|
-| `quote_default.idml` | Full quote with header/footer/parties/line-items table/totals/terms component; 6 named styles inheriting from `base`; system fields `{PageNumber}` + `{TotalPages}`. |
-| `quote_india.idml` | Extends `quote_default`; overrides `terms_block` with GST clause + India footer; otherwise inherits everything. |
-| `rate_sheet.idml` | Single large table with `<rows datasource="pricing.rates">`; multi-page flow expected on demo data. |
-| `sales_acknowledgement.idml` | One page; minimal style cascade + 3 placeholders. |
+| `quote_default.dml` | Full quote with header/footer/parties/line-items table/totals/terms component; 6 named styles inheriting from `base`; system fields `{PageNumber}` + `{TotalPages}`. |
+| `quote_india.dml` | Extends `quote_default`; overrides `terms_block` with GST clause + India footer; otherwise inherits everything. |
+| `rate_sheet.dml` | Single large table with `<rows datasource="pricing.rates">`; multi-page flow expected on demo data. |
+| `sales_acknowledgement.dml` | One page; minimal style cascade + 3 placeholders. |
 
 ## Out of scope
 
@@ -77,9 +77,9 @@ Then:
 1. `foundation.dataset` Phase 1 ships (datasource registry).
 2. `foundation.document` Phase 1 ships (parser + renderer).
 3. Demo templates authored last:
-   - `quote_default.idml` first.
-   - `quote_india.idml` after the default is rendering correctly (since it extends).
-   - `rate_sheet.idml` + `sales_acknowledgement.idml` in parallel.
+   - `quote_default.dml` first.
+   - `quote_india.dml` after the default is rendering correctly (since it extends).
+   - `rate_sheet.dml` + `sales_acknowledgement.dml` in parallel.
 4. Smoke-test with `--with-demo=foundation.document`; visual inspection of all 4 PDFs.
 
 ---
