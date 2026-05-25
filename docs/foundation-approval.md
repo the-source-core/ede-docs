@@ -242,6 +242,7 @@ Implemented in `approval_case.py:12–125`. The `RECALLED` transition (APPROVED 
 | No delegation auto-resolution — manual user-pick only; no OOO / calendar-aware auto-delegation. | 🟡 | [Phase 2](../roadmap/foundation/approval/phase-2-implementation.md) |
 | No conditional steps — `flow.step.def` is sequential/parallel only; no "skip if amount < X" branch logic. | 🟡 | [Phase 2](../roadmap/foundation/approval/phase-2-implementation.md) |
 | No analytics views — no avg-time-to-approve, % escalated, top bottleneck approver dashboards. | 🟢 | [Phase 3](../roadmap/foundation/approval/phase-3-implementation.md) |
+| **Team-Role Routing — `TEAM_ROLE` assignment kind** with sequence-aware `NEXT_IN_SEQUENCE` / `WALK_UP_HIERARCHY` escalation + `subject_model_id` / `subject_team_field_id` flow-template binding + per-step `sla_hours` + `max_escalations` cap. Resolves approver via shared `TeamRoleService` from `foundation.base` Enh 06 (hard prereq). Routes "Alice's team's pricing approver" instead of "any pricing approver". Zero-assignee at case-create triggers immediate escalation. Existing `ROLE` / `USER` kinds stay alive — no forced migration. Sibling of `foundation.workflow` Enh 01. First consumer: `logistics.sales-crm` Enh 09 + eventual Phase 2 · 02 Pricing Approval rewrite. | 🔴 Not Started (drafted 2026-05-25) | [enhancements/01-team-role-routing.md](../roadmap/foundation/approval/enhancements/01-team-role-routing.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -273,4 +274,4 @@ _none_ — no breaking changes shipped yet.
 
 ---
 
-*Last sync: 2026-05-10. To refresh, invoke the syncing-roadmap-to-docs skill.*
+*Last sync: 2026-05-25 (Enhancement 01 Team-Role Routing added to Known Gaps — new `TEAM_ROLE` assignment kind on `ir.approval.flow.step` + `subject_model_id` (→ `ir.model`) and `subject_team_field_id` (→ `ir.model.field`) bindings on `ir.approval.flow.template` + sequence-aware escalation strategies `NEXT_IN_SEQUENCE` / `WALK_UP_HIERARCHY` / `NONE` + per-step `sla_hours` + `max_escalations` cap. Engine reads `record.team_id` via template-bound team-field and calls shared `TeamRoleService.resolve` (from `foundation.base` Enh 06 — hard prereq). Zero-assignee at case-create triggers immediate escalation rather than 24h-wait stall. Existing `ROLE` and `USER` kinds stay alive permanently — backward-compatible; no forced migration of existing pricing.rate flows. Sibling of `foundation.workflow` Enh 01 (same `TeamRoleService` consumer). First user-visible consumer is `logistics.sales-crm` Enh 09; eventual sales-crm Phase 2 · 02 Pricing Approval rewrite builds multi-step chains on top. Prior sync: 2026-05-10 — Phase 1 ✅ Delivered.) To refresh, invoke the syncing-roadmap-to-docs skill.*

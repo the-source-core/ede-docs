@@ -260,7 +260,7 @@ _none_ — no new state machines. The existing RBAC decision flow (ALLOW / DENY 
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| _none — all five phases delivered_ | | |
+| **Active-Unit Propagation + BranchSwitcher** — Phase 1 made active-org first-class; the unit layer was deferred because `ir.org.unit` was polymorphic and not branch-aware enough. With `foundation.base/enhancements/04` introducing a typed `res.organization.unit` and `05` adding user assignment fields, this enhancement closes the runtime gap: `ir.session.active_unit_id` column · JWT claim · `Env.active_unit_id` + `with_active_unit_id()` clone · `$principal.active_unit_id` · `POST /api/auth/switch-unit` endpoint · `switch-organization` cascade-resets the unit to default-or-first-allowed in the new org · `@api.model(unit_scope=...)` decorator + `apply_unit_filter` parallel to `apply_company_filter` · `BranchSwitcher.tsx` rendered before the notification bell (hidden for `allow_multiple_units=False` orgs; static label for one allowed unit; dropdown for multiple) · `SECURITY_REQUIRE_ACTIVE_UNIT` flag · `res.partner` first-adopter proof. **Hard prereqs:** `foundation.base/enhancements/04` + `05`. | 🔴 Not Started (drafted 2026-05-25) | [enhancements/01-active-unit-propagation.md](../roadmap/foundation/security/enhancements/01-active-unit-propagation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -294,4 +294,4 @@ _none_ — no new state machines. The existing RBAC decision flow (ALLOW / DENY 
 
 ---
 
-*Last sync: 2026-05-13. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-05-25 (Enhancement 01 — Active-Unit Propagation + BranchSwitcher stub added to Known Gaps. Mirrors Phase 1's active-org slice for the unit layer now that the typed `res.organization.unit` model is on the foundation.base roadmap. Backend: `ir.session.active_unit_id` column + JWT claim + `Env.active_unit_id` + `with_active_unit_id` clone + `$principal.active_unit_id` + `POST /api/auth/switch-unit` + `switch-organization` cascade-reset + `@api.model(unit_scope=...)` decorator + `apply_unit_filter` parallel to `apply_company_filter` + create-time stamping + admin bypass + `SECURITY_REQUIRE_ACTIVE_UNIT` flag + `res.partner` first-adopter proof. Frontend: `BranchSwitcher.tsx` rendered before the notification bell (hidden for orgs with `base.allow_multiple_units=False`, static label for single allowed unit, dropdown for multiple). Hard prereqs: foundation.base Enhancements 04 + 05. No status flips on the existing 5 delivered phases. Prior sync: 2026-05-13 — Phase 5 Record-Rule Engine ✅ Delivered same-day with Phases 1-4.) To refresh, invoke the `syncing-roadmap-to-docs` skill.*
