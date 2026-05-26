@@ -69,4 +69,25 @@ Manifest:
 
 ---
 
+## Phase 2 use-cases (in addition to Phase 1 above)
+
+The Phase 2 backend lands these new flows on top of the Phase 1 record set.
+The deep behaviour is covered by unit tests; the end-to-end smoke surface
+(under `src/domains/logistics/pricing/tests/e2e/`) proves the wire still
+works.
+
+| Flow | Trigger | Outcome | E2E coverage |
+|---|---|---|---|
+| Recalculate predictive margin | `env.dispatch(pricing.rate.recalculate_predictive_margin, model_id=<rate>)`, or implicitly via post-create / post-amend / line CRUD hooks | `PredictiveMarginService.evaluate(rate_id)` writes back `predictive_margin_amount`, `predictive_margin_percent`, `margin_risk_level`, `risk_reason` on the rate row | `test_pricing_smoke.py::test_recalculate_predictive_margin_command_is_registered` |
+| Publish to branches (ME-006) | `env.dispatch(pricing.rate.publish_to_branches, model_id=<rate>, payload={"branch_ids": [...]})` — requires `pricing.rate:publish_to_branches` permission | `branch_ids` M2M on the rate is set to the supplied org list; unauthorised principals get a PermissionError | `test_pricing_smoke.py::test_publish_to_branches_command_is_registered_and_guarded` |
+| Direct-update branch_ids veto | Any other path that tries to write `branch_ids` (e.g. a generic `ede.update` from the form) | `pre.pricing.rate.update` hook rejects unless the principal holds `pricing.rate:publish_to_branches` — the publish command is the one authorised entry point | Same smoke test (the veto fires via the unauthorised-dispatch path) |
+
+The smoke entry point — runs headed locally:
+
+```
+pytest src/domains/logistics/pricing/tests/e2e/test_pricing_smoke.py --headed -s
+```
+
+---
+
 *Back to [demo-usecase index](../../README.md).*
