@@ -113,6 +113,8 @@ Attributes on `<field>`:
 - `label` — optional: override display label
 - `widget` — optional: hint for frontend widget (e.g. `badge`, `date`, `money`)
 - `optional` — optional: `"show"` | `"hide"` (column visibility toggle)
+- `nolabel="1"` — optional: suppress the label cell, let the widget span full row. `image` / `binary` fields auto-skip the label by default, so this is mainly for explicit cases on other field types.
+- `option-<key>="<value>"` — optional: passes widget-specific options. The parser collects every `option-foo="bar"` into `def.options.foo` on the frontend. Hyphens in the key become underscores (`option-display-mode` → `options.display_mode`).
 
 ### Form View (`<form>`)
 
@@ -183,6 +185,39 @@ def handle_import_config(self, cmd: Command) -> dict:
 ```
 
 Source: `src/frontend/src/workspace/views/specials/FileUploadSpecial.ts`
+
+### Image / Binary Field Widgets
+
+Models declaring `fields.Image(...)` or `fields.Binary(...)` (kernel field types
+`"image"` / `"binary"`) render through dedicated widgets on the form view. Each
+displays a square tile with a pencil (replace) and trash (clear) icon-button
+overlay on hover; binary tiles additionally render a download icon and a
+mimetype-derived file icon (PDF, archive, spreadsheet, code, etc.).
+
+```xml
+<field name="image_avatar" option-size="xxl" nolabel="1"/>
+<field name="contract_pdf"  option-size="lg"/>
+```
+
+**Widget options:**
+
+| Option | Values | Default | Effect |
+|---|---|---|---|
+| `option-size` | `sm` (64px) · `md` (96px) · `lg` (128px) · `xl` (160px) · `xxl` (192px) | `md` | Tile + placeholder-icon size. Same scale for image and binary. |
+
+**Behavior notes:**
+
+- `image` and `binary` fields auto-suppress the label cell (same effect as
+  `nolabel="1"`). Adding `nolabel="1"` to them is redundant but harmless.
+- Uploads POST the raw file body to `/api/document/attachments` with a Bearer
+  JWT and the polymorphic back-reference (`model_key`, `record_uuid`,
+  `field_name`, `usage_kind`) in query params. The endpoint returns the new
+  `ir.attachment.record_uuid` which the widget writes into the form draft via
+  `onChange`. The record must already exist (be saved at least once) before a
+  field upload can happen.
+- Previews are fetched via the authenticated `httpClient.getBlob` and rendered
+  through in-component `URL.createObjectURL(blob)` — `<img src="...">` cannot
+  carry a bearer header, so the blob-URL indirection is mandatory.
 
 ### Kanban View (`<kanban>`)
 

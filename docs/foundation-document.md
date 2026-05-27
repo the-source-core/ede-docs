@@ -434,7 +434,46 @@ Locked templates still render — locking only blocks edits. Phase 3 adds `<requ
 
 ### Things developers commonly get wrong
 <!-- HAND-AUTHORED — preserved across syncs -->
-*Will be populated as the module is built and first consumers integrate.*
+
+- **Chatter `<Attachments/>` tab vs `Attachable` mixin are gated differently.** The
+  chatter Attachments tab renders whenever the form view's `<activity>` block
+  declares `<Attachments/>` — it talks to `GET /api/document/attachments` which
+  accepts any `(model_key, record_uuid)`. There is *no* Attachable check on
+  upload. The Documents-app virtual tree, in contrast, *does* gate visibility:
+  `AttachableRegistry.categories()` filters by
+  `issubclass(cls, Attachable) and _attachment_document_visible == True`. Net
+  effect: a record can collect chatter uploads even when its model isn't formally
+  Attachable — those files just won't surface in the DMS tree. To make them
+  visible, the consumer must inherit `Attachable` and set the three class-level
+  attributes (visible flag + category label + record-label field).
+- **Image / Binary widgets need a saved record.** The polymorphic back-reference
+  (`attached_to_model_key`, `attached_to_record_uuid`, `attached_to_field_name`)
+  is written at INSERT time, so uploads on an unsaved draft cannot be addressed.
+  Both widgets show a "Save first to upload" hint until the record has a
+  `record_uuid`. Save once, then the field's pencil-overlay button becomes
+  active.
+- **Reference-shape on read.** `image_avatar` / any Reference field comes back
+  from the API as `{id, record_uuid, display_name, …}`, not as a bare UUID
+  string. The widgets normalize this via an `extractUuid()` helper before
+  rendering; downstream consumers (e.g. DRE `<image src="storage://{...}"/>`)
+  should do the same.
+
+### Attachable consumers (as of 2026-05-28)
+
+These models inherit the `Attachable` mixin with
+`_attachment_document_visible = True`, so the Documents-app virtual tree shows
+a category for each:
+
+| Model | Category | Record label field |
+|---|---|---|
+| `crm.lead` | Leads | `lead_number` |
+| `crm.inquiry` | Inquiries | `inquiry_number` |
+| `crm.opportunity` | Opportunities | `opportunity_number` |
+| `crm.quote` | Quotations | `quote_number` |
+| `crm.handover` | Handovers | `handover_number` |
+
+Adding a new consumer is two attributes + an MRO line — see
+`src/domains/logistics/sales_crm/models/quote.py` for the canonical example.
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
