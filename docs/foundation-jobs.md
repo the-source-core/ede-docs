@@ -3,7 +3,7 @@
 
 **Module:** `foundation.jobs` (`src/ede/foundation/jobs/`)
 **Roadmap:** [roadmap/foundation/jobs/](../roadmap/foundation/jobs/README.md)
-**Status:** ✅ Phases 1+2 Delivered 2026-05-19. **Phase 1** (Slices 1+2+3+4) — schema + Celery executor + jobs-worker CLI + cron scheduler + decorators + XML data path + boot reconciler + retry policy + dead-letter + `env.job_progress` + Settings → Technical → Jobs admin UI + RBAC seed + heartbeat first-adopter. **Phase 2** (Slices 1+2+3) — lock contention proof + Clock injection + event constants + auto-pool + `ir.job.requires` dependency graph + per-tenant concurrency cap + Prometheus metrics endpoint + stuck-job reaper + dead-letter recovery UI. Phase 3 (Adoption Refactor — retire `gateway.GatewaySaasWorker` / `approval.SlaWorker` / `notifications` webhook dispatch) remains 🔴 Not Started.
+**Status:** ✅ Phases 1+2 Delivered 2026-05-19. **Phase 1** (Slices 1+2+3+4) — schema + Celery executor + jobs-worker CLI + cron scheduler + decorators + XML data path + boot reconciler + retry policy + dead-letter + `env.job_progress` + Settings → Technical → Jobs admin UI + RBAC seed + heartbeat first-adopter. **Phase 2** (Slices 1+2+3) — lock contention proof + Clock injection + event constants + auto-pool + `ir.job.requires` dependency graph + per-tenant concurrency cap + Prometheus metrics endpoint + stuck-job reaper + dead-letter recovery UI. Phase 3 (Adoption Refactor — Approval + Notifications: retire `approval.SlaWorker` / `notifications` webhook dispatch, low-risk non-destructive) remains 🔴 Not Started. Phase 4 (Gateway SaaS Worker Retirement — retire `gateway.GatewaySaasWorker`, split from Phase 3 because provisioning is destructive and gated on the Postgres multi-worker contention proof) remains 🔴 Not Started.
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -197,7 +197,8 @@ Failure isolation:
 |---|---|---|---|
 | Phase 1 | Core Engine + First Adopter | ✅ Delivered 2026-05-19 | [phase-1-implementation.md](../roadmap/foundation/jobs/phase-1-implementation.md) |
 | Phase 2 | Advanced (Multi-worker + Observability) | ✅ Delivered 2026-05-19 (Slices 1+2+3) | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) |
-| Phase 3 | Adoption Refactor (Retire Ad-Hoc Workers) | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
+| Phase 3 | Adoption Refactor (Approval + Notifications) | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
+| Phase 4 | Gateway SaaS Worker Retirement | 🔴 Not Started | [phase-4-implementation.md](../roadmap/foundation/jobs/phase-4-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Built Capabilities
@@ -219,7 +220,8 @@ Failure isolation:
 |---|---|---|
 | Entire engine is not yet built — all 3 phases are 🔴 Not Started | 🔴 Not Started | [roadmap/foundation/jobs/README.md](../roadmap/foundation/jobs/README.md) |
 | **HARD BLOCKS:** `onemaster` Phase 1 cannot start until `foundation.jobs` Phase 1 ships | 🔴 Not Started | [roadmap/onemaster/phase-1-implementation.md §Hard Prerequisites](../roadmap/onemaster/phase-1-implementation.md#hard-prerequisites) |
-| Inline workers in `foundation.gateway` (`GatewaySaasWorker`), `foundation.approval` (`SlaWorker`), and `foundation.notifications` (webhook dispatch) all remain ad-hoc until Phase 3 of this module | 🟠 High gap | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
+| Inline workers in `foundation.approval` (`SlaWorker`) and `foundation.notifications` (webhook dispatch) remain ad-hoc until Phase 3 of this module | 🟠 High gap | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
+| Inline worker in `foundation.gateway` (`GatewaySaasWorker`) remains ad-hoc until Phase 4 (destructive provisioning — gated on the Postgres multi-worker contention proof) | 🟠 High gap | [phase-4-implementation.md](../roadmap/foundation/jobs/phase-4-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -234,7 +236,8 @@ Failure isolation:
 <!-- SYNC-BLOCK: migration -->
 - Phase 1: introduces 3 new tables (`ir_job` with `source` enum, `ir_job_run` with `celery_task_id` column, `ir_job_lock`) + new deps `celery>=5.4`, `croniter>=2.0`, `redis>=5.0` + Redis as a mandatory runtime dep + new `ede jobs-worker` process to deploy alongside `ede worker`.
 - Phase 2: extends `ir_job` with `requires_ids` (Many2Many self-link for dependency graph) + `tenant_concurrency_limit` integer. Adds `/metrics` endpoint.
-- Phase 3: NO schema changes — pure adoption pass. `GatewaySaasWorker`, `SlaWorker`, and notifications-webhook-dispatch are deleted from their source files; their behaviour moves into `@api.scheduled_job` / `@api.background_job` decorators on the existing target functions.
+- Phase 3: NO schema changes — pure adoption pass. `SlaWorker` and notifications-webhook-dispatch are deleted from their source files; their behaviour moves into `@api.scheduled_job` / `@api.background_job` decorators on the existing target functions.
+- Phase 4: NO schema changes — `GatewaySaasWorker` is deleted from its source file; its behaviour moves into an `@api.scheduled_job` decorator. Gated on the Postgres multi-worker contention proof (destructive provisioning).
 <!-- /SYNC-BLOCK -->
 
 ### Permissions / RBAC
@@ -247,7 +250,7 @@ Failure isolation:
 ### Related modules
 <!-- SYNC-BLOCK: related -->
 - [OneMaster](../src/domains/onemaster/docs/onemaster.md) — HARD prereq consumer for Phase 1 (provider sync orchestrator, snapshot builder, webhook dispatcher all consume the engine)
-- [Foundation Gateway](../roadmap/foundation/gateway/) — Phase 3 of jobs retires `GatewaySaasWorker`
+- [Foundation Gateway](../roadmap/foundation/gateway/) — Phase 4 of jobs retires `GatewaySaasWorker`
 - [Foundation Approval](./foundation-approval.md) — Phase 3 of jobs retires `SlaWorker`
 - [Foundation Notifications](./foundation-notifications.md) — Phase 3 of jobs retires webhook dispatch (when notifications Phase 2 lands)
 - [Cross-module roadmap tracker](../roadmap/roadmap-tracker.md)
@@ -255,4 +258,4 @@ Failure isolation:
 
 ---
 
-*Last sync: 2026-05-19 (Phase 2 ✅ Delivered — Slice 3 closes Phase 2). To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-05-28 (Phase 3 split — gateway retirement moved to new Phase 4; Phase 3 is now Approval + Notifications only). To refresh, invoke the `syncing-roadmap-to-docs` skill.*
