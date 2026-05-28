@@ -40,6 +40,7 @@ These reflect the *current built state* of each module — what is shipped, what
 Before adding fields to or patching views on a model your module doesn't own:
 
 - **[Model & View Extension SDK](foundation-base-extensions.md)** — `@api.extend_model("target.key")` decorator for cross-module field additions + `<extend ref="<prefix>.<view_id>">` for view inheritance. Shipped in `foundation.base` Phase 2 on 2026-05-18. Includes soft-FK degradation so test fixtures that register only the base model continue to pass. **Required for** consuming modules like `foundation.assistant`, `foundation.l10n`, `foundation.marketplace`, future country / tenant packs.
+- **[Module Integration Pattern](module-integration-pattern.md)** — the *pattern* layered on the SDK: how a producer module (e.g. `logistics.sales_crm`) and its downstream consumers (`logistics.booking`, future `logistics.shipments`) integrate through a boundary object (the `crm.handover` Y-fork) **without a middle integration module**. Producer owns the contract + neutral routing slot; each consumer owns its own FK + command + button; back-channel is events, never a reverse import. Covers the three invariants that keep it acyclic and when a bridge module *is* warranted.
 - **[Platform Implementation Rules](../roadmap/platform/00-execution-rules.md)** — Rule 1's "Cross-App Field & View Additions" sub-section formalises the SDK as non-negotiable for cross-module schema changes. Editing a base module's source to add a downstream module's field is rejected at code-review time.
 
 ### Foundation engines
