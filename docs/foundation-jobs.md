@@ -3,7 +3,7 @@
 
 **Module:** `foundation.jobs` (`src/ede/foundation/jobs/`)
 **Roadmap:** [roadmap/foundation/jobs/](../roadmap/foundation/jobs/README.md)
-**Status:** ✅ Phases 1+2 Delivered 2026-05-19. **Phase 1** (Slices 1+2+3+4) — schema + Celery executor + jobs-worker CLI + cron scheduler + decorators + XML data path + boot reconciler + retry policy + dead-letter + `env.job_progress` + Settings → Technical → Jobs admin UI + RBAC seed + heartbeat first-adopter. **Phase 2** (Slices 1+2+3) — lock contention proof + Clock injection + event constants + auto-pool + `ir.job.requires` dependency graph + per-tenant concurrency cap + Prometheus metrics endpoint + stuck-job reaper + dead-letter recovery UI. Phase 3 (Adoption Refactor — Approval + Notifications: retire `approval.SlaWorker` / `notifications` webhook dispatch, low-risk non-destructive) remains 🔴 Not Started. Phase 4 (Gateway SaaS Worker Retirement — retire `gateway.GatewaySaasWorker`, split from Phase 3 because provisioning is destructive and gated on the Postgres multi-worker contention proof) remains 🔴 Not Started.
+**Status:** ✅ Phases 1+2 Delivered 2026-05-19. **Phase 1** (Slices 1+2+3+4) — schema + Celery executor + jobs-worker CLI + cron scheduler + decorators + XML data path + boot reconciler + retry policy + dead-letter + `env.job_progress` + Settings → Technical → Jobs admin UI + RBAC seed + heartbeat first-adopter. **Phase 2** (Slices 1+2+3) — lock contention proof + Clock injection + event constants + auto-pool + `ir.job.requires` dependency graph + per-tenant concurrency cap + Prometheus metrics endpoint + stuck-job reaper + dead-letter recovery UI. **Phase 3 ✅ Delivered 2026-05-28** (Adoption Refactor — Approval + Notifications) — `approval.SlaWorker` retired onto the engine as the `approval.sla_tick` `@api.scheduled_job` (the old `@api.on_event("ede.worker.tick")` handler was dead code: the tick event was never emitted, so this both relocated the runtime AND activated SLA checking for the first time); WS-J21 (notifications webhook dispatch) deferred — notifications has no webhook surface yet. Phase 4 (Gateway SaaS Worker Retirement — retire `gateway.GatewaySaasWorker`, split from Phase 3 because provisioning is destructive and gated on the Postgres multi-worker contention proof) remains 🔴 Not Started.
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -197,7 +197,7 @@ Failure isolation:
 |---|---|---|---|
 | Phase 1 | Core Engine + First Adopter | ✅ Delivered 2026-05-19 | [phase-1-implementation.md](../roadmap/foundation/jobs/phase-1-implementation.md) |
 | Phase 2 | Advanced (Multi-worker + Observability) | ✅ Delivered 2026-05-19 (Slices 1+2+3) | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) |
-| Phase 3 | Adoption Refactor (Approval + Notifications) | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
+| Phase 3 | Adoption Refactor (Approval + Notifications) | ✅ Delivered 2026-05-28 (WS-J20 + J22 + J23; WS-J21 deferred) | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
 | Phase 4 | Gateway SaaS Worker Retirement | 🔴 Not Started | [phase-4-implementation.md](../roadmap/foundation/jobs/phase-4-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
@@ -212,16 +212,16 @@ Failure isolation:
 | **Phase 2 Slice 1 — Lock contention proof + Clock injection + event constants** (✅ 2026-05-19) | uses existing `ir.job.lock` unique constraint; no schema changes | `src/ede/foundation/jobs/services/{clock.py (Clock Protocol + SystemClock + FakeClock), events.py (4 event-name constants + payload contract)}` · `src/ede/foundation/jobs/services/scheduler.py` (Clock kwarg) · `src/ede/foundation/jobs/services/task_wrapper.py` (3 event-name string literals swapped for constants) | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) WS-J11 + WS-J18 + WS-J19 |
 | **Phase 2 Slice 2 — Auto-pool + dependency graph + tenant concurrency** (✅ 2026-05-19) | `ir.job.requires_ids` (self-M2M; kernel extended to support self-references — `column1`/`column2` derived from field-name slug) + `ir.job.tenant_concurrency_limit` (Integer, default 0=unlimited) | `src/ede/foundation/jobs/services/pool.py` (`compute_prefork_concurrency(settings)` — `multiprocessing.cpu_count()` clamped to [1,32]) · `src/ede/foundation/settings.py` (`JOBS_RUNNER_POOL_AUTOSIZE: bool = False`) · `src/ede/cli/commands/jobs_worker.py` (auto-pool wire-up in concurrency fallback) · `src/ede/foundation/jobs/models/job.py` (2 new fields) · `src/ede/foundation/jobs/migrations/versions/2c432dc92acb_phase2_slice2_dependency_graph_and_.py` · `src/ede/foundation/jobs/services/scheduler.py` (dep-graph gate + tenant-concurrency gate in `tick()` between lock-acquire and run-create, both with `release_lock` on skip) · kernel: `src/ede/core/kernel/schema.py` + `src/ede/core/orm/relational.py` (self-M2M support) | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) WS-J12 + WS-J13 + WS-J14 |
 | **Phase 2 Slice 3 — Prometheus metrics + stuck-job reaper + dead-letter recovery UI (Phase 2 ✅)** (✅ 2026-05-19) | uses existing `ir.job` / `ir.job.run` schema; no new models | `src/ede/foundation/jobs/services/{metrics.py (Prometheus exposition — counters + 3 gauges off ir.job.run state), reaper.py (reap_stuck_runs detects runs past 2×timeout_seconds, marks interrupted)}` · `src/ede/foundation/settings.py` (`JOBS_REAPER_TICK_SECONDS=60`, `JOBS_REAPER_TIMEOUT_MULTIPLIER=2`) · `src/ede/foundation/jobs/api/jobs_routes.py` (3 new endpoints: `GET /metrics` Prometheus text/plain via `request_type="http"` envelope + `POST /runs/{run_id}/retry-dead-letter` single + `POST /runs/retry-dead-letter-bulk` filtered by job_id+since) · `src/ede/cli/commands/worker.py` (reaper thread alongside scheduler, daemon=True, ticks every JOBS_REAPER_TICK_SECONDS) · `pyproject.toml` (`prometheus-client>=0.20,<1`) | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) WS-J15 + WS-J16 + WS-J17 |
+| **Phase 3 — Approval SLA escalation adopted onto the engine (WS-J20)** (✅ 2026-05-28) | uses existing `ir.approval.task` / `ir.job` schema; the `approval.sla_tick` `ir.job` row is created by the boot reconciler (source=decorator) | `src/ede/foundation/approval/services/sla_worker.py` (`@api.scheduled_job(name="approval.sla_tick", cron="* * * * *", retry_policy="fixed")` on `sla_tick(env, payload)`; `_check_sla_breaches` kept internal, returns overdue count; the dead `@api.on_event("ede.worker.tick")` handler removed) · `src/ede/foundation/approval/__manifest__.py` (`depends` += `foundation.jobs`) · `src/ede/foundation/settings.py` (`ACTIVE_MODULES` reordered — `jobs` before `approval`) · `src/tests/foundation/approval/test_sla_escalation.py` (registration + behaviour tests) | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) WS-J20 + WS-J22 + WS-J23 |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| Entire engine is not yet built — all 3 phases are 🔴 Not Started | 🔴 Not Started | [roadmap/foundation/jobs/README.md](../roadmap/foundation/jobs/README.md) |
-| **HARD BLOCKS:** `onemaster` Phase 1 cannot start until `foundation.jobs` Phase 1 ships | 🔴 Not Started | [roadmap/onemaster/phase-1-implementation.md §Hard Prerequisites](../roadmap/onemaster/phase-1-implementation.md#hard-prerequisites) |
-| Inline workers in `foundation.approval` (`SlaWorker`) and `foundation.notifications` (webhook dispatch) remain ad-hoc until Phase 3 of this module | 🟠 High gap | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
+| `foundation.notifications` webhook dispatch not yet on the engine — deferred (WS-J21) until notifications Phase 2 ships its dispatch redesign, then migrates to `@api.background_job` | 🟢 Low backlog | [phase-3-implementation.md](../roadmap/foundation/jobs/phase-3-implementation.md) |
 | Inline worker in `foundation.gateway` (`GatewaySaasWorker`) remains ad-hoc until Phase 4 (destructive provisioning — gated on the Postgres multi-worker contention proof) | 🟠 High gap | [phase-4-implementation.md](../roadmap/foundation/jobs/phase-4-implementation.md) |
+| Postgres multi-worker contention test (exact-once under 2+ `ede worker` processes) still owed from the Phase 2 deliverable checklist — HARD GATE for Phase 4 | 🟠 High gap | [phase-2-implementation.md](../roadmap/foundation/jobs/phase-2-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -236,7 +236,7 @@ Failure isolation:
 <!-- SYNC-BLOCK: migration -->
 - Phase 1: introduces 3 new tables (`ir_job` with `source` enum, `ir_job_run` with `celery_task_id` column, `ir_job_lock`) + new deps `celery>=5.4`, `croniter>=2.0`, `redis>=5.0` + Redis as a mandatory runtime dep + new `ede jobs-worker` process to deploy alongside `ede worker`.
 - Phase 2: extends `ir_job` with `requires_ids` (Many2Many self-link for dependency graph) + `tenant_concurrency_limit` integer. Adds `/metrics` endpoint.
-- Phase 3: NO schema changes — pure adoption pass. `SlaWorker` and notifications-webhook-dispatch are deleted from their source files; their behaviour moves into `@api.scheduled_job` / `@api.background_job` decorators on the existing target functions.
+- Phase 3 ✅: NO schema changes — pure adoption pass. The approval SLA `@api.on_event("ede.worker.tick")` handler (dead — tick never emitted) became the `approval.sla_tick` `@api.scheduled_job` in the same `sla_worker.py` file (`_check_sla_breaches` kept as internal logic). `foundation.jobs` added to `approval` `depends`; `ACTIVE_MODULES` reordered (`jobs` before `approval`). Notifications-webhook-dispatch (WS-J21) deferred — no webhook surface yet.
 - Phase 4: NO schema changes — `GatewaySaasWorker` is deleted from its source file; its behaviour moves into an `@api.scheduled_job` decorator. Gated on the Postgres multi-worker contention proof (destructive provisioning).
 <!-- /SYNC-BLOCK -->
 
@@ -251,11 +251,11 @@ Failure isolation:
 <!-- SYNC-BLOCK: related -->
 - [OneMaster](../src/domains/onemaster/docs/onemaster.md) — HARD prereq consumer for Phase 1 (provider sync orchestrator, snapshot builder, webhook dispatcher all consume the engine)
 - [Foundation Gateway](../roadmap/foundation/gateway/) — Phase 4 of jobs retires `GatewaySaasWorker`
-- [Foundation Approval](./foundation-approval.md) — Phase 3 of jobs retires `SlaWorker`
+- [Foundation Approval](./foundation-approval.md) — Phase 3 of jobs retired `SlaWorker` → `approval.sla_tick` `@api.scheduled_job` ✅
 - [Foundation Notifications](./foundation-notifications.md) — Phase 3 of jobs retires webhook dispatch (when notifications Phase 2 lands)
 - [Cross-module roadmap tracker](../roadmap/roadmap-tracker.md)
 <!-- /SYNC-BLOCK -->
 
 ---
 
-*Last sync: 2026-05-28 (Phase 3 split — gateway retirement moved to new Phase 4; Phase 3 is now Approval + Notifications only). To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-05-28 (Phase 3 ✅ Delivered — approval SLA escalation adopted onto foundation.jobs as the `approval.sla_tick` scheduled job; WS-J21 notifications webhook deferred). To refresh, invoke the `syncing-roadmap-to-docs` skill.*
