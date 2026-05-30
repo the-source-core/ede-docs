@@ -23,7 +23,7 @@ Task execution is delegated to **Celery (Redis broker)** under a stable `Executo
 
 ### Why it exists
 <!-- SYNC-BLOCK: why -->
-Today EDE has `EventQueue` for short-lived async fan-out (`@api.on_event` handlers) and the `ede worker` CLI to drain it. That works for "send a notification when an approval is decided" but does NOT cover: scheduled cron-style work, long-running tasks needing progress reporting, retry/backoff/dead-letter orchestration for non-event tasks, or operational visibility into "what background jobs ran today and which failed". As a result, multiple modules have rolled their own inline workers — `GatewaySaasWorker` provisions tenants, `SlaWorker` escalates approval tasks, notifications dispatches webhooks. OneMaster Phase 1 would have been the fourth (provider sync orchestrator + snapshot builder + webhook dispatcher). `foundation.jobs` ends that pattern: every module declares jobs through one decorator API and consumes one admin UI.
+Today EDE has `EventQueue` for short-lived async fan-out (`@api.on_event` handlers) and the `ede worker` CLI to drain it. That works for "send a notification when an approval is decided" but does NOT cover: scheduled cron-style work, long-running tasks needing progress reporting, retry/backoff/dead-letter orchestration for non-event tasks, or operational visibility into "what background jobs ran today and which failed". As a result, multiple modules have rolled their own inline workers — `GatewaySaasWorker` provisions tenants, `SlaWorker` escalates approval tasks, notifications dispatches webhooks. The scheduled pull/refresh worker of `foundation.servora_sync` (the EDE-side consumer of the external **Servora** reference-data platform) is the next adopter — it declares a `@api.scheduled_job(...)` pull worker instead of an inline thread. `foundation.jobs` ends that pattern: every module declares jobs through one decorator API and consumes one admin UI.
 <!-- /SYNC-BLOCK -->
 
 ### How a user / consumer interacts with it
@@ -249,7 +249,7 @@ Failure isolation:
 
 ### Related modules
 <!-- SYNC-BLOCK: related -->
-- [OneMaster](../src/domains/onemaster/docs/onemaster.md) — HARD prereq consumer for Phase 1 (provider sync orchestrator, snapshot builder, webhook dispatcher all consume the engine)
+- [Servora Integration (`foundation.servora_sync`)](../src/domains/onemaster/docs/onemaster.md) — consumer of the scheduler: its scheduled pull/refresh worker (Phase 1 of the Servora integration) runs as a `@api.scheduled_job`. (The in-house OneMaster hub that was originally the hard-prereq consumer here is retired; Servora itself runs its own external Prefect scheduler — only the EDE-side pull worker uses `foundation.jobs`.)
 - [Foundation Gateway](../roadmap/foundation/gateway/) — Phase 4 of jobs retires `GatewaySaasWorker`
 - [Foundation Approval](./foundation-approval.md) — Phase 3 of jobs retired `SlaWorker` → `approval.sla_tick` `@api.scheduled_job` ✅
 - [Foundation Notifications](./foundation-notifications.md) — Phase 3 of jobs retires webhook dispatch (when notifications Phase 2 lands)
