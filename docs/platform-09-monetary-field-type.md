@@ -3,7 +3,7 @@
 
 **Module:** `ede.core.kernel` (`fields.Monetary`) + `ede.foundation.base` (`res.currency` formatting) + `ede.foundation.presentation` (widget resolution)
 **Roadmap:** [roadmap/platform/09-monetary-field-type.md](../roadmap/platform/09-monetary-field-type.md)
-**Status:** 🟡 In Progress — kernel + currency + frontend shipped & verified; pending a first-adopter webclient view for ✅.
+**Status:** ✅ Delivered 2026-05-31 — kernel + currency + frontend shipped & verified; first adopters live in logistics (pricing / sales-crm / booking, 31 money fields) rendering per-currency across all 13 displaying views.
 **Layer:** Platform-wide
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -141,7 +141,7 @@ _none_
 <!-- SYNC-BLOCK: status-snapshot -->
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
-| — | Monetary Field Type | 🟡 In Progress | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
+| — | Monetary Field Type | ✅ Delivered 2026-05-31 | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Built Capabilities
@@ -153,13 +153,14 @@ _none_
 | `fields.Monetary` kernel field (decimal-backed, auto `monetary` widget) | — | [fields.py](../src/ede/core/kernel/fields.py), [model.py](../src/ede/core/kernel/model.py) (`_validate_monetary_currency_fields`) | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 | `res.currency` formatting attributes + `display_data_fields` chip plumbing | `res.currency` | [currency.py](../src/ede/foundation/base/models/currency.py), [decorators.py](../src/ede/core/kernel/decorators.py), migration `4d016112d761` | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 | Frontend default-widget resolution + currency-driven formatting | — | [registry.ts](../src/frontend/src/workspace/views/fields/registry.ts), [MonetaryField.tsx](../src/frontend/src/workspace/views/fields/MonetaryField.tsx) | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
+| First adopters — 31 money fields across logistics pricing / sales-crm / booking | `pricing.rate`, `pricing.rate.charge.slab`, `pricing.spot.*`, `crm.quote.version`, `crm.quote.line`, `crm.handover`, `crm.opportunity`, `crm.lead`, `logistics.booking`, `logistics.booking.charge` | pricing Enh 01 · sales-crm Enh 12 · booking Enh 04 | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| No first-adopter model ships a `fields.Monetary` in a reachable webclient view yet (blocks ✅) | 🟡 | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
+| _none_ — first adopters live; per-view currency-in-readset audit clean across all 13 logistics views | — | — |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
