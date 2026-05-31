@@ -142,10 +142,12 @@ nav:
             -   Connectors: features/connectors.md
             -   Customization (Properties): features/customization.md
             -   Datasets & Metrics: features/dataset.md
+            -   Documents & Reports: features/document.md
             -   Email (Outbound Queue): features/email.md
             -   Model & View Extension SDK: features/extension-sdk.md
             -   Multi-Tenant Gateway: features/gateway.md
             -   Internationalization: features/i18n.md
+            -   Background Jobs: features/jobs.md
             -   Notifications: features/notifications.md
             -   Presentation (View DSL): features/presentation.md
             -   QA Automation: features/qa-automation.md
