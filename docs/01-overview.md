@@ -2,7 +2,7 @@
 
 ## What Is EDE?
 
-**EDE (Enterprise Domain Enabler)** is a Domain-Driven Design (DDD) platform kernel for Python.
+**EDE (Enterprise Digital Engine)** is a Domain-Driven Design (DDD) platform kernel for Python.
 Its core promise: protect business logic from infrastructure churn. Databases, message brokers,
 and HTTP frameworks are replaceable; domain truth is not.
 

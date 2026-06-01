@@ -1,6 +1,6 @@
 # EDE Framework
 
-**Enterprise Domain Enabler** — a Domain-Driven Design **ERP platform kernel** for Python enterprise systems. Build pluggable business domains (Logistics, CRM, HR, Finance, Procurement…) on top of one shared platform: cross-cutting masters, command/event bus, multi-tenant persistence, declarative views, lifecycle hooks, RBAC, and a React web client — all wired together by an explicit module registry, never by auto-discovery.
+**Enterprise Digital Engine** — a Domain-Driven Design **ERP platform kernel** for Python enterprise systems. Build pluggable business domains (Logistics, CRM, HR, Finance, Procurement…) on top of one shared platform: cross-cutting masters, command/event bus, multi-tenant persistence, declarative views, lifecycle hooks, RBAC, and a React web client — all wired together by an explicit module registry, never by auto-discovery.
 
 ---
 

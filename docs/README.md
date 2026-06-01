@@ -1,6 +1,6 @@
 # EDE Framework — Documentation Index
 
-**EDE (Enterprise Domain Enabler)** — a Domain-Driven Design platform kernel for Python.
+**EDE (Enterprise Digital Engine)** — a Domain-Driven Design platform kernel for Python.
 
 This documentation covers the entire backend codebase: architecture, conventions,
 implementation details, and developer guides.
