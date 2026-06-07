@@ -161,5 +161,5 @@ Use any subset — a read-only record might only show `<MessageConversation/>` a
 -   Bridges & helpers: `src/ede/foundation/communication/services/{notifications_bridge,email_bridge,auto_follow,mention_parser}.py`
 -   HTTP controller: `src/ede/foundation/communication/api/chatter_controller.py`
 -   DSL parser (`<activity>` element): `src/ede/core/services/presentation/dsl/parser.py`
--   React components: `src/frontend/src/workspace/views/chatter/`
+-   React components: planned in `src/frontend/src/managers/FormAside.tsx` (chatter / activity / followers / files tabs — tracked under [Communication Enhancement 01](../../roadmap/foundation/communication/enhancements/01-form-chatter-frontend2.md) — 🔴 post-legacy-cutover)
 -   Activity-type seed: `src/ede/foundation/communication/data/activity_type_seed.xml`

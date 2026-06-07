@@ -121,7 +121,7 @@ You **don't need this** for normal work — `ede serve` already serves a built R
 ```bash
 cd src/frontend
 bun install
-bun run dev          # http://localhost:5173 with hot reload, proxies API to :8000
+bun run dev          # http://localhost:5190 with hot reload, proxies API to :8002
 ```
 
 Edits to `.tsx` / `.ts` / `.css` files hot-reload. When done, build a fresh bundle:

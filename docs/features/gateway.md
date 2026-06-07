@@ -63,14 +63,14 @@ env.models["gateway.tenant"].browse(tenant.id).write({"status": "suspended"})
 
 The next route publish drops Traefik's rule for that tenant; traffic returns 503 until you flip back to `ready`.
 
-### Front-end build variant
+### Front-end build
 
 ```bash
 cd src/frontend
-bun run build:gateway
+bun run build
 ```
 
-Outputs to the same `web-client/` asset directory but includes the SaaS-manager routes. Use this build when running `ede serve gateway`.
+Outputs to the `src/ede/foundation/presentation/assets/web-client/` directory; the gateway admin app and the main workspace share the same SPA. Use this build before running `ede serve gateway`.
 
 ## Configuration
 
@@ -87,6 +87,6 @@ See `ede.conf.gateway.example` for a complete annotated config.
 
 -   Source: `src/ede/foundation/gateway/`
 -   `MigrationRunner`: `src/ede/core/services/migration/runner.py`
--   Admin SPA routes: `src/frontend/src/gateway/`
+-   Admin SPA: shares the same `src/frontend/` workspace client (no separate gateway routes; admin functionality reachable via the standard menu surface).
 -   Docker: `docker-compose.gateway.yml` includes Traefik v3.6 + Redis + Postgres + the gateway app.
 -   Architecture: [Tenancy](../09-tenancy.md) for per-tenant DB isolation primitives.

@@ -145,6 +145,6 @@ The validator hook coerces every incoming value to the declared type and, for `r
 -   Registry sync: `src/ede/foundation/base/services/registry_sync.py`
 -   Validator hook: `src/ede/foundation/base/services/property_validator.py`
 -   DSL parser branch: `src/ede/core/services/presentation/dsl/parser.py` (`DynamicProperties` element)
--   Frontend widget: `src/frontend/src/workspace/views/PropertiesEditor.tsx`
+-   Frontend widget: planned in `src/frontend/src/managers/PropertiesEditor.tsx` (DynamicProperties — placeholder slot is wired in `FormSheet.tsx`)
 -   Admin menus: `src/ede/foundation/base/data/customization_menus.xml`
 -   RBAC seed: `src/ede/foundation/base/data/ir.rbac.permission.csv`

@@ -173,6 +173,6 @@ Requires `foundation.ai` settings to be configured — at minimum `AI_ENABLED=tr
 -   Built-in tools: `src/ede/foundation/assistant/tools/assistant_tools.py`
 -   HTTP routes: `src/ede/foundation/assistant/api/assistant_routes.py` (prefix `/api/assistant`)
 -   Response schema: `src/ede/foundation/assistant/schemas.py`
--   Frontend panel: `src/frontend/src/workspace/views/assistant/`
+-   Frontend panel: `src/frontend/src/managers/AssistantPanel.tsx` + `src/frontend/src/react/providers/AssistantPanelProvider.tsx` + `src/frontend/src/core/services/AssistantService.ts`
 -   Org form extension: `src/ede/foundation/assistant/views/res_organization_ai_extension.xml`
 -   Smoke-test gate: `src/ede/foundation/assistant/SMOKE_TEST.md`
