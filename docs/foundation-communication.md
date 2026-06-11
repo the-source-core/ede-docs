@@ -285,7 +285,11 @@ activity.log status:
 
 ### Things developers commonly get wrong
 <!-- HAND-AUTHORED — preserved across syncs -->
-- _Populated as integration learnings emerge once Phase 1 ships._
+- **Mention emails don't send until delivery is configured.** Two independent switches (Enh 03 `mention_alerts.py`):
+  - **Internal users** (mentioned partner linked to a `res.user`) get web + in-app alerts out of the box. EMAIL fires only when the org has an `ir.notification.setting` row with `event_type = "chatter.mention"`, `is_enabled = true`, and `"email"` in `channels` — managed under **Settings → Notification Settings**. The `chatter.mention` templates (email/web/in_app) ship in `foundation.communication/data/notification_templates.xml`.
+  - **External partners** (no linked user) get a `mail.outbox` row stamped with the mention author's `default_organization_id` (fallback: first organization). Delivery requires that org to have an **active default email connector** (`ir.connector`, category `email`) — without one the outbox worker raises `EmailRouterError` and rows stay queued.
+- **Backend stores naive-UTC datetimes — never stamp aware `datetime.now(timezone.utc)` into a `*_utc` column.** The pg driver converts aware datetimes to the connection's LOCAL time before storing (a +5:30 drift for IST connections that made timeline attachments sort in the future). Always `.replace(tzinfo=None)`. The frontend's `fmtDateTime` treats offset-less strings as UTC by convention.
+- **Event handlers run in the worker with no principal.** A nested `ede.create` (e.g. posting a timeline message from a bridge) gets denied by RBAC ("no authenticated principal") unless the handler escalates via `env.sudo()`. The sudo principal `__system__` is not a `res.user` — never write it into an author/owner FK.
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
