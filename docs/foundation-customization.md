@@ -166,6 +166,7 @@ _none — Phase 1 has no state-machine fields._
 |---|---|---|---|
 | Phase 1 | Persistent Registry + Properties + UI | ✅ Delivered (2026-05-10 — first adopter `pricing.rate`; browser walkthrough confirmed) | [roadmap](../roadmap/foundation/customization/phase-1/README.md) |
 | Phase 2 | JSONB-Path Search Domains | 🔴 Not Started | [roadmap](../roadmap/foundation/customization/phase-2/README.md) |
+| Phase 4 | Anchored Property Fields · DB-Backed Views · AI-Assisted Customization | 🟡 In Progress — A 🟡 substrate (2026-06-11) · B ✅ Delivered (2026-06-12, walkthrough confirmed) · C 🔴 | [roadmap](../roadmap/foundation/customization/phase-4/README.md) |
 | Phase 3 | Manual Fields via Runtime DDL (deferred) | 🔴 Not Started | _no phase folder yet — deferred until customer demand_ |
 <!-- /SYNC-BLOCK -->
 

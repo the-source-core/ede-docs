@@ -46,6 +46,12 @@ Every demo user belongs to `base.demo_org_acme_mumbai`. Passwords are `demo` (wi
 
 Plus one address row per partner under `res.partner.address` (billing / pickup / delivery as needed) so logistics pricing + sales-CRM demo records can `ref=` them.
 
+### `demo/demo_application_view.xml` (customization Phase 4B)
+
+| External ID | Model | Notes |
+|---|---|---|
+| `base.demo_appview_org_form_internal_notes` | `ir.application.view` | `mode=extension`, `owner=user`, `parent_id=ref(base.view_res_organization_form_view)` — adds an "Internal Notes" section after "General" on the organization form, proving DB-backed composition over the file-synced primary. Full scenario: [`foundation-customization/usecase.md`](../foundation-customization/usecase.md). |
+
 ## Out of scope
 
 - Country / language / UOM / currency seeds — those are **production** masters and stay in `data/*.csv`. They are not demo data.
