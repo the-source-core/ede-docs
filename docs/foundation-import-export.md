@@ -3,7 +3,7 @@
 
 **Module:** `foundation.import_export` (`src/ede/foundation/import_export/`)
 **Roadmap:** [roadmap/foundation/import_export/](../roadmap/foundation/import_export/README.md)
-**Status:** 🔴 Not Started — drafted 2026-05-27
+**Status:** 🟡 In Progress — Phase 1 substantially delivered 2026-06-15 (engine · pipeline · validators · `@io_template` decorator · AI-assisted mapping + per-error fix · frontend toolbar Import + Review & Fix · first adopters `pricing.rate` + `res.partner`). Pending demo data + formal acceptance before ✅. Drafted 2026-05-27.
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -234,7 +234,7 @@ ir.io.run.direction = 'export' (P2):
 <!-- SYNC-BLOCK: status-snapshot -->
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
-| Phase 1 | Import Engine Core + First Adopter | 🔴 Not Started | [phase-1/](../roadmap/foundation/import_export/phase-1/README.md) |
+| Phase 1 | Import Engine Core + First Adopter | 🟡 In Progress | [phase-1/](../roadmap/foundation/import_export/phase-1/README.md) |
 | Phase 2 | Async + Approval Polish + Export Sibling | 🔴 Not Started | [phase-2/](../roadmap/foundation/import_export/phase-2/README.md) |
 | Phase 3 | Power Features + External Ingestion | 🔴 Not Started | [phase-3/](../roadmap/foundation/import_export/phase-3/README.md) |
 <!-- /SYNC-BLOCK -->
