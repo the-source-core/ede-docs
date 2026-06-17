@@ -82,6 +82,7 @@ Demo files run in the dependency order set by `registry.sorted_app_specs()` — 
 | `logistics.pricing` | [modules/logistics-pricing/usecase.md](./modules/logistics-pricing/usecase.md) | demo_rates.xml | 🔴 Not yet authored |
 | `logistics.sales-crm` | [modules/logistics-sales-crm/usecase.md](./modules/logistics-sales-crm/usecase.md) | demo_partners.xml, demo_pipeline.xml, demo_quotes.xml | ✅ Delivered 2026-05-13 — 16 records (7 partners + 7 pipeline + 2 quotes) |
 | `logistics.equipment-operations` | [modules/logistics-equipment-operations/usecase.md](./modules/logistics-equipment-operations/usecase.md) | demo_equipment.xml, demo_operations.xml | ✅ Delivered 2026-05-28 — 13 records (7 fleet units + 2 usage + 1 seal + 2 movement + 1 load-calc) on the INMUM→SGSIN lane |
+| `logistics.shipments` | [modules/logistics-shipments/usecase.md](./modules/logistics-shipments/usecase.md) | demo_shipment.xml | ✅ Delivered 2026-06-17 — 8 records (1 shipment + 1 leg + 4 parties + 1 cargo + 1 charge) on the Globex INMUM→SGSIN lane; composed ref CO-SEA-D-2026-000001; postgres `--with-demo` smoke green + idempotent |
 
 Modules with no usecase row (e.g. `foundation.auth`, `foundation.connectors`, `foundation.storage`, `foundation.email`) are pure engines — they consume records produced by other modules' demo files. They get a usecase doc the first time one of their phases introduces records of its own.
 
