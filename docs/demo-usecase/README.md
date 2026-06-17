@@ -77,6 +77,7 @@ Demo files run in the dependency order set by `registry.sorted_app_specs()` — 
 | `foundation.reporting` | [modules/foundation-reporting/usecase.md](./modules/foundation-reporting/usecase.md) | demo_reports.xml, demo_reports_categories.xml | 🔴 Not yet authored |
 | `foundation.document` | [modules/foundation-document/usecase.md](./modules/foundation-document/usecase.md) | demo_document_templates.xml, demo/templates/*.dml | 🔴 Not yet authored |
 | `foundation.dashboard` | [modules/foundation-dashboard/usecase.md](./modules/foundation-dashboard/usecase.md) | demo_kpis.xml, demo_dashboards.xml | 🔴 Not yet authored |
+| `foundation.agent` | [modules/foundation-agent/usecase.md](./modules/foundation-agent/usecase.md) | demo_agent.xml, demo_automation.xml | ✅ Delivered 2026-06-18 — 8 records (1 agent + 3 AI Automations + 4 actions); smoke + idempotency verified |
 | `foundation.presentation` | _no demo data — engine_ | _none_ | n/a |
 | `logistics.masters` | [modules/logistics-masters/usecase.md](./modules/logistics-masters/usecase.md) | demo_ports.xml, demo_equipment.xml, demo_commodities.xml | 🔴 Not yet authored |
 | `logistics.pricing` | [modules/logistics-pricing/usecase.md](./modules/logistics-pricing/usecase.md) | demo_rates.xml | 🔴 Not yet authored |
