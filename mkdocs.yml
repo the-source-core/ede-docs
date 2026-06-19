@@ -155,6 +155,10 @@ nav:
             -   Security & Authorization: features/security.md
             -   Document Storage: features/storage.md
             -   Workflow Engine: features/workflow.md
+    -   Guides:
+            -   Overview: guides/index.md
+            -   Wire a New HTTP Controller: guides/http-controller.md
+            -   Scheduled & Background Jobs: guides/scheduled-jobs.md
 
 extra:
     social:

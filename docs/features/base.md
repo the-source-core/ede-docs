@@ -37,7 +37,17 @@ The `foundation.base` module ships three families of models. Every other module 
 | `res.partner.role` | Role assignment join (`res.partner` ↔ role master). |
 | `res.partner.address` | Multiple addresses per partner (billing / pickup / delivery / …). |
 | `res.organization` | Legal entity / company within the tenant. |
+| `res.organization.unit` | Org structure under an organization — HQ / region / branch / department, self-nesting via `parent_unit_id`. |
 | `res.user` | Application users. |
+
+### Org structure & teams
+
+| Model | Purpose |
+|---|---|
+| `res.team` | A team within an organization, optionally aligned to an org unit (`org_unit_id`) and nested via `parent_id`. |
+| `res.team.type` | Team classifications (sales, operations, …). |
+| `ir.team.role` | Functional role definitions assignable within a team (manager, reviewer, …). |
+| `res.team.role.assignment` | Join of `res.team` ↔ `ir.team.role` ↔ `res.user`. |
 
 ### Platform metadata (`ir.*`)
 
@@ -45,6 +55,9 @@ The `foundation.base` module ships three families of models. Every other module 
 |---|---|
 | `ir.menu` | App-switcher entries and side-menu trees. |
 | `ir.action` | `ir.action` records bind menus to models / commands. |
+| `ir.action.view` | Per-action binding of a view to a view-type slot. |
+| `ir.application.view` | DB-backed view definitions (primary or extension), global or per-organization. |
+| `ir.config.log` | Immutable audit trail of `ir.config` setting changes. |
 | `ir.sequence` | Numbered sequence generators (`PO/2026/0001`, etc.). |
 | `ir.config` | Runtime key-value store for tenant-tunable settings. |
 | `ir.rbac.role` | RBAC role definitions. |
@@ -81,6 +94,43 @@ acme = env.models["res.organization"].create({
 ```
 
 `res.organization` is the unit of company-scoping — every record that is `company_scope="strict"` or `"optional"` (see [Security & Authorization](security.md)) pins to one organization at create time.
+
+### Model an org structure
+
+`res.organization.unit` nests with `parent_unit_id`, so one model expresses HQ → region → branch → department:
+
+```python
+units = env.models["res.organization.unit"]
+hq = units.create({"organization_id": acme.id, "name": "Headquarters", "code": "HQ"})
+mumbai = units.create({
+    "organization_id": acme.id,
+    "name": "Mumbai Branch",
+    "code": "MUM",
+    "parent_unit_id": hq.id,
+})
+```
+
+### Build a team and assign a role
+
+```python
+sales_type = env.models["res.team.type"].search([("code", "=", "SALES")])[0]
+team = env.models["res.team"].create({
+    "name": "Mumbai West Sales",
+    "code": "TEAM_MUM_WEST",
+    "type_id": sales_type.id,
+    "organization_id": acme.id,
+    "org_unit_id": mumbai.id,
+})
+
+manager_role = env.models["ir.team.role"].search([("code", "=", "MANAGER")])[0]
+env.models["res.team.role.assignment"].create({
+    "team_id": team.id,
+    "role_id": manager_role.id,
+    "user_id": user.id,
+})
+```
+
+Team roles feed approval routing (`approver_type="TEAM_ROLE"`) and workflow team-role actions — see [Approval Workflows](approval.md).
 
 ### Look up a partner
 

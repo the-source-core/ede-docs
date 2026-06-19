@@ -1,82 +1,143 @@
 # Approval Workflows
 
-Route any record through a multi-step approval chain. Configure per company, per model, per amount threshold — the engine handles routing, escalations, and approver lookup.
+Route any record through a multi-step approval chain — configured entirely as data. Policy sets bind to a domain (and optionally a model); rules decide which flow template fires; the engine spawns tasks, escalates on SLA breach, and keeps an immutable decision ledger.
 
 ```python
-# Mark a model as approval-able
-@api.model("blog.post", approval=True)
-class BlogPost(DomainModel):
-    title = fields.Char(required=True)
-    body = fields.Text()
+from ede.foundation.approval.services.approval_service import ApprovalService
+
+# Submit a record for approval — the engine matches a rule and spawns the flow.
+result = ApprovalService(env).request_case(
+    case_id=None,
+    payload={
+        "subject": "Quote #QT-2026-001",
+        "domain": "blog.post",
+        "resource_model": "blog.post",
+        "resource_id": post.id,
+        "input_data": {"view_count": 15000},
+    },
+)
+case_id = result["case_id"]
 ```
 
-Once the model opts in, the web client renders an "Submit for approval" button on the form view; backend hooks block writes by anyone other than the current approver until the chain completes.
+Approval-ability is **not** declared on the model. A record is routed into approval purely by the policy sets and rules that match its `domain` at request time.
 
 ---
 
 ## What you get
 
--   **`approval.rule`** — define an approval chain: which model, which trigger, which approvers, optional amount thresholds.
--   **`approval.request`** — a live approval-in-progress for one record.
--   **`approval.step`** — one step in the chain (sequential or parallel).
--   **`ApprovalService`** — methods: `submit()`, `approve()`, `reject()`, `cancel()`, `delegate()`.
--   **HTTP endpoints** — `POST /api/approvals/{id}/{action}` for the four lifecycle verbs.
--   **Web-client widgets** — approval-bar in form view, "My Pending Approvals" inbox, audit-trail panel.
+-   **`ir.approval.policy.set`** — groups rules for one `domain`, scoped GLOBAL / ORG / BRANCH, optionally bound to a model via `model_id`.
+-   **`ir.approval.rule`** — a `trigger_expr` (safe-AST expression over the request context) that, when it matches, fires a `template_id` flow — or marks the case auto-approved.
+-   **`ir.approval.flow.template`** + **`ir.approval.flow.step.def`** — the reusable flow and its ordered steps (serial / parallel, ALL / ANY join, USER / ROLE / TEAM_ROLE approver routing, per-step SLA + escalation policy).
+-   **`ir.approval.case`** + **`ir.approval.task`** — a live case and the tasks assigned within each step.
+-   **`ir.approval.decision`** + **`ir.approval.event.log`** — append-only decision and event ledgers for audit.
+-   **`ir.approval.escalation.policy`** + **`ir.approval.delegation.policy`** — SLA-breach behaviour and delegation rules.
+-   **`ApprovalService`** — `request_case`, `decide_case`, `delegate_case`, `escalate_case`, `cancel_case`, `recall_case`.
+-   **HTTP API** — `/api/approval/cases`, `/cases/{id}/decide`, `/cases/{id}/delegate`, `/cases/{id}/cancel`, `/cases/{id}/recall`, `/inbox`, plus admin `/policy-sets` and `/flow-templates`.
+-   **Subject lock** — `register_subject_lock_on(...)` installs hooks that block edits to the underlying record while its case is pending.
 
 ## How to use it
 
-### Mark a model for approval
+### Define a policy set, rule, and flow
 
-```python
-@api.model("expense.report", approval=True)
-class ExpenseReport(DomainModel):
-    amount = fields.Decimal(precision=12, scale=2, required=True)
-    submitter_id = fields.Reference("res.user", required=True)
-```
-
-Setting `approval=True` makes the engine listen for the model's `ede.create` and `ede.update` events and consult the configured approval rules.
-
-### Define an approval rule
-
-Approval rules are data, not code. Author them as XML in your app's `data/`:
+Approval configuration is data — author it as XML in your app's `data/`. A policy set scopes a `domain`; a rule decides when to fire; the flow template holds the steps.
 
 ```xml
-<record id="rule_expense_over_5000" model="approval.rule">
-    <field name="name">Expenses over $5,000</field>
-    <field name="model_key">expense.report</field>
-    <field name="trigger">on_submit</field>
-    <field name="condition">amount &gt; 5000</field>
-    <field name="step_ids" eval="[
-        ('approval.step.line_manager',),
-        ('approval.step.finance_head',),
-    ]"/>
+<record id="policy_post_publish" model="ir.approval.policy.set">
+    <field name="name">Post Publishing Approvals</field>
+    <field name="domain">blog.post</field>
+    <field name="scope_type">GLOBAL</field>
+    <field name="is_active">true</field>
+    <field name="priority">10</field>
+</record>
+
+<record id="flow_editorial_review" model="ir.approval.flow.template">
+    <field name="name">Editorial Review</field>
+    <field name="is_active">true</field>
+</record>
+
+<record id="flow_step_editor" model="ir.approval.flow.step.def">
+    <field name="template_id" ref="flow_editorial_review"/>
+    <field name="name">Editor Review</field>
+    <field name="sequence">10</field>
+    <field name="step_type">SERIAL</field>
+    <field name="join_rule">ALL</field>
+    <field name="approver_type">ROLE</field>
+    <field name="approver_ref">editor</field>
+    <field name="sla_hours">24</field>
+</record>
+
+<record id="rule_high_traffic" model="ir.approval.rule">
+    <field name="policy_set_id" ref="policy_post_publish"/>
+    <field name="name">High-traffic posts need editorial review</field>
+    <field name="trigger_expr">subject.view_count > 10000</field>
+    <field name="template_id" ref="flow_editorial_review"/>
+    <field name="auto_approve">false</field>
+    <field name="is_active">true</field>
 </record>
 ```
 
-### Submit programmatically
+A rule with an empty `trigger_expr` always matches (catch-all). A rule with `auto_approve` true sends the case straight to APPROVED with no tasks — the `approval.case.approved` event still fires, so downstream listeners treat it like a human approval.
+
+### Submit a record for approval
+
+The actor is always taken from `env.principal` — never passed as an argument. Set the principal, then call `request_case`:
 
 ```python
-from ede.foundation.approval.services.approval_service import ApprovalService
-
-req = ApprovalService.from_env(env).submit(
-    record=expense,
-    rule=env.models["approval.rule"].browse("rule_expense_over_5000"),
+service = ApprovalService(env.with_principal({"user_id": requester_id}))
+result = service.request_case(
+    case_id=None,
+    payload={
+        "subject": "Post: Launch announcement",
+        "domain": "blog.post",
+        "resource_model": "blog.post",
+        "resource_id": post.id,
+        "input_data": {"view_count": 15000},
+    },
 )
+case_id = result["case_id"]
 ```
 
-### Act on a pending approval
+`input_data` and the resolved subject record are what `trigger_expr` evaluates against (`subject.*`, `requester.*`, `input.*`).
+
+### Act on a pending task
 
 ```python
-ApprovalService.from_env(env).approve(req, note="Looks good")
+service = ApprovalService(env.with_principal({"user_id": editor_id}))
+
+service.decide_case(case_id, decision="APPROVE", comment="Looks good.")
 # or
-ApprovalService.from_env(env).reject(req, reason="Missing receipts")
+service.decide_case(case_id, decision="REJECT", comment="Needs sources.")
+# or
+service.decide_case(case_id, decision="RETURN", comment="Send back for rework.")
 ```
+
+Other lifecycle moves: `delegate_case(case_id, delegate_to_user_id, comment)`, `cancel_case(case_id, reason)` (DRAFT / PENDING only), and `recall_case(case_id, reason)` (an APPROVED case — requires the `approval.recall` permission).
+
+### Lock the record while it's under review
+
+```python
+from ede.foundation.approval.services.subject_lock import register_subject_lock_on
+
+register_subject_lock_on("blog.post")
+```
+
+This installs pre-hooks that veto edits and deletes on a `blog.post` while a related case is PENDING or APPROVED.
+
+## Configuration
+
+These `ir.config` keys set defaults for TEAM_ROLE steps when the step def leaves them unset:
+
+| Key | Default | What it controls |
+|---|---|---|
+| `approval.team_role.default_resolution` | `PRIMARY_ONLY` | How a team role resolves to approvers (`PRIMARY_ONLY` / `ALL_PARALLEL`). |
+| `approval.team_role.default_escalation` | `NONE` | Escalation strategy (`NONE` / `NEXT_IN_SEQUENCE` / `WALK_UP_HIERARCHY`). |
+| `approval.team_role.default_max_escalations` | `3` | Escalation depth cap. |
 
 ## How it composes with other features
 
--   **[Communication (Chatter)](communication.md)** — every approval action posts to the record's chatter timeline.
--   **[Notifications](notifications.md)** — pending approvers get inbox + email pings.
--   **[Record Rules](record-rules.md)** — only the current approver and the original submitter can read records mid-approval.
+-   **[Notifications](notifications.md)** — task assignment, delegation, and SLA-breach events dispatch through `notification.send`.
+-   **[Workflow Engine](workflow.md)** — a workflow transition with a `request_approval` action submits a case and resumes on the `approval.case.approved` event.
+-   **[Record Rules](record-rules.md)** — scope who can read cases mid-approval.
 
 ## Reference
 
@@ -84,4 +145,5 @@ ApprovalService.from_env(env).reject(req, reason="Missing receipts")
 |---|---|
 | Approval models | `src/ede/foundation/approval/models/` |
 | `ApprovalService` | `src/ede/foundation/approval/services/approval_service.py` |
-| HTTP API | `src/ede/foundation/approval/api/` |
+| Subject lock | `src/ede/foundation/approval/services/subject_lock.py` |
+| HTTP API | `src/ede/foundation/approval/api/approval_routes.py` |
