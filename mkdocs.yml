@@ -17,6 +17,7 @@ exclude_docs: |
     # developer manual. The hand-authored equivalents live in docs/features/.
     foundation-*.md
     platform-*.md
+    module-integration-pattern.md
 
 validation:
     omitted_files: warn
