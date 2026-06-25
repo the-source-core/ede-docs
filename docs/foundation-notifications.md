@@ -30,7 +30,9 @@ Without a real engine, every consumer module (approval, gateway, RMS, CRM, HR…
   ```python
   env.dispatch(Command("notification.send", payload={
       "event_key": "approval.task.assigned",
-      "recipient_spec": {"user_id": assignee_id},
+      # A recipient is a res.partner (Enhancement 01). If you hold a user id,
+      # convert: partner_recipient_spec(env, assignee_id) -> {"partner_ids": [...]}.
+      "recipient_spec": {"partner_id": assignee_partner_id},
       "template_vars": {...},
       "source_model": "ir.approval.case",
       "source_id": case_uuid,
@@ -95,7 +97,7 @@ Without a real engine, every consumer module (approval, gateway, RMS, CRM, HR…
 | Service / Class | Responsibility | Source File |
 |---|---|---|
 | `NotificationDispatcher` | Recipient resolution → template render → org-pref check → `ir.notification` persistence → multi-transport fan-out | [src/ede/foundation/notifications/services/dispatcher.py](../src/ede/foundation/notifications/services/dispatcher.py) |
-| `RecipientResolver` | Turns recipient_spec (`user_id` / `user_ids` / `role` / `role+branch_id` / `group_id` / `dynamic_query`) into deduplicated user UUIDs | [src/ede/foundation/notifications/services/recipient_resolver.py](../src/ede/foundation/notifications/services/recipient_resolver.py) |
+| `RecipientResolver` | Turns recipient_spec (`partner_id` / `partner_ids` / `role` / `role+branch_id`) into deduplicated **res.partner** UUIDs (Enhancement 01 — partner-centric recipients). `user_id`/`user_ids`/`group_id`/`dynamic_query` are no longer supported | [src/ede/foundation/notifications/services/recipient_resolver.py](../src/ede/foundation/notifications/services/recipient_resolver.py) |
 | `EmailTransport` | Drops a queued `mail.outbox` row for the recipient — delivery via `EmailRouter.process_queue` | [src/ede/foundation/notifications/services/transports/email_transport.py](../src/ede/foundation/notifications/services/transports/email_transport.py) |
 | `WebPushTransport` | Emits `web.client.notification` event → SSE handler in `foundation.presentation` broadcasts to recipient's open browser tabs | [src/ede/foundation/notifications/services/transports/web_push_transport.py](../src/ede/foundation/notifications/services/transports/web_push_transport.py) |
 | `InAppTransport` | No-op symbolic transport — the `ir.notification` record itself is the delivery (bell reads via `GET /api/notifications`) | [src/ede/foundation/notifications/services/transports/in_app_transport.py](../src/ede/foundation/notifications/services/transports/in_app_transport.py) |
