@@ -2,7 +2,7 @@
 
 **Module:** `domains.logistics.sales_crm`
 **App key:** `logistics.sales_crm`
-**Demo manifest entries** (target): `demo/demo_partners.xml`, `demo/demo_pipeline.xml`, `demo/demo_quotes.xml`
+**Demo manifest entries** (target): `demo/demo_teams.xml` (Enh 09), `demo/demo_partners.xml`, `demo/demo_pipeline.xml`, `demo/demo_quotes.xml`, `demo/demo_spot_linkage.xml`
 **Status:** ✅ Delivered 2026-05-13
 
 ---
@@ -68,6 +68,26 @@ The auto-init `post.crm.quote.create` hook creates v1 for each quote with the pa
 **Cross-ref note**: lines reference `quote_version_id` which is set by the auto-init hook. Because the loader processes records in declared order within a file, and the `post.crm.quote.create` hook fires synchronously during quote creation (creating v1 then writing `current_version_id` on the quote), the quote's v1 UUID is available the moment line records are processed. The lines `ref=` the quote's `current_version_id` via a small XML helper: `<field name="quote_version_id" eval="ref('sales_crm.demo_quote_globex_001').current_version_id.id"/>` — **wait, the data loader doesn't support `eval=`**. The pattern that DOES work: lines `ref=` an explicit version xml-id. Since the version is auto-created (no xml-id), the loader has no name to look up. **Resolution**: lines are seeded by querying the just-created quote's version inside a `pre.crm.quote.line.create` helper hook? No — too clever. Pragmatic answer: lines declare `quote_version_id` via a small Python `data_post_hook` registered for this demo file (sales_crm's `_helpers.py` already has utility scope), OR the demo seeds lines as plain CSVs that resolve `quote_version_id` server-side using `sales_crm.demo_quote_*` parent xml-id. **Simpler path adopted here**: drop charge lines from MVP demo — v1 of each quote ships empty; user adds lines by clicking "Add" in the Versions tab during the walkthrough. Margin compute fields stay at 0 USD which is correct given no lines.
 
 **Revised line count**: 16 records total (7 partners + 7 pipeline + 2 quotes).
+
+### `demo/demo_teams.xml` — Sales team hierarchy (Enhancement 09, 10 records)
+
+A 3-level sales hierarchy plus a pricing desk and a finance-approvers team, on the
+default organization, with the admin user holding an approver role at each level so
+the TEAM_ROLE approval chains + WALK_UP_HIERARCHY escalation resolve a person
+end-to-end:
+
+| External ID | Model | Notes |
+|---|---|---|
+| `sales_crm.demo_team_india_hq` | `res.team` | SALES, root; COUNTRY_HEAD level |
+| `sales_crm.demo_team_india_region` | `res.team` | SALES, child of HQ; PRICING_APPROVER level |
+| `sales_crm.demo_team_mumbai_west` | `res.team` | SALES, child of Region; SALES_MANAGER + ACCOUNT_MANAGER |
+| `sales_crm.demo_team_pricing_desk` | `res.team` | PRICING_DESK |
+| `sales_crm.demo_team_finance_approvers` | `res.team` | FINANCE_APPROVERS; FINANCE_APPROVER level |
+| `sales_crm.demo_assign_*` (5) | `res.team.role.assignment` | admin → SALES_MANAGER / ACCOUNT_MANAGER / PRICING_APPROVER / COUNTRY_HEAD / FINANCE_APPROVER |
+
+The demo pipeline + quote records (above) are stamped with a `team_id` automatically
+by the Enh-09 pre-create stampers (org-scoped default-team resolution), so every CRM
+demo record carries a team. Real multi-user role assignments land once demo users exist.
 
 ## Out of scope
 
