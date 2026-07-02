@@ -2,8 +2,8 @@
 
 **Module:** `domains.logistics.pricing`
 **App key:** `logistics.pricing`
-**Demo manifest entries** (target): `demo/demo_rates.xml`
-**Status:** 🔴 Not yet authored (module itself 🟡 In Progress — see [roadmap/logistics/pricing/](../../../../roadmap/logistics/pricing/))
+**Demo manifest entries:** `demo/demo_customization.xml`, `demo/demo_vendors.xml`, `demo/demo_rules.xml`, `demo/demo_charge_codes.xml`, `demo/demo_rates.xml`, `demo/demo_spot_rfqs.xml`, `demo/demo_phase2.xml`
+**Status:** ✅ Delivered (2026-07-02) — Phase 1 rate/contract demo + Phase 2 demo (`demo_phase2.xml`: version history, branch override, contract volume-utilization) shipped and smoke-tested.
 
 ---
 
@@ -68,6 +68,22 @@ Manifest:
 ```
 
 ---
+
+## Phase 2 demo records (`demo/demo_phase2.xml` + a field on the Maersk contract)
+
+| External ID | Model | Demonstrates | Notes |
+|---|---|---|---|
+| `pricing.demo_rate_version_globex_v1` | `pricing.rate.version` | WS4/WS5 — version compare, rollback, VER-010 audit | v1 snapshot of the Globex sell rate (ocean 1100 + doc 75) |
+| `pricing.demo_rate_version_globex_v2` | `pricing.rate.version` | WS4/WS5 | v2 after a GRI (ocean 1100→1250); `change_summary` populated → the compare view shows the delta, rollback restores v1 |
+| `pricing.demo_rate_override_air_branch` | `pricing.rate` | WS2 / ME-007 | branch tariff override of the global air sell rate, linked via `override_of_rate_id`, `branch_ids=[base.default_organization]` |
+| `pricing.demo_rate_line_override_air_freight` | `pricing.rate.line` | WS2 | the override's sharper branch-local air freight line |
+| `pricing.demo_contract_maersk_sea` (field) | `pricing.contract` | WS3 / CON-005 | `current_utilization=17.6` of 20 MT = 88% → the sweep raises a one-time 80%-band owner alert |
+
+### Demo-exempt Phase 2 items (documented skips)
+
+- **WS1 branch visibility** — enforced by `ir.rbac.record.rule` rows shipped as **`data/` seeds** (load for every tenant); visibility is a behaviour, not a sample record. The demo override above exercises the branch-scoping fields.
+- **WS7 configurable margin thresholds (PM-008)** — the thresholds + `pricing.branch_sharing_mode` are **settings whose panel defaults are the config**; no sample row needed. Change them under Settings → Pricing to demo.
+- **WS8 quote predictive-margin snapshot (PM-011)** — the snapshot lands on the **auto-created** `crm.quote.version` (no external ID), which the single-pass demo loader cannot cross-ref — the same documented limitation as quote charge lines. Captured at runtime via `crm.quote.version.capture_predictive_margin` from the rate picker.
 
 ## Phase 2 use-cases (in addition to Phase 1 above)
 
