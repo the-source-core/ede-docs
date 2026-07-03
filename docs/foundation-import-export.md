@@ -3,7 +3,7 @@
 
 **Module:** `foundation.import_export` (`src/ede/foundation/import_export/`)
 **Roadmap:** [roadmap/foundation/import_export/](../roadmap/foundation/import_export/README.md)
-**Status:** 🟡 In Progress — Phase 1 substantially delivered 2026-06-15 (engine · pipeline · validators · `@io_template` decorator · AI-assisted mapping + per-error fix · frontend toolbar Import + Review & Fix · first adopters `pricing.rate` + `res.partner`). Pending demo data + formal acceptance before ✅. Drafted 2026-05-27.
+**Status:** ✅ Phase 1 Delivered 2026-07-03 (engine · pipeline · 8 validators · `@io_template` + XML + admin-UI three-source authoring · AI-assisted mapping + per-error fix · frontend toolbar Import + error-first Review & Fix · Settings → Imports & Exports admin (Templates / Runs / Validators) · first adopters `pricing.rate` + `res.partner` · demo data + `StubIoParser` + acceptance walkthrough). Full suite 5293 pytest green; `--with-demo=foundation.import_export` smoke green. Phase 2 (async + export) 🔴 · Phase 3 🔴. Drafted 2026-05-27.
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
