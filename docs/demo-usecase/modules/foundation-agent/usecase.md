@@ -3,7 +3,7 @@
 **Module:** `ede.foundation.agent`
 **App key:** `foundation.agent`
 **Demo manifest entries** (target): `demo/demo_agent.xml`, `demo/demo_automation.xml`
-**Status:** ✅ Delivered 2026-06-18 — Phase 1 agents + Phase 2 AI Automations. Smoke: `--with-demo=foundation.agent` → **8 created** (1 agent + 3 automations + 4 actions), re-run idempotent (0 created, 8 updated).
+**Status:** ✅ Delivered — Phase 1 agents + Phase 2 AI Automations + **Phase 4 user-craftable builder agent** (2026-07-07). Smoke: `--with-demo=foundation.agent` → **9 created** (2 agents + 3 automations + 4 actions), re-run idempotent (0 created, 9 updated). *Live-verified on a postgres scratch tenant 2026-07-07.*
 
 ---
 
@@ -13,8 +13,10 @@ In the **Acme Forwarding Ltd. (Mumbai HQ)** tenant, the AI layer ships two thing
 viewer can explore under the standalone **AI** app:
 
 1. **Agents** (`demo/demo_agent.xml`) — the built-in deterministic *Customization Field
-   Builder* (seeded as data) plus a read-only *Schema Explorer* showing the user-craftable
-   agent pattern.
+   Builder* (seeded as data), a read-only *Schema Explorer*, and **(Phase 4)** the
+   *Weekly Ops Report Bot* — a scheduled, confirm-gated batch/report agent composing a
+   look-up + build-a-document + send-email, showing the full pattern the Agent Builder
+   produces.
 2. **AI Automations** (`demo/demo_automation.xml`) — three saved **Trigger → AI Agent →
    Actions** pipelines that illustrate each in-scope trigger style + the confirm-gate, all
    self-contained (no cross-module record refs — foundation cannot ref domain rows):
@@ -36,6 +38,7 @@ is running.
 | External ID | Model | Notes |
 |---|---|---|
 | `agent.demo_schema_explorer` | `agent.definition` | read-only Schema Explorer (read_schema + find_field capabilities) |
+| `agent.demo_weekly_ops_report` | `agent.definition` | **(Phase 4)** *Weekly Ops Report Bot* — the user-craftable batch/report pattern: `schedule` trigger, **confirm** posture, composes read_schema (look-up) + generate_document + email_send (write caps gated by posture). Shows what the Agent Builder produces. |
 
 ### `demo/demo_automation.xml` (Phase 2 — new)
 
