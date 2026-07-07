@@ -122,7 +122,8 @@ Foundation shell (src/ede/foundation/dataset/):
 | `execute_plan(metric, params, execute_spec_fn)` | Phase 2 plan engine. Runs each spec via caller-supplied executor, merges via `metric.post_process(result_sets, params)`. | [src/ede/core/engines/metric/plan_engine.py](../src/ede/core/engines/metric/plan_engine.py) |
 | `check_no_cycle_introduced(candidate, registry_view)` | Phase 2 DAG cycle detection at `register()` time. Raises `FormulaCycleError` (subclass of `MetricRegistrationError`) with the offending cycle path. | [src/ede/core/engines/metric/dag.py](../src/ede/core/engines/metric/dag.py) |
 | `get_or_execute` + `cache_key` + `initialize_cache` | Phase 2 per-run cache. SHA-256 key from `(metric.key, engine, mode, lang, params)` with `__metric_*` keys stripped; deep-copy in AND out; `METRIC_CACHE_ENABLED` toggle. | [src/ede/core/engines/metric/cache.py](../src/ede/core/engines/metric/cache.py) |
-| _Phase 3 deferred_ | `ChipDispatcher`, `ToolbarRegistry`, `PeriodResolver`, `StreamRegistry`, `WebhookDispatcher`, format-specific exporters. | (pending) |
+| `ChipDispatcher` / `ToolbarRegistry` / `PeriodResolver` / `StreamRegistry` / `WebhookDispatcher` / exporters | Phase 3 interactive + integration primitives (chip · period · SSE/WS streaming · webhook · csv/xlsx/parquet export). | [chip/](../src/ede/core/engines/chip/) · [period/](../src/ede/core/engines/period/) · [integration/streaming/](../src/ede/core/engines/integration/streaming/) · [integration/export/](../src/ede/core/engines/integration/export/) |
+| `QueryCache` + `build_cache_key` + `get_default_query_cache` | Phase 3 cross-request query cache in front of `run_dataset`/`run_metric`. In-memory + Redis backends; tenant-scoped key; TTL; opt-in via `DATASET_QUERY_CACHE_*`; stamps `meta.query_cache_hit`. | [src/ede/core/engines/integration/cache/](../src/ede/core/engines/integration/cache/) |
 <!-- /SYNC-BLOCK -->
 
 ### Commands
@@ -234,7 +235,7 @@ Locking is a convention — the compiler itself does not enforce state, only the
 |---|---|---|---|
 | Phase 1 | Substrate Core + Blueprint Low-Code UI | ✅ **Delivered 2026-05-13** | [phase-1-implementation.md](../roadmap/foundation/dataset/phase-1-implementation.md) |
 | Phase 2 | Plan + Formula + Per-Run Cache | ✅ **Delivered 2026-05-13** | [phase-2-implementation.md](../roadmap/foundation/dataset/phase-2-implementation.md) |
-| Phase 3 | Chip + Period + Streaming + Bulk Export | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| Phase 3 | Chip + Period + Streaming + Bulk Export | ✅ **Delivered 2026-07-07** (WS-D15…D21; 70 pytest + 6 vitest cases) — chip · period · SSE/WS streaming · webhook (real-TLS e2e verified) · csv/xlsx/parquet export · Redis-backed cross-request query cache · live `dataset.stream` React client action | [phase-3-implementation.md](../roadmap/foundation/dataset/phase-3-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Built Capabilities
@@ -254,6 +255,15 @@ Locking is a convention — the compiler itself does not enforce state, only the
 | **Phase 2: Plan engine + post_process contract** (2026-05-13) — multi-spec list + pure-Python `post_process(result_sets, params)` callable; `MetricExecutor._execute_plan` runs each spec through the same compile + RBAC path as the dataset engine; post_process exceptions surface as `MetricExecutionError` with the original chain preserved | n/a — engine-layer only | [metric/plan_engine.py](../src/ede/core/engines/metric/plan_engine.py) · 6 tests | [phase-2-implementation.md WS-D10](../roadmap/foundation/dataset/phase-2-implementation.md) |
 | **Phase 2: Per-run deep-copy cache** (2026-05-13) — fresh `params["__metric_cache__"]` per top-level `run_metric()` call; deep-copy in AND out so caller mutations cannot poison the cached copy; `meta.cache_hit` flag set per call; toggleable via `METRIC_CACHE_ENABLED` setting (defaults True) | n/a — engine-layer only | [metric/cache.py](../src/ede/core/engines/metric/cache.py) · 6 tests | [phase-2-implementation.md WS-D13](../roadmap/foundation/dataset/phase-2-implementation.md) |
 | **Phase 2: 3 new demo metrics** (2026-05-13) — `base.entity_total` (formula: `{{base.partner_count}} + {{base.organization_count}}`); `base.partner_to_org_ratio` (formula with `iff()` divide-by-zero guard); `base.entity_summary` (plan: 2 specs merged into a 2-row table) | n/a — registered via `@api.metric` | [tools/metrics/base_metrics.py](../src/ede/foundation/dataset/tools/metrics/base_metrics.py) | [phase-2-implementation.md WS-D14](../roadmap/foundation/dataset/phase-2-implementation.md) |
+| **Phase 3: Chip system** (2026-07-03, WS-D15) — `@api.chip(key, scope, widget)` + frozen `Chip` + scope×widget×output matrix validated at registration (`ChipContractError`); `ChipDispatcher.compute_deltas` merges per-chip `{params, root_filter, flags}` in `(sequence, key)` order; required-chip enforcement | _none — engine-layer only_ | [core/engines/chip/](../src/ede/core/engines/chip/) · 19 tests | [phase-3-implementation.md WS-D15](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Auto-injecting chip providers** (2026-07-03, WS-D16) — `ToolbarRegistry` builds date_asof / date_range / comparison chips from a definition's `date_filter_mode` + `comparison_enabled` (no XML) | _none — engine-layer only_ | [core/engines/chip/auto/](../src/ede/core/engines/chip/auto/) · 9 tests | [phase-3-implementation.md WS-D16](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Period resolver w/ per-line `date_scope`** (2026-07-03, WS-D17) — `PeriodResolver.build_periods` + `resolve_for_line(line, base_period)`; five scopes (`same_period` / `previous_period` / `previous_year` / `fy_to_date` / `inception_to_date`≡`cumulative`) resolvable on the SAME report; FY-boundary aware | _none — engine-layer only_ | [core/engines/period/](../src/ede/core/engines/period/) · 15 tests | [phase-3-implementation.md WS-D17](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: SSE + WebSocket streaming** (2026-07-03, WS-D18) — `StreamRegistry` (channel keyed on `(consumer_type, key, params_hash, tenant_id)` + debounced re-fetch, `DATASET_SSE_DEBOUNCE_MS`), `sse_stream` generator, `WebSocketStreamSession`; routes `GET /api/dataset/<key>/stream`, `GET /api/report/<key>/stream`, `POST …/refresh` | _none — engine + routes_ | [core/engines/integration/streaming/](../src/ede/core/engines/integration/streaming/) · [controllers.py](../src/ede/foundation/dataset/controllers.py) · 9 tests | [phase-3-implementation.md WS-D18](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Webhook outbound** (2026-07-03, WS-D19) — `ir.dataset.webhook` (migration `be240def5e23`, verified-applied on fresh Postgres) + `WebhookDispatcher` (HMAC-SHA256, `@api.background_job` delivery, https-only guard) firing on `ede.dataset.computed` / `ede.metric.computed`; 5 RBAC perms + demo webhook | `ir.dataset.webhook` | [models/webhook.py](../src/ede/foundation/dataset/models/webhook.py) · [services/webhook_dispatcher.py](../src/ede/foundation/dataset/services/webhook_dispatcher.py) · 6 tests | [phase-3-implementation.md WS-D19](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Bulk exporters** (2026-07-03, WS-D20; Parquet closed 2026-07-07) — CSV (stdlib) / Excel (openpyxl) / Parquet (pyarrow, now a **core dep**) writers over the `DatasetResult` envelope with per-kind coercion (datetime→ISO, decimal→float, ref→uuid str); `POST /api/dataset/<key>/export?format=` | _none — engine + route_ | [core/engines/integration/export/](../src/ede/core/engines/integration/export/) · 7 tests (all run, incl. Parquet) | [phase-3-implementation.md WS-D20](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Cross-request query cache** (2026-07-07) — result-envelope cache in front of `run_dataset`/`run_metric`, keyed by `(consumer_type, key, params, tenant_id, lang)` with TTL; in-memory (deepcopy + lazy expiry) default + Redis backend (pickle, namespaced, degrades to a miss on Redis error); opt-in via `DATASET_QUERY_CACHE_*`; stamps `meta.query_cache_hit` | _none — engine-layer only_ | [core/engines/integration/cache/](../src/ede/core/engines/integration/cache/) · 21 tests | [phase-3-implementation.md WS-D21](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Real-TLS webhook delivery e2e** (2026-07-07) — hermetic end-to-end proof: loopback HTTPS server (self-signed cert) + real httpx transport driving `deliver_webhook`; server re-verifies the HMAC over the received bytes. No external inspector dependency | `ir.dataset.webhook` | [src/tests/foundation/dataset/test_webhook_delivery_e2e.py](../src/tests/foundation/dataset/test_webhook_delivery_e2e.py) · 2 tests | [phase-3-implementation.md WS-D19](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| **Phase 3: Live `dataset.stream` client action** (2026-07-07) — React client action that opens the dataset SSE channel, renders the `DatasetResult` (schema + rows), re-subscribes on period/comparison chip change, and drives the live `Refresh` push; enriched `demo.partner_listing` blueprint (code/name/email → real rows) | consumes `demo.partner_listing` | [foundation/dataset/frontend/](../src/ede/foundation/dataset/frontend/) · [dataset_menus.xml](../src/ede/foundation/dataset/data/dataset_menus.xml) · [DatasetStreamPage.test.tsx](../src/frontend/src/managers/DatasetStreamPage.test.tsx) · 6 vitest | [phase-3-implementation.md WS-D18/D21](../roadmap/foundation/dataset/phase-3-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
@@ -265,7 +275,7 @@ Locking is a convention — the compiler itself does not enforce state, only the
 | Phase 1 Enhancement 01 — keystroke-live recompile of `dataset_sql_preview` (today: on-save recompute) | 🟢 Low backlog | [WS-D5](../roadmap/foundation/dataset/phase-1-implementation.md) |
 | Phase 1 Enhancement 02 — full Metrics admin browser (today: `GET /api/metric/list` only) | 🟢 Low backlog | [WS-D6](../roadmap/foundation/dataset/phase-1-implementation.md) |
 | Phase 1 Enhancement 03 — 2 additional domain-coupled demo blueprints (`sales.pipeline_by_stage` + `pricing.rate_validity`); today: 1 minimal demo + 2 demo metrics | 🟢 Low backlog | [WS-D8](../roadmap/foundation/dataset/phase-1-implementation.md) |
-| Phase 3 — Chip + Period + Streaming + Bulk Export | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/dataset/phase-3-implementation.md) |
+| Pre-existing dataset-baseline drift — the 6 `ir_dataset_blueprint*` migrations predate current metadata-builder conventions (uq_→uidx_, per-column indexes, audit-FK handling, VARCHAR→Text); every postgres autogenerate re-proposes it. The webhook migration excludes this noise; a separate baseline reconciliation is warranted | 🟠 Backlog | — |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -274,7 +284,8 @@ Locking is a convention — the compiler itself does not enforce state, only the
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
-*Pre-build state — no migrations shipped yet. Phase 1 will introduce the 6 Blueprint tables via an Alembic revision.*
+- **Phase 1** — `ce27d6cc1a91` creates the 6 `ir_dataset_blueprint*` tables (+ follow-ups `f51f9b96bab9`, `f7e837b6c539`, `f27442d33487`).
+- **Phase 3** — `be240def5e23` creates `ir_dataset_webhook`. Generated via `ede migrate generate --app foundation.dataset` against a fresh Postgres reference (the sqlite reference is currently unbuildable at head due to an unrelated non-batch `ALTER` migration in `foundation.communication`); the pre-existing dataset-baseline drift the postgres autogenerate re-proposes on the blueprint tables is intentionally excluded. Verified-applied on a fresh Postgres tenant.
 <!-- /SYNC-BLOCK -->
 
 ### Permissions / RBAC
@@ -285,8 +296,9 @@ Locking is a convention — the compiler itself does not enforce state, only the
 | `ir.dataset.executor` | Viewer + execute datasets/metrics via HTTP routes |
 | `ir.dataset.author` | Executor + CRUD on `ir.dataset.blueprint*` (draft state only) |
 | `ir.dataset.admin` | Author + lock/unlock + ad-hoc `/api/dataset/_preview` |
-| `ir.dataset.webhook.admin` (Phase 3) | Configure outbound webhooks |
-| `ir.dataset.streaming.subscriber` (Phase 3) | Open SSE / WebSocket channels |
+| `dataset_publisher` (Phase 3) | + read `ir.dataset.webhook` |
+| `dataset_admin` (Phase 3) | + create / update / delete `ir.dataset.webhook` |
+| `dataset_viewer` (Phase 3) | + subscribe to dataset streams (`ir.dataset.stream.read`) |
 <!-- /SYNC-BLOCK -->
 
 ### Related modules
@@ -301,4 +313,4 @@ Locking is a convention — the compiler itself does not enforce state, only the
 
 ---
 
-*Last sync: 2026-05-13. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-07-03. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
