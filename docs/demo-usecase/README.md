@@ -70,7 +70,7 @@ Demo files run in the dependency order set by `registry.sorted_app_specs()` — 
 | `foundation.communication` | [modules/foundation-communication/usecase.md](./modules/foundation-communication/usecase.md) | _records on demo subjects in domain demo files_ | 🔴 Not yet authored |
 | `foundation.customization` | [modules/foundation-customization/usecase.md](./modules/foundation-customization/usecase.md) | demo_properties.xml | 🔴 Not yet authored |
 | `foundation.i18n` | [modules/foundation-i18n/usecase.md](./modules/foundation-i18n/usecase.md) | demo_language_extras.xml | 🔴 Not yet authored |
-| `foundation.notifications` | [modules/foundation-notifications/usecase.md](./modules/foundation-notifications/usecase.md) | demo_inbox.xml | 🔴 Not yet authored |
+| `foundation.notifications` | [modules/foundation-notifications/usecase.md](./modules/foundation-notifications/usecase.md) | demo_preferences.xml | ✅ Delivered (Phase 2 preferences) |
 | `foundation.workflow` | [modules/foundation-workflow/usecase.md](./modules/foundation-workflow/usecase.md) | _via demo records in domain modules_ | 🔴 Not yet authored |
 | `foundation.jobs` | [modules/foundation-jobs/usecase.md](./modules/foundation-jobs/usecase.md) | (TBD — see usecase doc) | 🔴 Not yet authored |
 | `foundation.dataset` | [modules/foundation-dataset/usecase.md](./modules/foundation-dataset/usecase.md) | demo_blueprints.xml, demo_metrics_seed_data.xml | 🔴 Not yet authored |

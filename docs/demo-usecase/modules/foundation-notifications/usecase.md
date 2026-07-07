@@ -2,62 +2,72 @@
 
 **Module:** `ede.foundation.notifications`
 **App key:** `foundation.notifications`
-**Demo manifest entries** (target): `demo/demo_inbox.xml`
-**Status:** 🔴 Not yet authored
+**Demo manifest entries:** `demo/demo_preferences.xml`
+**Status:** ✅ Delivered (2026-07-03) — Phase 2 preferences slice
 
 ---
 
 ## Use-case
 
-Notification templates ship as production seeds. Demo's job is to populate the **inbox** state so a tester opening the bell icon sees a meaningful mix of read / unread items — not an empty list.
+Notification **templates** ship as production seeds and the **inbox** (persisted
+`ir.notification` rows) is produced at runtime by real events, so it is not
+seeded. What Phase 2 (Preferences & Quality of Life) adds — and what benefits
+from a demo fixture — is the **per-user control surface**: a tester opening
+Settings → Notifications → My Preferences should land on a screen that already
+shows a realistic configuration rather than system defaults.
 
-Driven by the unifying scenario:
+The demo is **self-contained on the always-seeded `base.admin_user`** so it loads
+without depending on the (not-yet-started) foundation demo-user rollout
+([`platform/04-demo-data-foundation-rollout.md`](../../../../roadmap/platform/04-demo-data-foundation-rollout.md)).
+When that rollout ships demo users, per-persona preference rows can be added here.
 
-- 1 unread "Approval requested" from the demo pricing-rate submission (subject = `pricing.demo_rate_inmum_sgsin_lcl`, recipient = `demo_user_ops_manager`).
-- 1 unread "New lead assigned" from the demo CRM pipeline (subject = `sales_crm.demo_lead_globex_001`, recipient = `demo_user_sales_rep`).
-- 1 read "Welcome to Acme Forwarding" sent to every demo user 14 days back so the read-history demo isn't empty.
+It illustrates the three Phase 2 preference primitives:
+
+- **Quiet hours + email mode** — the admin has a 22:00–07:00 Asia/Kolkata quiet
+  window (intrusive channels defer to 07:00; web/in-app always fire) with
+  realtime email.
+- **Muting a channel for an event** — approval-assignment emails are turned off
+  (the admin still gets the bell + web push for them).
+- **A severity floor** — web push only fires for `warning`+ notifications across
+  all events, so low-priority info toasts stay quiet.
 
 ## Records produced
 
-### `demo/demo_inbox.xml`
+### `demo/demo_preferences.xml`
 
-| External ID | Model | Recipient | Subject | Read |
-|---|---|---|---|---|
-| `notifications.demo_inbox_rate_pending_ops` | `ir.notification.outbox` | `demo_user_ops_manager` | `pricing.demo_rate_inmum_sgsin_lcl` | false |
-| `notifications.demo_inbox_lead_assigned_sales` | `ir.notification.outbox` | `demo_user_sales_rep` | `sales_crm.demo_lead_globex_001` | false |
-| `notifications.demo_inbox_welcome_admin` | `ir.notification.outbox` | `demo_user_admin` | _none_ | true |
-| `notifications.demo_inbox_welcome_sales` | `ir.notification.outbox` | `demo_user_sales_rep` | _none_ | true |
-| `notifications.demo_inbox_welcome_ops` | `ir.notification.outbox` | `demo_user_ops_manager` | _none_ | true |
-| `notifications.demo_inbox_welcome_finance` | `ir.notification.outbox` | `demo_user_finance` | _none_ | true |
-
-`sent_at` for unread = `now()`; for read = `now() - 14d` so the inbox sort order is realistic.
+| External ID | Model | Notes |
+|---|---|---|
+| `notifications.demo_user_setting_admin` | `ir.notification.user.setting` | admin — quiet hours 22:00→07:00 Asia/Kolkata, `email_mode=realtime` |
+| `notifications.demo_pref_admin_approval_email_muted` | `ir.notification.preference` | admin — `approval.task.assigned` / `email` disabled |
+| `notifications.demo_pref_admin_web_warning_floor` | `ir.notification.preference` | admin — all-events / `web` enabled, `severity_floor=warning` |
 
 ## Out of scope
 
-- Notification template definitions — production seeds. Demo uses existing `welcome_user`, `approval.pending`, `crm.lead.assigned` templates.
-- Outbound mail delivery — demo runs against an in-process queue; nothing actually leaves the box.
-- Push / SMS adapters — Phase 2 of notifications.
+- **Inbox rows** (`ir.notification`) — produced at runtime by real events; seeding
+  them needs demo users + demo source records (approval cases, CRM leads) that
+  belong to the foundation demo rollout, not this module.
+- **Delivery log / deferred queue / digest queue** (`ir.notification.delivery` /
+  `.queue` / `.digest.queue`) — transient worker state; they reference a live
+  `ir.notification` FK and are best demonstrated live, not as fixtures.
+- **Per-persona preferences** — deferred until `base` ships demo users.
 
 ## Dependencies
 
-- `foundation.base` demo (recipients)
-- `foundation.approval` demo (subjects for the pending case)
-- `logistics.pricing` demo, `logistics.sales-crm` demo (subjects for the rate and lead)
-
-Because notifications.demo runs in foundation order (before logistics), the records above use forward refs that resolve when the logistics demo pass runs later in the same session — except `sales_crm.demo_lead_globex_001` and `pricing.demo_rate_inmum_sgsin_lcl` which DON'T exist when this file runs. To work around this, the demo inbox file lives in **the consuming domain modules** (`logistics.sales-crm/demo/demo_pipeline.xml` declares its own `ir.notification.outbox` row). This module's own `demo_inbox.xml` carries ONLY the welcome notifications (no cross-app refs).
+- `foundation.base` production seed — `base.admin_user` (always present; no demo
+  dependency).
 
 ## Verification
 
-```
-ede migrate upgrade -t demo --with-demo=all
-```
-
-Log in as any demo user → bell icon shows the correct unread count and welcome message in read history.
+`ede migrate upgrade -t <tenant> --with-demo=foundation.notifications` — expected
+**3 created** on first run, **3 updated** on re-run (idempotent). Then open
+Settings → Notifications → My Preferences as the admin and confirm the quiet-hours
+window, the muted approval email, and the web severity floor are pre-filled.
 
 ## Authoring order
 
-1. Welcome notifications (6 rows) loaded here.
-2. Approval-pending + lead-assigned notifications loaded by the logistics demo files that own the subject records.
+Single file; the two `ir.notification.preference` rows and the one
+`ir.notification.user.setting` row are independent (each only `ref`s the seeded
+`base.admin_user`), so intra-file order is not load-bearing.
 
 ---
 

@@ -1,9 +1,9 @@
 <!-- AUTO-MAINTAINED-BY: syncing-roadmap-to-docs -->
 # Notifications Engine — Implementation Docs
 
-**Module:** `foundation.notifications` (Phase 1 ✅ Delivered — module extracted from `foundation.base`, `foundation.presentation`, `foundation.email`)
+**Module:** `foundation.notifications` (Phase 1 ✅ Delivered · Phase 2 ✅ Delivered)
 **Roadmap:** [roadmap/foundation/notifications/README.md](../roadmap/foundation/notifications/README.md)
-**Status:** ✅ Phase 1 Delivered (Phase 2 / Phase 3 not started)
+**Status:** ✅ Phase 1 + Phase 2 Delivered (Phase 3 not started)
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -89,14 +89,21 @@ Without a real engine, every consumer module (approval, gateway, RMS, CRM, HR…
 | `ir.notification` | One record per recipient: subject, body, level, transports_sent, source link, action_url, read_at_utc, dismissed_at_utc, correlation_id | [src/ede/foundation/notifications/models/notification.py](../src/ede/foundation/notifications/models/notification.py) |
 | `ir.notification.template` | Central template registry keyed by (event_key, transport, locale_code) — Jinja2 subject + body + default level | [src/ede/foundation/notifications/models/notification_template.py](../src/ede/foundation/notifications/models/notification_template.py) |
 | `ir.notification.setting` | Org-level enable/disable per event_type + allowed channels (kept in `foundation.base` for compat with `rbac_seed.xml`) | [src/ede/foundation/base/models/notification_setting.py](../src/ede/foundation/base/models/notification_setting.py) |
-| `ir.notification.preference` *(planned, Phase 2)* | Per-user channel routing, snooze, mute, quiet hours | _Phase 2_ |
+| `ir.notification.preference` *(Phase 2)* | Per-user, per-event, per-transport routing rule — `enabled` + `severity_floor`; exact-event overrides `event_key=''` default | [src/ede/foundation/notifications/models/preference.py](../src/ede/foundation/notifications/models/preference.py) |
+| `ir.notification.user.setting` *(Phase 2)* | Per-user globals — quiet hours (`HH:MM` + IANA tz) + `email_mode` (realtime / digest_daily / digest_weekly / off) | [src/ede/foundation/notifications/models/preference.py](../src/ede/foundation/notifications/models/preference.py) |
+| `ir.notification.queue` *(Phase 2)* | Deferred single-channel delivery held for quiet hours; released by the worker at `deferred_until_utc` | [src/ede/foundation/notifications/models/queue.py](../src/ede/foundation/notifications/models/queue.py) |
+| `ir.notification.digest.queue` *(Phase 2)* | Pending email-digest item; batched into one summary email per user at their digest hour | [src/ede/foundation/notifications/models/queue.py](../src/ede/foundation/notifications/models/queue.py) |
+| `ir.notification.delivery` *(Phase 2)* | Per-transport delivery-attempt log (queued / sent / failed / bounced / suppressed + error + external_id) | [src/ede/foundation/notifications/models/delivery.py](../src/ede/foundation/notifications/models/delivery.py) |
 <!-- /SYNC-BLOCK -->
 
 ### Services & key code paths
 <!-- SYNC-BLOCK: services -->
 | Service / Class | Responsibility | Source File |
 |---|---|---|
-| `NotificationDispatcher` | Recipient resolution → template render → org-pref check → `ir.notification` persistence → multi-transport fan-out | [src/ede/foundation/notifications/services/dispatcher.py](../src/ede/foundation/notifications/services/dispatcher.py) |
+| `NotificationDispatcher` | Recipient resolution → dedup (Phase 2) → template render → org + per-user pref check → `ir.notification` persistence → per-channel routing (send / defer / digest / suppress) + delivery-log writes | [src/ede/foundation/notifications/services/dispatcher.py](../src/ede/foundation/notifications/services/dispatcher.py) |
+| `PreferenceResolver` *(Phase 2)* | Resolves a user's effective channels for an event: most-specific matrix rule (exact-event > default) with `enabled` + `severity_floor`; also exposes quiet-hours + email-mode globals | [src/ede/foundation/notifications/services/preference_resolver.py](../src/ede/foundation/notifications/services/preference_resolver.py) |
+| `quiet_until` *(Phase 2)* | Pure quiet-hours window math (`HH:MM` in an IANA tz, wrap-past-midnight, next-end release instant in UTC) | [src/ede/foundation/notifications/services/quiet_hours.py](../src/ede/foundation/notifications/services/quiet_hours.py) |
+| `release_deferred_tick` / `digest_tick` *(Phase 2)* | `@api.scheduled_job` workers — release quiet-hours-held deliveries (every minute) and send per-user email digests (hourly) | [src/ede/foundation/notifications/services/workers.py](../src/ede/foundation/notifications/services/workers.py) |
 | `RecipientResolver` | Turns recipient_spec (`partner_id` / `partner_ids` / `role` / `role+branch_id`) into deduplicated **res.partner** UUIDs (Enhancement 01 — partner-centric recipients). `user_id`/`user_ids`/`group_id`/`dynamic_query` are no longer supported | [src/ede/foundation/notifications/services/recipient_resolver.py](../src/ede/foundation/notifications/services/recipient_resolver.py) |
 | `EmailTransport` | Drops a queued `mail.outbox` row for the recipient — delivery via `EmailRouter.process_queue` | [src/ede/foundation/notifications/services/transports/email_transport.py](../src/ede/foundation/notifications/services/transports/email_transport.py) |
 | `WebPushTransport` | Emits `web.client.notification` event → SSE handler in `foundation.presentation` broadcasts to recipient's open browser tabs | [src/ede/foundation/notifications/services/transports/web_push_transport.py](../src/ede/foundation/notifications/services/transports/web_push_transport.py) |
@@ -117,6 +124,9 @@ Without a real engine, every consumer module (approval, gateway, RMS, CRM, HR…
 | `ir.notification.mark_read` | Bell click + `POST /api/notifications/{id}/mark-read` | Sets `read_at_utc = now()` |
 | `ir.notification.dismiss` | Bell × button + `DELETE /api/notifications/{id}` | Sets `dismissed_at_utc = now()` |
 | `ir.notification.setting.update` | Settings UI / admin API | Updates org-level `is_enabled` + `channels` for an event_type |
+| `ir.notification.preference.set` *(Phase 2)* | My Preferences UI / `POST /api/notifications/preferences` | Upserts one routing rule for the acting user (unique on user+event+transport) |
+| `ir.notification.user.setting.set` *(Phase 2)* | My Preferences UI / `POST /api/notifications/settings` | Upserts the acting user's quiet-hours + email-mode globals |
+| `notification.recall` *(Phase 2)* | Consumer when an event is undone (e.g. approval case cancelled) | Dismisses a `correlation_id` group (or source) + cancels its still-pending queue/digest rows |
 <!-- /SYNC-BLOCK -->
 
 ### Events emitted
@@ -138,6 +148,12 @@ Without a real engine, every consumer module (approval, gateway, RMS, CRM, HR…
 | `DELETE /api/notifications/{id}` | Soft-dismiss (sets `dismissed_at_utc = now()`) | `NotificationController.dismiss` |
 | `GET /api/notifications/by-source?model=…&id=…` | All notifications for a (source_model, source_id) pair scoped to current user | `NotificationController.by_source` |
 | `POST /api/notifications/send` | Manual dispatch — admin/debug use; production code should `Command("notification.send", ...)` directly | `NotificationController.send` |
+| `GET /api/notifications/preferences` *(Phase 2)* | Current user's routing matrix + global settings (for My Preferences UI) | `NotificationController.get_preferences` |
+| `POST /api/notifications/preferences` *(Phase 2)* | Upsert one routing rule for the current user | `NotificationController.set_preference` |
+| `POST /api/notifications/settings` *(Phase 2)* | Upsert current user's quiet-hours + email-mode | `NotificationController.set_settings` |
+| `GET /api/notifications/admin/analytics` *(Phase 2)* | Delivery counts grouped by (event_key, status) for the analytics dashboard — RBAC-gated | `NotificationController.admin_analytics` |
+| `POST /api/notifications/admin/replay/{id}` *(Phase 2)* | Re-send an existing notification across its sent channels — RBAC-gated | `NotificationController.admin_replay` |
+| `POST /api/notifications/admin/test` *(Phase 2)* | Render subject/body templates against vars without persisting — RBAC-gated | `NotificationController.admin_test` |
 <!-- /SYNC-BLOCK -->
 
 ### Lifecycle hooks
@@ -161,20 +177,22 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 
 ## 3. Configuration Introduced
 
-> ⚠ **Roadmap predates the Configuration Introduced discipline (added 2026-05-08) AND the engine itself does not yet exist as a standalone module.** Backfill needed in [roadmap/foundation/notifications/README.md](../roadmap/foundation/notifications/README.md) and per-phase files via the `roadmap-driven-delivery` skill. Until then, this section is empty. Likely Phase 1 introductions: per-user `ir.notification.preference` keys, default channel routing in `ir.config`, template registry seed data.
+> Captures every knob this module adds. Phase 2 introduced three `FoundationSettings` keys (dedup window + digest schedule) and the per-user preference models; per-user routing is stored as records (`ir.notification.preference` / `ir.notification.user.setting`), not config.
 
 ### Activation
 <!-- SYNC-BLOCK: activation -->
-- `ACTIVE_MODULES` entry (in `src/ede/foundation/settings.py`): `notifications` (loaded last so deps `base`, `email`, `presentation` register first)
+- `ACTIVE_MODULES` entry (in `src/ede/foundation/settings.py`): `notifications` (ordered after `jobs` so the scheduled-job workers register)
 - `ACTIVE_DOMAINS` entry: n/a (foundation app)
-- Manifest `depends`: `foundation.base`, `foundation.email`, `foundation.presentation`
+- Manifest `depends`: `foundation.base`, `foundation.email`, `foundation.presentation`, `foundation.jobs` (Phase 2 — for the release + digest workers)
 <!-- /SYNC-BLOCK -->
 
 ### Foundation-level settings (`FoundationSettings` / env vars)
 <!-- SYNC-BLOCK: foundation-settings -->
 | Setting Key | Type | Default | Env Var | Purpose |
 |---|---|---|---|---|
-| _none_ | | | | |
+| `NOTIFICATION_DEDUP_WINDOW_SECONDS` | int | `60` | same | Window in which a repeat (event_key, recipient, source_id) dedups |
+| `NOTIFICATION_DIGEST_DAILY_HOUR` | int | `9` | same | User-local hour the daily digest email is sent |
+| `NOTIFICATION_DIGEST_WEEKLY_DOW` | int | `0` | same | Weekday (0=Mon) the weekly digest is sent |
 <!-- /SYNC-BLOCK -->
 
 ### Runtime config (`ir.config` keys)
@@ -197,7 +215,8 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 |---|---|
 | `data/ir.rbac.permission.csv` | RBAC keys: `ir.notification.read`/`update`/`delete` (internal user) and `ir.notification.template.read`/`create`/`update`/`delete` (system admin) |
 | `data/notification_templates.xml` | Default `ir.notification.template` rows for `approval.task.assigned`, `approval.task.escalated`, `approval.case.decided` across email + web + in_app transports (locale `en`) |
-| `data/notification_menus.xml` | `Settings → Notifications → Templates` and `Settings → Notifications → Delivery Log` menu entries (action_id wired to the new models) |
+| `data/notification_menus.xml` | `Settings → Notifications` menu — My Preferences + Templates + User Settings + **Delivery Analytics** (client-action dashboard) + Delivery Log + Deferred Queue (Phase 2 adds 11 more RBAC perms for preference/user-setting/delivery/queue/digest) |
+| `demo/demo_preferences.xml` *(Phase 2 demo)* | Admin preference config on `base.admin_user` — quiet hours + muted approval email + web severity floor (loads via `--with-demo=foundation.notifications`) |
 <!-- /SYNC-BLOCK -->
 
 ## 4. Developer & User Notes
@@ -207,7 +226,7 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
 | Phase 1 | Extract & Unify (unblocks foundation.approval) | ✅ Delivered | [phase-1-implementation.md](../roadmap/foundation/notifications/phase-1-implementation.md) |
-| Phase 2 | Preferences & Quality of Life | 🔴 Not Started | [phase-2-implementation.md](../roadmap/foundation/notifications/phase-2-implementation.md) |
+| Phase 2 | Preferences & Quality of Life | ✅ Delivered (2026-07-07) | [phase-2-implementation.md](../roadmap/foundation/notifications/phase-2-implementation.md) |
 | Phase 3 | Mobile, Localization, Advanced | 🔴 Not Started | [phase-3-implementation.md](../roadmap/foundation/notifications/phase-3-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
@@ -222,8 +241,12 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 | Multi-transport dispatcher (WS-N3) | `ir.notification` (handler) | [`services/dispatcher.py`](../src/ede/foundation/notifications/services/dispatcher.py) · [`services/transports/`](../src/ede/foundation/notifications/services/transports/) | [phase-1 WS-N3](../roadmap/foundation/notifications/phase-1-implementation.md) |
 | HTTP API + bell hydration (WS-N4) | `ir.notification` | [`api/notification_routes.py`](../src/ede/foundation/notifications/api/notification_routes.py) · [`UserNotification.tsx`](../src/frontend/src/workspace/components/header/UserNotification.tsx) | [phase-1 WS-N4](../roadmap/foundation/notifications/phase-1-implementation.md) |
 | Compat shim for legacy callers | `ir.notification` | [`base/services/notification_service.py`](../src/ede/foundation/base/services/notification_service.py) | phase-1 §"Compat shim" |
+| **Per-user preferences (WS-NP1)** | `ir.notification.preference`, `ir.notification.user.setting` | [`models/preference.py`](../src/ede/foundation/notifications/models/preference.py) · [`services/preference_resolver.py`](../src/ede/foundation/notifications/services/preference_resolver.py) · [`frontend/client-actions/NotificationPreferences.tsx`](../src/ede/foundation/notifications/frontend/client-actions/NotificationPreferences.tsx) | [phase-2 WS-NP1](../roadmap/foundation/notifications/phase-2-implementation.md) |
+| **Quiet hours + digest + dedup (WS-NP1.3/NP2.2/NP2.3)** | `ir.notification.queue`, `ir.notification.digest.queue` | [`services/quiet_hours.py`](../src/ede/foundation/notifications/services/quiet_hours.py) · [`services/workers.py`](../src/ede/foundation/notifications/services/workers.py) · [`services/dispatcher.py`](../src/ede/foundation/notifications/services/dispatcher.py) | [phase-2 WS-NP2](../roadmap/foundation/notifications/phase-2-implementation.md) |
+| **Correlation rollup + recall (WS-NP2.1)** | `ir.notification` (`correlation_id`) | [`models/notification.py`](../src/ede/foundation/notifications/models/notification.py) · [`UserNotification.tsx`](../src/frontend/src/managers/UserNotification.tsx) | [phase-2 WS-NP2.1](../roadmap/foundation/notifications/phase-2-implementation.md) |
+| **Delivery log + admin analytics/replay/test (WS-NP3)** | `ir.notification.delivery` | [`models/delivery.py`](../src/ede/foundation/notifications/models/delivery.py) · [`api/notification_routes.py`](../src/ede/foundation/notifications/api/notification_routes.py) · [`frontend/client-actions/NotificationAnalytics.tsx`](../src/ede/foundation/notifications/frontend/client-actions/NotificationAnalytics.tsx) | [phase-2 WS-NP3](../roadmap/foundation/notifications/phase-2-implementation.md) |
 
-> Phase 1 ✅ Delivered. Backend + frontend shipped; full test suite (1155 Python + 343 frontend) green; 23 dispatcher / resolver unit tests under [`src/tests/notifications/`](../src/tests/notifications/); bell hydration + click-through to `action_url` verified in a running browser session.
+> Phase 1 + Phase 2 ✅ Delivered. Phase 2 adds 5 models, 2 scheduled workers, migration `d95cbdb8319a` (applies exit-0 from scratch), the My Preferences + Delivery Analytics client actions, and the bell correlation rollup. 51 new pytest under [`src/tests/notifications/test_phase2.py`](../src/tests/notifications/test_phase2.py) + full backend suite exit 0; frontend tsc/vite/626 vitest green; `--with-demo` idempotent. Live browser walkthrough deferred (backend/frontend-confirmed reachability, per the repo's e2e-infra precedent).
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
@@ -232,11 +255,10 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| **Org-level prefs only** — engine reads `ir.notification.setting` (org + event_type); per-user channel routing is Phase 2 | 🟠 High (Phase 2) | [README.md gap #6](../roadmap/foundation/notifications/README.md) |
-| **No deduplication / rollup** — if 5 events fire in 10 seconds for the same user, 5 bell rows; rollup is Phase 2 (`correlation_id` field reserved) | 🟡 Medium (Phase 2) | [README.md gap #8](../roadmap/foundation/notifications/README.md) |
 | **No locale handling** — templates use `locale_code='en'` only; locale selection lands in Phase 3 | 🟡 Medium (Phase 3) | [README.md gap #9](../roadmap/foundation/notifications/README.md) |
-| **No quiet hours / digest** — Phase 2 deliverables | 🟡 Medium (Phase 2) | [README.md gap #10](../roadmap/foundation/notifications/README.md) |
 | **No mobile push / SMS** — Phase 3 deliverables | 🟢 Phase 3 | [Phase 3 plan](../roadmap/foundation/notifications/phase-3-implementation.md) |
+| **Analytics dashboard shows delivery/success only** — open/click/opt-out rates need extra instrumentation (future) | 🟢 Low | [phase-2 NP3.2](../roadmap/foundation/notifications/phase-2-implementation.md) |
+| **Live browser walkthrough deferred** — backend + frontend verified (tests/build green); interactive e2e per repo e2e-infra precedent | 🟢 Low | [phase-2 verification](../roadmap/foundation/notifications/phase-2-implementation.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Things developers commonly get wrong
@@ -252,14 +274,16 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 - **Compat shim during transition** — consumers using `NotificationService.send()` directly today (e.g. approval) will continue to work via a thin wrapper that translates legacy single-recipient email calls into `Command("notification.send", ...)` dispatches. The shim is removed once all in-tree consumers cut over.
 - **Template fixture migration** — domains with hardcoded template names (e.g. `approval` deriving `approval_task_assigned` from `approval.task.assigned`) need a one-time data migration to register the corresponding `ir.notification.template` fixtures keyed by `event_key`.
 - **Frontend cutover** — `UserNotification.tsx` will hydrate from `GET /api/notifications` instead of the current hard-coded empty array. No breaking change for consumers; the bell simply starts showing data.
+- **Phase 2 schema additions** — migration `d95cbdb8319a` adds 5 tables (`ir.notification.preference`, `ir.notification.user.setting`, `ir.notification.queue`, `ir.notification.digest.queue`, `ir.notification.delivery`); additive, no destructive ops; applies exit-0 from scratch on a fresh tenant. Generated via a postgres-safe, created-table-scoped drift stripper added to `src/ede/cli/commands/migrate.py` (the sqlite autogen reference is blocked repo-wide by a pre-existing non-sqlite `foundation.communication` self-FK migration; the postgres reference otherwise leaks inherent Enum/index/audit-FK drift on the existing notification tables).
+- **Module load order** — `foundation.jobs` added to `depends`; `ACTIVE_MODULES` reordered so `jobs` loads before `notifications` (the scheduled-job workers register on boot).
 <!-- /SYNC-BLOCK -->
 
 ### Permissions / RBAC
 <!-- SYNC-BLOCK: rbac -->
 | Role | Permissions |
 |---|---|
-| `rbac.role_internal_user` | `ir.notification.read` (own only via controller scoping), `ir.notification.update` (mark-read), `ir.notification.delete` (dismiss), `ir.notification.template.read` |
-| `rbac.role_system_admin` | `ir.notification.template.create` / `update` / `delete` |
+| `rbac.role_internal_user` | `ir.notification.read`/`update`/`delete` (own, via controller scoping), `ir.notification.template.read`, and **(Phase 2)** own-CRUD on `ir.notification.preference` + `ir.notification.user.setting` |
+| `rbac.role_system_admin` | `ir.notification.template.create`/`update`/`delete`, and **(Phase 2)** read on `ir.notification.delivery` / `ir.notification.queue` / `ir.notification.digest.queue` (gates the admin analytics/replay/test surface) |
 <!-- /SYNC-BLOCK -->
 
 ### Related modules
@@ -272,4 +296,4 @@ No transitions back from `dismissed`. `mark-all-read` is a bulk transition over 
 
 ---
 
-*Last sync: 2026-05-09 (Phase 1 ✅ Delivered — browser bell walkthrough complete). To refresh, invoke the syncing-roadmap-to-docs skill.*
+*Last sync: 2026-07-07 (Phase 2 ✅ Delivered — preferences, quiet hours, dedup, digest, delivery log, admin analytics dashboard). To refresh, invoke the syncing-roadmap-to-docs skill.*
