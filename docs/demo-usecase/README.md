@@ -65,7 +65,7 @@ Demo files run in the dependency order set by `registry.sorted_app_specs()` — 
 
 | Module | Spec | Demo files (planned / shipped) | Status |
 |---|---|---|---|
-| `foundation.base` | [modules/foundation-base/usecase.md](./modules/foundation-base/usecase.md) | demo_users.xml, demo_partners.xml, demo_org.xml | 🔴 Not yet authored |
+| `foundation.base` | [modules/foundation-base/usecase.md](./modules/foundation-base/usecase.md) | demo_partners.xml ✅, demo_application_view.xml ✅, demo_user_access.xml ✅ (Enh 14); demo_org.xml + demo_users.xml pending | 🟡 Partial |
 | `foundation.approval` | [modules/foundation-approval/usecase.md](./modules/foundation-approval/usecase.md) | demo_approval_rules.xml | 🔴 Not yet authored |
 | `foundation.communication` | [modules/foundation-communication/usecase.md](./modules/foundation-communication/usecase.md) | _records on demo subjects in domain demo files_ | 🔴 Not yet authored |
 | `foundation.customization` | [modules/foundation-customization/usecase.md](./modules/foundation-customization/usecase.md) | demo_properties.xml | 🔴 Not yet authored |

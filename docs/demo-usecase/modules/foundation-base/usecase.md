@@ -2,8 +2,9 @@
 
 **Module:** `ede.foundation.base`
 **App key:** `foundation.base`
-**Demo manifest entries** (target): `demo/demo_org.xml`, `demo/demo_users.xml`, `demo/demo_partners.xml`
-**Status:** 🔴 Not yet authored
+**Demo manifest entries** (shipped): `demo/demo_partners.xml`, `demo/demo_application_view.xml`, `demo/demo_user_access.xml`
+**Demo manifest entries** (target): `demo/demo_org.xml`, `demo/demo_users.xml`
+**Status:** 🟡 Partial — `demo_partners.xml`, `demo_application_view.xml`, `demo_user_access.xml` (Enh 14) shipped; org/users cohort pending
 
 ---
 
@@ -51,6 +52,24 @@ Plus one address row per partner under `res.partner.address` (billing / pickup /
 | External ID | Model | Notes |
 |---|---|---|
 | `base.demo_appview_org_form_internal_notes` | `ir.application.view` | `mode=extension`, `owner=user`, `parent_id=ref(base.view_res_organization_form_view)` — adds an "Internal Notes" section after "General" on the organization form, proving DB-backed composition over the file-synced primary. Full scenario: [`foundation-customization/usecase.md`](../foundation-customization/usecase.md). |
+
+### `demo/demo_user_access.xml` (User Management 360 — Enhancement 14) ✅
+
+Populates one demo user with a **full access picture** so the "Manage access" 360 console is non-empty on a demo tenant. Reuses the seeded roles (`rbac.role_internal_user`, `rbac.role_portal_user`), a seeded permission (`base.p_res_partner_update`), the default organization, the admin user, and the Asia/Kolkata timezone.
+
+| External ID | Model | Notes |
+|---|---|---|
+| `base.demo_org_west_branch` | `res.organization` | Branch under `base.default_organization` (`parent_id` set) — gives BRANCH scope a real target per Enh 07 root/branch model |
+| `base.demo_user_priya` | `res.user` | Priya Deshmukh; `res.user.register`; org = `base.default_organization`; password `demo` |
+| `base.demo_team_type_desk` | `res.team.type` | `DESK` team-type vocabulary row |
+| `base.demo_team_role_approver` | `ir.team.role` | `APPROVER`, `is_managerial=true` |
+| `base.demo_team_pricing_west` | `res.team` | "Pricing Desk – West" on the default org, type = DESK |
+| `base.demo_seat_priya_pricing` | `res.team.role.assignment` | Priya seated as APPROVER on the Pricing Desk team |
+| `base.demo_binding_priya_global` | `ir.rbac.role.binding` | GLOBAL-scope internal_user role binding |
+| `base.demo_binding_priya_org` | `ir.rbac.role.binding` | ORG-scope (`scope_id=default_organization`) internal_user binding |
+| `base.demo_binding_priya_branch` | `ir.rbac.role.binding` | BRANCH-scope (`scope_id=demo_org_west_branch`) portal_user binding |
+| `base.demo_grant_priya_partner_update` | `ir.rbac.access.grant` | Time-limited direct grant of `p_res_partner_update`, expires 2026-12-31 |
+| `base.demo_ooo_priya` | `ir.user.out_of_office` | Out-of-office window (2026-07-20 → 07-27), delegate = admin |
 
 ## Out of scope
 
