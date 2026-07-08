@@ -89,6 +89,24 @@ The demo pipeline + quote records (above) are stamped with a `team_id` automatic
 by the Enh-09 pre-create stampers (org-scoped default-team resolution), so every CRM
 demo record carries a team. Real multi-user role assignments land once demo users exist.
 
+### `demo/demo_pricing_thresholds.xml` — Pricing-approval threshold matrix (Phase 2 · 02 WS4, 4 records)
+
+Configurable margin floors that select the low-margin approval chain, keyed by
+`transport_mode × trade_lane × customer_tier` (blank = wildcard). They demonstrate
+most-specific-wins resolution; the demo customers carry a `customer_tier` so the
+bands actually apply.
+
+| External ID | Match (mode / lane / tier) | Floor % | Seq |
+|---|---|---|---|
+| `sales_crm.demo_pricing_threshold_sea` | SEA / — / — | 12 | 30 |
+| `sales_crm.demo_pricing_threshold_air` | AIR / — / — | 18 | 30 |
+| `sales_crm.demo_pricing_threshold_sea_platinum` | SEA / — / Platinum | 6 | 20 |
+| `sales_crm.demo_pricing_threshold_sea_inmum_sgsin_gold` | SEA / INMUM→SGSIN / Gold | 9 | 10 (most specific) |
+
+Demo customer tiers: Globex = Platinum, Stark = Gold, Wayne = Silver. A submitted
+quote with no matching band falls back to the global
+`ir.config['crm.quote.margin_threshold_percent']` (default 5.00).
+
 ## Out of scope
 
 - **Quote lines, routes, packages, communications** — seeding these in XML is blocked by the cross-ref pattern described above; v1 of each demo quote ships empty. User exercises line-adding by clicking the embedded list "Add" button. Solving this requires either a `post_load` Python hook OR a small data-loader extension to support `eval=` / dynamic field-ref — out of scope for the MVP demo.
