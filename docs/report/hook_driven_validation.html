@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Hook-Driven Validation in EDE</title>
+    <style>
+        :root {
+            --ink:        #111111;
+            --ink-soft:   #4f4f4f;
+            --muted:      #757575;
+            --line:       #d9d9d9;
+            --line-soft:  #ececec;
+            --bg:         #ffffff;
+            --panel:      #f3f4f6;
+            --panel-2:    #ebedf0;
+            --brand:      #0052cc;
+            --brand-hi:   #0747a6;
+            --brand-soft: #deebff;
+            --brand-deep: #0b1739;
+            --brand-deep2:#1e3a8a;
+            --accent:     #0e8420;
+            --accent-bg:  #e4f4e4;
+            --warn:       #cc7900;
+            --warn-bg:    #fdf2e3;
+            --build:      #7c3aed;
+            --build-bg:   #f3effe;
+            --gap:        #c7162b;
+            --gap-bg:     #fae3e4;
+        }
+        * { box-sizing: border-box; }
+        @page { size: A4; margin: 0; }
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            font-family: "Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 10.3px;
+            line-height: 1.48;
+        }
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 14mm 16mm 12mm 16mm;
+            margin: 0 auto;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+        }
+        .page:last-child { page-break-after: auto; }
+
+        /* ---------- Cover ---------- */
+        .cover {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(155deg, #0b1739 0%, #1e3a8a 52%, #0052cc 100%);
+            color: #eaf1fb;
+        }
+        .cover-title { margin-top: auto; margin-bottom: 34px; }
+        .cover-logo { display: flex; align-items: center; justify-content: space-between; }
+        .cover-logo .brand-left { display: flex; align-items: center; gap: 13px; }
+        .cover-logo svg { display: block; }
+        .logo-full { font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: #c6d8f2; font-weight: 600; }
+        .brand-right { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; color: #ffffff; }
+        .cover .kicker { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #9bb6e8; font-weight: 600; }
+        .cover h1 { font-size: 36px; line-height: 1.12; margin: 14px 0 0 0; font-weight: 700; color: #ffffff; }
+        .cover .sub { font-size: 15px; color: #cdddf6; margin-top: 16px; max-width: 150mm; line-height: 1.5; }
+        .cover .verdict { margin-top: 30px; border-left: 4px solid #7fd4a8; padding: 10px 0 10px 16px; font-size: 13px; color: #eef6f1; max-width: 152mm; }
+        .cover .verdict b { color: #a9ecca; }
+        .cover-meta { border-top: 1px solid rgba(255,255,255,.25); padding-top: 14px; display: flex; gap: 40px; font-size: 10.5px; color: #cdddf6; }
+        .cover-meta .lbl { color: #93aede; text-transform: uppercase; letter-spacing: 1px; font-size: 8.5px; }
+        .cover-meta .val { font-size: 11px; color: #ffffff; margin-top: 2px; }
+
+        /* ---------- Typography ---------- */
+        h2 { font-size: 18px; color: var(--brand-deep); margin: 0 0 4px 0; font-weight: 700; letter-spacing: -0.2px; }
+        h2 .num { display: inline-block; color: var(--brand); font-size: 13px; font-weight: 700; margin-right: 10px; vertical-align: 2px; }
+        h3 { font-size: 12.5px; color: var(--brand-deep); margin: 13px 0 5px 0; font-weight: 700; }
+        h4 { font-size: 11px; color: var(--ink); margin: 14px 0 4px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        p { margin: 6px 0; color: var(--ink-soft); }
+        .lead { font-size: 11.4px; color: var(--ink); }
+        strong, b { color: var(--ink); }
+        .section-rule { height: 3px; width: 54px; background: var(--brand); border-radius: 2px; margin: 7px 0 10px 0; }
+        .eyebrow { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--brand); font-weight: 700; }
+
+        /* ---------- Tables ---------- */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0 6px 0; font-size: 9.7px; }
+        th { background: var(--brand-deep); color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; font-size: 9.2px; letter-spacing: 0.3px; vertical-align: top; }
+        td { border-bottom: 1px solid var(--line-soft); padding: 5px 8px; vertical-align: top; color: var(--ink-soft); }
+        tbody tr:nth-child(even) { background: var(--panel); }
+        td b { color: var(--ink); }
+
+        /* ---------- Status pills ---------- */
+        .pill { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 8.4px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+        .p-have  { background: var(--accent-bg); color: var(--accent); }
+        .p-part  { background: var(--warn-bg);   color: var(--warn); }
+        .p-gap   { background: var(--gap-bg);    color: var(--gap); }
+        .p-build { background: var(--build-bg);  color: var(--build); }
+
+        /* ---------- Callouts ---------- */
+        .callout { border: 1px solid var(--line); border-left: 4px solid var(--brand); background: var(--panel); padding: 9px 13px; border-radius: 3px; margin: 9px 0; }
+        .callout.good { border-left-color: var(--accent); background: var(--accent-bg); }
+        .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+        .callout .ct { font-weight: 700; color: var(--ink); font-size: 10.5px; display:block; margin-bottom: 2px; }
+
+        /* ---------- Cards ---------- */
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 9px 0; }
+        .card { border: 1px solid var(--line); border-radius: 4px; padding: 9px 12px; background: #fff; }
+        .card h4 { margin-top: 0; color: var(--brand-deep); border-bottom: 1px solid var(--line-soft); padding-bottom: 4px; }
+        .card ul { margin: 6px 0 0 0; padding-left: 16px; }
+        .card li { margin: 3px 0; color: var(--ink-soft); }
+
+        ul.tight { margin: 6px 0; padding-left: 18px; }
+        ul.tight li { margin: 4px 0; color: var(--ink-soft); }
+
+        /* ---------- Stat tiles ---------- */
+        .stat-row { display: flex; gap: 10px; margin: 14px 0; }
+        .stat { flex: 1; border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; background: var(--panel); text-align: center; }
+        .stat .big { font-size: 23px; font-weight: 800; color: var(--brand); line-height: 1; }
+        .stat .cap { font-size: 8.6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 5px; }
+
+        /* ---------- Inline code, arrow-flow, code block ---------- */
+        .mono { font-family: "Ubuntu Mono", "SF Mono", Consolas, monospace; font-size: 9px; color: var(--brand-deep); background: var(--panel-2); padding: 0 4px; border-radius: 3px; }
+        .arrow-flow { font-family: "Ubuntu Mono", Consolas, monospace; font-size: 9.3px; color: var(--brand-deep); background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 9px 12px; line-height: 1.9; margin: 10px 0; }
+        .code { font-family: "Ubuntu Mono", Consolas, monospace; font-size: 8.7px; color: var(--brand-deep); background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 9px 12px; line-height: 1.62; margin: 8px 0; white-space: pre; overflow: hidden; }
+        .code .c { color: var(--muted); }
+        .code .k { color: var(--brand); font-weight: 700; }
+        .code .s { color: var(--accent); }
+        .code-cap { font-size: 8.6px; color: var(--muted); margin: 10px 0 -3px 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+
+        /* ---------- Layered flow diagram ---------- */
+        .flowstack { display: flex; flex-direction: column; gap: 7px; margin: 11px 0 6px 0; }
+        .flayer { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; background: #fff; }
+        .flayer .rail { width: 5px; flex: 0 0 5px; }
+        .flayer .lhead { width: 44mm; flex: 0 0 44mm; padding: 7px 10px; background: var(--panel); border-right: 1px solid var(--line-soft); }
+        .flayer .lnum { font-size: 7.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+        .flayer .ltitle { font-size: 11px; font-weight: 700; color: var(--brand-deep); margin-top: 1px; line-height: 1.2; }
+        .flayer .lq { font-size: 8.2px; color: var(--muted); font-style: italic; margin-top: 3px; line-height: 1.35; }
+        .flayer .lbody { flex: 1; padding: 8px 9px; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+        .node { display: inline-block; padding: 2px 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); font-size: 8.7px; color: var(--ink); font-weight: 600; white-space: nowrap; }
+        .node small { font-weight: 500; color: var(--muted); font-size: 7.6px; }
+        .sep { color: var(--brand); font-size: 9.5px; font-weight: 700; margin: 0 1px; }
+
+        .footer { position: absolute; bottom: 7mm; left: 16mm; right: 16mm; border-top: 1px solid var(--line-soft); padding-top: 5px; font-size: 8px; color: var(--muted); display: flex; justify-content: space-between; }
+        .note { font-size: 9px; color: var(--muted); font-style: italic; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">EDE Platform</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">EDE Platform · Engineering Explainer</div>
+        <h1>Hook-Driven Validation<br>in Business Models</h1>
+        <div class="sub">How EDE enforces business rules and constraints on domain models — the lifecycle-hook mechanism, where it fires, and how to author one correctly.</div>
+        <div class="verdict"><b>Verdict / TL;DR:</b> Yes — hook-driven validation is EDE's canonical constraint mechanism. Every mutating command routes through the CommandBus, which fires synchronous <b>pre.{model}.{op}</b> hooks; a hook raises an exception to <b>veto</b> the whole operation inside its transaction. Field-level declarations and <span style="color:#a9ecca">validate()</span> cover shape; hooks cover business rules.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">EDE developers</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">core/bus/command_bus.py · core/env.py · core/api.py</div></div>
+        <div><div class="lbl">Date</div><div class="val">10 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>Where validation lives — the three layers</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">EDE has no <span class="mono">@api.constrains</span> decorator. Constraints are enforced across three layers, cheapest to most powerful. Each answers a different question, and you combine them.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">3</div><div class="cap">Constraint layers</div></div>
+        <div class="stat"><div class="big">pre · post</div><div class="cap">Hook phases per op</div></div>
+        <div class="stat"><div class="big">raise</div><div class="cap">= veto operation</div></div>
+        <div class="stat"><div class="big">4</div><div class="cap">Read cmds excluded</div></div>
+    </div>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#1e3a8a;"></div>
+            <div class="lhead"><div class="lnum">Layer 1</div><div class="ltitle">Field-level</div><div class="lq">Is the shape valid — required, unique, length, FK?</div></div>
+            <div class="lbody"><span class="node">required=True</span><span class="sep">·</span><span class="node">unique=True</span><span class="sep">·</span><span class="node">Char(max_length, regex)</span><span class="sep">·</span><span class="node">Reference(on_delete)</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Layer 2</div><div class="ltitle">Lifecycle hooks</div><div class="lq">Is this business rule satisfied — conditional, cross-field, cross-record?</div></div>
+            <div class="lbody"><span class="node">@api.on_hook("pre.crm.lead.create")</span><span class="sep">→</span><span class="node">raise ValueError <small>(veto)</small></span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Layer 3</div><div class="ltitle">validate()</div><div class="lq">A simple self-contained invariant, checked on save().</div></div>
+            <div class="lbody"><span class="node">def validate(self)</span><span class="sep">→</span><span class="node">raise on bad state</span></div>
+        </div>
+    </div>
+
+    <h3>Which layer for which job</h3>
+    <table>
+        <thead><tr><th style="width:20%">Layer</th><th>Use it for</th><th style="width:30%">Example</th><th style="width:11%">Role</th></tr></thead>
+        <tbody>
+            <tr><td><b>Field-level</b></td><td>Shape: presence, uniqueness, string length/pattern, referential behaviour</td><td><span class="mono">code = fields.Char(required=True, unique=True)</span></td><td><span class="pill p-have">DECLARE</span></td></tr>
+            <tr><td><b>Lifecycle hook</b></td><td>Business rules: conditional checks, cross-field logic, lookups against other records</td><td>"can't mark <i>won</i> without a partner"</td><td><span class="pill p-build">CANONICAL</span></td></tr>
+            <tr><td><b>validate()</b></td><td>Basic self-contained invariants on a single record's own fields</td><td><span class="mono">min_qty &lt;= max_qty</span></td><td><span class="pill p-part">SIMPLE</span></td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Hooks are the workhorse</span>Field declarations cover the "shape" of data and the database enforces it. But real ERP <b>business rules</b> — the ones that depend on state, other fields, or other records — live in <b>pre-hooks</b>. That is what "hook-driven validation" means, and it is where most domain constraints belong.</div>
+
+    <div class="footer"><span>Hook-Driven Validation in EDE — the three layers</span><span>1</span></div>
+</section>
+
+<!-- ============================ SECTION 02 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02</div>
+    <h2><span class="num">02</span>How a validation hook fires</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Every <b>mutating</b> ORM operation is a <span class="mono">Command</span> dispatched through the <span class="mono">CommandBus</span>. The bus derives a hook key from the command, fires <b>pre-hooks</b>, runs the handler, then fires <b>post-hooks</b>. Pre-hooks that raise abort the command before it commits.</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#1e3a8a;"></div>
+            <div class="lhead"><div class="lnum">Step 1 · Dispatch</div><div class="ltitle">CommandBus</div><div class="lq">The ORM turns create/write/delete into a Command.</div></div>
+            <div class="lbody"><span class="node">proxy.create(...)</span><span class="sep">→</span><span class="node">Command <small>ede.create</small></span><span class="sep">→</span><span class="node">CommandBus.dispatch</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Step 2 · Pre-hooks</div><div class="ltitle">pre.{model}.{op}</div><div class="lq">Validation runs here. Raise to veto — nothing commits.</div></div>
+            <div class="lbody"><span class="node">env.run_hooks("pre.crm.lead.create")</span><span class="sep">→</span><span class="node" style="border-color:#c7162b;color:#c7162b;">raise ⇒ abort</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#7c3aed;"></div>
+            <div class="lhead"><div class="lnum">Step 3 · Handler</div><div class="ltitle">CRUD / domain handler</div><div class="lq">Only reached if every pre-hook passed.</div></div>
+            <div class="lbody"><span class="node">write to DB</span><span class="sep">→</span><span class="node">emit ede.record.created</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Step 4 · Post-hooks</div><div class="ltitle">post.{model}.{op}</div><div class="lq">Runs after success — cache busting, side effects, audit.</div></div>
+            <div class="lbody"><span class="node">env.run_hooks("post.crm.lead.create")</span></div>
+        </div>
+    </div>
+
+    <h3>How the hook key is derived</h3>
+    <table>
+        <thead><tr><th style="width:34%">Command + model</th><th style="width:36%">Hook key fired</th><th>Kind</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">ede.create</span> on <span class="mono">crm.lead</span></td><td><span class="mono">pre./post.crm.lead.create</span></td><td>Generic CRUD</td></tr>
+            <tr><td><span class="mono">ede.update</span> on <span class="mono">crm.lead</span></td><td><span class="mono">pre./post.crm.lead.update</span></td><td>Generic CRUD</td></tr>
+            <tr><td><span class="mono">ede.delete</span> on <span class="mono">crm.lead</span></td><td><span class="mono">pre./post.crm.lead.delete</span></td><td>Generic CRUD</td></tr>
+            <tr><td><span class="mono">crm.lead.qualify</span> (domain cmd)</td><td><span class="mono">pre./post.crm.lead.qualify</span></td><td>Domain command</td></tr>
+            <tr><td>any model, <span class="mono">delete</span></td><td><span class="mono">pre.*.delete</span> (wildcard fan-out)</td><td>Cross-cutting</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Reads never fire hooks</span>The four read-only commands — <span class="mono">ede.search</span>, <span class="mono">ede.read_one</span>, <span class="mono">ede.count</span>, <span class="mono">ede.read_group</span> — are excluded. Validation only runs on <b>mutations</b>. Don't try to "guard a read" with a hook; it won't fire.</div>
+
+    <h3><span class="mono">cmd.record</span> — what you inspect inside the hook</h3>
+    <table>
+        <thead><tr><th style="width:26%">Phase</th><th>What <span class="mono">cmd.record</span> holds</th></tr></thead>
+        <tbody>
+            <tr><td><b>pre-create</b></td><td>A <span class="mono">__new__</span> in-memory RecordSet built from the incoming values (no DB row yet)</td></tr>
+            <tr><td><b>pre-update / pre-delete</b></td><td>The <b>live DB record</b> as it exists <i>before</i> the change</td></tr>
+            <tr><td><b>incoming values</b></td><td>Always at <span class="mono">(cmd.payload or {}).get("values")</span> — merge with the record to validate the resulting state</td></tr>
+        </tbody>
+    </table>
+
+    <div class="footer"><span>Hook-Driven Validation in EDE — the dispatch pipeline</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 03 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03</div>
+    <h2><span class="num">03</span>Writing a validation hook — patterns</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Declare hooks as methods on the <span class="mono">DomainModel</span>. They are auto-scanned at registration; <span class="mono">self.env</span> is injected, so you can search other models from inside. Raise any exception to veto.</p>
+
+    <div class="code-cap">Pattern A — create: validate the incoming values</div>
+    <div class="code"><span class="k">@api.on_hook</span>(<span class="s">"pre.crm.lead.create"</span>)
+<span class="k">def</span> _check_on_create(self, cmd: Command) -> None:
+    values = (cmd.payload <span class="k">or</span> {}).get(<span class="s">"values"</span>) <span class="k">or</span> {}
+    <span class="k">if</span> values.get(<span class="s">"expected_revenue"</span>, 0) &lt; 0:
+        <span class="k">raise</span> ValueError(<span class="s">"expected_revenue cannot be negative"</span>)</div>
+
+    <div class="code-cap">Pattern B — update: merge live record + incoming to check the RESULT state</div>
+    <div class="code"><span class="k">@api.on_hook</span>(<span class="s">"pre.crm.lead.update"</span>)
+<span class="k">def</span> _check_on_update(self, cmd: Command) -> None:
+    record = cmd.record                              <span class="c"># live DB record</span>
+    values = (cmd.payload <span class="k">or</span> {}).get(<span class="s">"values"</span>) <span class="k">or</span> {}
+    new_stage = values.get(<span class="s">"stage"</span>, record.stage)   <span class="c"># fall back to current</span>
+    <span class="k">if</span> new_stage == <span class="s">"won"</span> <span class="k">and not</span> record.partner_id:
+        <span class="k">raise</span> ValueError(<span class="s">"a lead cannot be marked won without a partner"</span>)</div>
+
+    <div class="code-cap">Pattern C — cross-record: use env to look up other models (conditional uniqueness, refs)</div>
+    <div class="code"><span class="k">@api.on_hook</span>(<span class="s">"pre.crm.lead.create"</span>)
+<span class="k">def</span> _unique_active_code(self, cmd: Command) -> None:
+    code = (cmd.payload <span class="k">or</span> {}).get(<span class="s">"values"</span>, {}).get(<span class="s">"code"</span>)
+    <span class="c"># reads go direct through the model proxy — never through the bus</span>
+    clash = self.env.models[<span class="s">"crm.lead"</span>].search(
+        [(<span class="s">"code"</span>, <span class="s">"="</span>, code), (<span class="s">"active"</span>, <span class="s">"="</span>, True)])
+    <span class="k">if</span> clash:
+        <span class="k">raise</span> ValueError(<span class="s">f"code {code} already in use by an active lead"</span>)</div>
+
+    <div class="code-cap">Pattern D — delete guard (and cross-cutting wildcard)</div>
+    <div class="code"><span class="k">@api.on_hook</span>(<span class="s">"pre.crm.lead.delete"</span>)
+<span class="k">def</span> _block_won_delete(self, cmd: Command) -> None:
+    <span class="k">if</span> cmd.record.stage == <span class="s">"won"</span>:
+        <span class="k">raise</span> ValueError(<span class="s">"won leads are retained for audit — archive instead"</span>)
+<span class="c"># A free-function hook on "pre.*.delete" fires for EVERY model's delete.</span></div>
+
+    <div class="callout good"><span class="ct">The whole command is transactional</span>Because the pre-hook runs before the handler and inside the command's transaction, raising leaves the database untouched — no partial write, no cleanup needed. The exception propagates to the caller unchanged.</div>
+
+    <div class="footer"><span>Hook-Driven Validation in EDE — authoring patterns</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 04 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04</div>
+    <h2><span class="num">04</span>Rules, gotchas &amp; best practice</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">A few conventions keep hook validation predictable and keep it from turning into a performance or architecture problem.</p>
+
+    <h3>Do / Don't</h3>
+    <table>
+        <thead><tr><th style="width:44%">Guidance</th><th>Why</th><th style="width:11%"></th></tr></thead>
+        <tbody>
+            <tr><td>Read other records with <span class="mono">env.models["k"].search(...)</span> inside the hook</td><td>Reads must go direct through the proxy — the bus is for mutations only</td><td><span class="pill p-have">DO</span></td></tr>
+            <tr><td>On update, merge <span class="mono">cmd.record</span> + payload values before checking</td><td>Payload may be partial; validate the <i>resulting</i> state, not just the delta</td><td><span class="pill p-have">DO</span></td></tr>
+            <tr><td>Raise a clear, message-bearing exception</td><td>The message surfaces to the API caller / UI toast unchanged</td><td><span class="pill p-have">DO</span></td></tr>
+            <tr><td>Put the check in a <span class="mono">post</span>-hook when you meant to block</td><td>By then the write already happened; only <span class="mono">pre</span> can veto</td><td><span class="pill p-gap">DON'T</span></td></tr>
+            <tr><td>Dispatch a read <span class="mono">Command("ede.search")</span> from the hook</td><td>Adds dispatcher + middleware overhead for zero gain; hooks don't fire on reads anyway</td><td><span class="pill p-gap">DON'T</span></td></tr>
+            <tr><td>Expect a hook to run on <span class="mono">search / read_one / count / read_group</span></td><td>Read-only commands are excluded by design</td><td><span class="pill p-gap">DON'T</span></td></tr>
+        </tbody>
+    </table>
+
+    <div class="grid2">
+        <div class="card">
+            <h4>Naming &amp; placement</h4>
+            <ul class="tight">
+                <li>Key pattern is <span class="mono">pre.{model_key}.{op}</span> / <span class="mono">post.{model_key}.{op}</span>.</li>
+                <li>Ops are <span class="mono">create · update · delete</span> plus any domain command name.</li>
+                <li>Model-method hooks live on the <span class="mono">DomainModel</span>; cross-cutting ones can be free functions on <span class="mono">pre.*.{op}</span>.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h4>Field-level vs hook — pick right</h4>
+            <ul class="tight">
+                <li>Presence / uniqueness / length / regex / FK → declare on the <b>field</b>.</li>
+                <li>Uniqueness enforced via a <b>named index</b>; change the field then <span class="mono">ede migrate generate</span>.</li>
+                <li>Anything conditional or cross-record → a <b>pre-hook</b>.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout warn"><span class="ct">⚠ Hooks are framework-shape</span>Adding, removing, or reordering a hook on a platform (<span class="mono">res.*</span> / <span class="mono">ir.*</span>) model changes kernel behaviour. On the EDE codebase, that class of change requires explicit approval before editing under <span class="mono">src/ede/core/</span> or a platform field declaration — don't add a hook just to silence a failing test.</div>
+
+    <div class="callout good"><span class="ct">Bottom line</span>For a business-model constraint: reach for a <b>field-level</b> declaration for shape, and a <span class="mono">@api.on_hook("pre.{model}.{op}")</span> that <b>raises to veto</b> for the business rule. That pre-hook, running transactionally before the write, is EDE's hook-driven validation.</div>
+
+    <div class="footer"><span>Hook-Driven Validation in EDE — rules &amp; best practice</span><span>4</span></div>
+</section>
+
+</body>
+</html>
