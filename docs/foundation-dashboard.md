@@ -1,9 +1,9 @@
 <!-- AUTO-MAINTAINED-BY: syncing-roadmap-to-docs -->
 # BI Dashboard Engine — Implementation Docs
 
-**Module:** `foundation.dashboard` (`src/ede/core/engines/dashboard/` + `src/ede/foundation/dashboard/` + `src/frontend/src/workspace/views/dashboard/`)
+**Module:** `foundation.dashboard` (`src/ede/core/engines/dashboard/` + `src/ede/foundation/dashboard/` + `src/ede/foundation/dashboard/frontend/`)
 **Roadmap:** [roadmap/foundation/dashboard/](../roadmap/foundation/dashboard/README.md)
-**Status:** 🔴 Not Started (roadmap drafted 2026-05-12)
+**Status:** 🟡 In Progress — **Phase 1 ✅ Delivered 2026-07-10** (KPI registry + `@api.kpi` + `ir.kpi.definition` · `ir.dashboard.definition`/`ir.dashboard.widget` · module-local Dashboard DSL loader · `DashboardRunner` → `WidgetResult`/`ChartData` · team-scoped object visibility (Enh 13 `team_scope`) + dataset-compiler data scoping · HTTP controller `/api/dashboard/{run,kpi/evaluate,list,catalog}` · Dashboards app menus + viewer/designer/admin RBAC · low-code list/form views · React viewer (5 widgets incl Recharts chart, scoped drill, poll) · 4 demo KPIs + 2 demo dashboards). Phases 2–3 🔴 Not Started. AI is permanent future scope.
 **Layer:** Foundation engine — consumes `foundation.dataset` substrate + `foundation.jobs` for scheduled insights
 
 > Source of truth is the roadmap. This doc reflects the *current built state*. Auto-maintained by the `syncing-roadmap-to-docs` skill.

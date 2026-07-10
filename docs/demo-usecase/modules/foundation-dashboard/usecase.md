@@ -2,95 +2,85 @@
 
 **Module:** `ede.foundation.dashboard`
 **App key:** `foundation.dashboard`
-**Demo manifest entries** (planned, Phase 1): `demo/demo_kpis.xml`, `demo/demo_dashboards.xml`
-**Status:** 🔴 Not authored (module itself is 🔴 Not Started — see [roadmap/foundation/dashboard/](../../../../roadmap/foundation/dashboard/))
+**Demo manifest entries:** `demo/demo_kpis.xml`, `demo/demo_dashboards.xml`
+**Status:** ✅ Delivered (2026-07-10)
 
 ---
 
 ## Use-case
 
-The dashboard engine ships **2 demo dashboards backed by 5 demo KPIs** demonstrating the headline capabilities:
+The dashboard engine ships **2 demo dashboards backed by 4 demo KPIs** that
+demonstrate the headline capabilities against the Acme Forwarding demo tenant —
+**without depending on any domain module.** All KPIs evaluate self-contained
+`foundation` metrics (`base.partner_count`, `base.organization_count`,
+`base.entity_total`, `base.partner_to_org_ratio`, `base.entity_summary` — shipped
+by `foundation.dataset`), so the demo is coherent on a `--with-demo=all` tenant
+regardless of which domains are active.
 
-1. **Sales Executive Dashboard** — five widgets exercising all five widget types: scorecard (Pipeline Value), vs_target_bar (Pipeline vs Target), trend_sparkline (Win Rate over 12 weeks), table (Opportunities by Stage with drill-through to the Pipeline by Stage report), simple_chart bar (Revenue YTD by month).
-2. **Pricing Performance Dashboard** — three scorecards (Active Rates Count / Avg Margin % / Rates Expiring 30d) for the pricing operations desk.
+1. **Platform Overview** (`demo.platform_overview`) — five widgets exercising **all
+   five widget types**: scorecard (Active Partners, with target + warn/alert
+   thresholds), vs_target_bar (Active Organizations), trend_sparkline (Total
+   Entities), table (Entity Summary), simple_chart bar (Entity Summary). Visible
+   to everyone.
+2. **Ops Desk** (`demo.ops_desk`) — two scorecards demonstrating **team-scoped
+   object visibility**: the Active-Partners scorecard is visible to all, while the
+   Partner/Org-Ratio scorecard is **owned by the Pricing Desk – West team**
+   (`base.demo_team_pricing_west`, code `PDW`) — only that team's members (and
+   admins) see it.
 
 Both dashboards exercise:
-- KPI registry mirror via `ir.kpi.definition` rows.
-- Threshold evaluation — Pipeline Value's `threshold_warn=0.80, threshold_alert=0.50` cause amber/red badges based on current values vs target.
-- Auto-refresh — both dashboards default to 60s; observable in the browser without page reload.
-- Cross-engine drill-through — clicking the Opportunities-by-Stage table row navigates to the reporting module's `sales.pipeline_by_stage` report pre-filtered by stage.
-- Per-run cache benefit — the 5 KPIs share 3 underlying metrics, so a dashboard render hits the DB 3 times not 5.
+- KPI registry mirror via `ir.kpi.definition` rows (`is_decorated=False` — demo-authored).
+- Threshold evaluation — `threshold_warn=0.80, threshold_alert=0.50` drive amber/red status from current value vs target.
+- Auto-refresh (60s default).
+- Team-scoped object visibility via `team_scope="optional"` + `team_id` (Enh 13 read-filter).
 
 ## The unifying scenario fit
 
-All five KPIs evaluate against the Acme Forwarding demo data:
-- Sales KPIs aggregate `crm.opportunity` + `crm.quote` records owned by `demo_user_sales_rep`.
-- Pricing KPIs aggregate `pricing.rate` records on lane INMUM ↔ SGSIN.
+- Metrics aggregate the Acme Forwarding tenant's `res.partner` + `res.organization` rows (loaded by `foundation.base` demo).
+- The team-scoped widget attaches to `base.demo_team_pricing_west` (Pricing Desk – West), a team the base demo already ships.
 
-## Records produced (planned, Phase 1)
+## Records produced
 
 ### `demo/demo_kpis.xml`
 
-| External ID | Model | Key | Target | Direction | Visualization |
+| External ID | Model | Key | Metric | Target | Direction |
 |---|---|---|---|---|---|
-| `dashboard.demo_kpi_pipeline_value` | `ir.kpi.definition` | `sales.pipeline_value` | 5,000,000 | higher_better | scorecard, vs_target_bar, trend_sparkline |
-| `dashboard.demo_kpi_win_rate` | `ir.kpi.definition` | `sales.win_rate` | 0.35 | higher_better | scorecard, trend_sparkline |
-| `dashboard.demo_kpi_avg_deal_size` | `ir.kpi.definition` | `sales.avg_deal_size` | 50,000 | higher_better | scorecard |
-| `dashboard.demo_kpi_active_rate_count` | `ir.kpi.definition` | `pricing.active_rate_count` | 100 | higher_better | scorecard |
-| `dashboard.demo_kpi_avg_margin_pct` | `ir.kpi.definition` | `pricing.avg_margin_pct` | 0.05 | higher_better | scorecard |
+| `dashboard.demo_kpi_active_partners` | `ir.kpi.definition` | `demo.active_partners` | `base.partner_count` | 6 | higher_better |
+| `dashboard.demo_kpi_active_orgs` | `ir.kpi.definition` | `demo.active_orgs` | `base.organization_count` | 3 | higher_better |
+| `dashboard.demo_kpi_total_entities` | `ir.kpi.definition` | `demo.total_entities` | `base.entity_total` | 10 | higher_better |
+| `dashboard.demo_kpi_partner_ratio` | `ir.kpi.definition` | `demo.partner_ratio` | `base.partner_to_org_ratio` | 150 | higher_better |
 
 ### `demo/demo_dashboards.xml`
 
-| External ID | Model | Key | Widgets |
-|---|---|---|---|
-| `dashboard.demo_sales_executive` | `ir.dashboard.definition` | `sales.executive_dashboard` | 5 widgets (scorecard Pipeline / vs_target_bar Pipeline / trend Win Rate / table Opps by Stage / chart Revenue YTD) |
-| `dashboard.demo_pricing_performance` | `ir.dashboard.definition` | `pricing.performance_dashboard` | 3 widgets (scorecard Active Rates / scorecard Avg Margin / table Expiring 30d) |
-
-Each dashboard contains 3–5 `ir.dashboard.widget` child rows. Plus ~20 RBAC permission rows linking demo users to `ir.dashboard.viewer`.
-
-## Phase 2 + Phase 3 additions (planned)
-
-| Phase | File | What it adds |
+| External ID | Model | Notes |
 |---|---|---|
-| Phase 2 | `demo/demo_alert_rules.xml` | 2 demo alert rules wiring Pipeline Value + Avg Margin KPIs to email channel |
-| Phase 2 | _seeded ir.dashboard.insight rows_ | 3 sample insights (one threshold_breach, one trend_anomaly, one target_achievement) so the feed UI is exercisable at first login |
-| Phase 3 | `demo/demo_dashboard_subscriptions.xml` | Weekly digest subscription for `demo_user_sales_rep` on Sales Executive |
-| Phase 3 | `demo/demo_dashboard_embed_tokens.xml` | Public read-only embed token for Pricing Performance (TTL 30 days) |
+| `dashboard.demo_dashboard_platform` | `ir.dashboard.definition` | Platform Overview (category `platform`) |
+| `dashboard.demo_widget_platform_partners` | `ir.dashboard.widget` | scorecard · kpi `demo.active_partners` |
+| `dashboard.demo_widget_platform_orgs` | `ir.dashboard.widget` | vs_target_bar · kpi `demo.active_orgs` |
+| `dashboard.demo_widget_platform_total` | `ir.dashboard.widget` | trend_sparkline · kpi `demo.total_entities` |
+| `dashboard.demo_widget_platform_table` | `ir.dashboard.widget` | table · metric `base.entity_summary` |
+| `dashboard.demo_widget_platform_chart` | `ir.dashboard.widget` | simple_chart · metric `base.entity_summary` |
+| `dashboard.demo_dashboard_ops` | `ir.dashboard.definition` | Ops Desk (category `operations`) |
+| `dashboard.demo_widget_ops_partners` | `ir.dashboard.widget` | scorecard · visible to all |
+| `dashboard.demo_widget_ops_ratio` | `ir.dashboard.widget` | scorecard · **team-scoped to `base.demo_team_pricing_west` (PDW)** |
 
 ## Out of scope
 
-- AI-driven insight authoring — future scope under the internal MCP server project, not part of this module.
-- Cross-tenant dashboard sharing — never (each tenant gets its own).
-- Live WebSocket push (sub-second updates) — Phase 3 candidate, not committed.
+- Domain (sales / pricing) KPIs — those belong to the owning domain module's demo (a foundation module must not depend on domain metrics).
+- Phase 2 insight/alert demo records; Phase 3 subscription/embed demo records.
 
 ## Dependencies
 
-- `foundation.dataset` Phase 1+2+3 (metric registry + per-run cache + chip system).
-- `foundation.jobs` Phase 1 (Phase 2's insight surface scheduled job).
-- `foundation.notifications` Phase 1 ✅ (alert dispatch in Phase 2).
-- `foundation.base` + `logistics.sales-crm` + `logistics.pricing` demo data.
+- `foundation.base` demo (partners, organizations, `base.demo_team_pricing_west`).
+- `foundation.dataset` metrics (`base.*`) — registered at boot.
 
-## Verification (once Phase 1 lands)
+## Verification
 
-```
-ede migrate upgrade -t demo --with-demo=foundation.dashboard
-```
-
-Then:
-1. Open Dashboards app from app-switcher.
-2. **Sales Executive Dashboard** — 5 widgets render with non-zero values.
-3. Pipeline Value scorecard badge reflects target status (green/amber/red).
-4. Win Rate sparkline shows 12 data points.
-5. Click the table widget's Opportunities-by-Stage row → drill-through to reporting's Pipeline by Stage report opens pre-filtered.
-6. Wait 60 seconds → widgets auto-refresh without page reload.
+`ede migrate upgrade -t <tenant> --with-demo=all` → `foundation.dashboard/demo`: `demo_kpis.xml` **4 created**, `demo_dashboards.xml` **9 created**; re-run is idempotent (updated, not created). The `demo.ops_desk` ratio widget carries `team_id` = the PDW team.
 
 ## Authoring order
 
-1. `foundation.dataset` Phase 1+2+3 ship (substrate prereqs).
-2. `foundation.dashboard` Phase 1 ships (KPI registry + dashboard runner + 5 widget types).
-3. Demo KPIs authored as `@api.kpi` decorators in `src/ede/foundation/dashboard/tools/kpis/`.
-4. Demo dashboards authored as `demo_dashboards.xml`.
-5. Smoke-test with `--with-demo=foundation.dashboard`.
+`demo/demo_kpis.xml` before `demo/demo_dashboards.xml` (widgets `source_key` → KPI keys).
 
 ---
 
