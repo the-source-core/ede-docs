@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Shipments. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Shipments — Manual Test Guide.pdf" "shipments.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Shipments — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 06 of 11</div>
+        <h1>Shipments<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven, hands-on QA guide for the <b>logistics.shipments</b> operational backbone — booking&nbsp;→&nbsp;shipment carry-forward, the ten-condition readiness gate, multi-leg journeys, and master/house consolidation. Every step traced to its BRD requirement ID.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives you a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">Booking→Shipment BRD · BRS FR-G · demo use-case</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Shipments does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The <b>shipment</b> is the long-lived operational record of a cargo movement — the counterpart to the short-lived booking. It owns the journey, the parties, the cargo, the frozen charges, the routing, and the leg(s) that bind to physical equipment. One model, <span class="mono">logistics.shipment</span>; <span class="mono">transport_mode_id</span> is a field, not a subclass.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">13</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">10</div><div class="cap">Readiness-gate checks</div></div>
+        <div class="stat"><div class="big">≥2</div><div class="cap">Legs for multi-modal</div></div>
+    </div>
+
+    <h3>The two state machines you will observe</h3>
+    <p>Shipments carry a <b>governed lifecycle</b> (command-driven) plus an <b>operational projection</b> derived from movement events. Watch both on the form header.</p>
+    <div class="arrow-flow">
+    status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: draft → created → pending_validation → ready_for_execution → in_execution  |  cancelled<br>
+    op.status&nbsp;&nbsp;: not_started → in_transit → arrived → delivered → closed &nbsp;(applies after in_execution)<br>
+    validation: pending → passed  |  failed  |  override_approved
+    </div>
+
+    <h3>Two orthogonal classifications set at creation</h3>
+    <div class="grid2">
+        <div class="card"><h4>movement_structure</h4><ul>
+            <li><b>single_mode</b> — one mode end-to-end (demo FCL export)</li>
+            <li><b>multimodal</b> — ≥2 legs, one carrier responsibility</li>
+            <li><b>intermodal</b> — ≥2 legs, leg-wise responsibility</li>
+        </ul></div>
+        <div class="card"><h4>hierarchy_type</h4><ul>
+            <li><b>direct</b> — master only, no houses (demo)</li>
+            <li><b>master / house / house_master_linked</b> — consolidation</li>
+            <li><b>console</b> — grouped console master</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:16%">Scenario</th><th style="width:44%">What it proves</th><th style="width:22%">Key commands</th><th style="width:18%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Direct FCL export</b></td><td>Booking→shipment carry-forward, readiness gate, guards (booking-not-ready, duplicate, amendment freeze, cancel)</td><td><span class="mono">create_from_booking</span>, <span class="mono">mark_ready</span></td><td>§02 · §03</td></tr>
+            <tr><td><b>B — Multi-leg journey</b></td><td>add/remove legs, the ≥2-leg gate for multimodal/intermodal, transshipment, per-leg detail</td><td><span class="mono">add_leg</span>, <span class="mono">remove_leg</span></td><td>§04</td></tr>
+            <tr><td><b>C — Master / house consolidation</b></td><td>House creation, link types &amp; split-share reconcile, roll-up, HBL, POD &amp; operational status</td><td><span class="mono">create_house</span>, <span class="mono">link_house</span>, <span class="mono">capture_pod</span></td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Forwarder <b>Acme Forwarding — Mumbai</b>; customer <b>Globex Inc.</b>; carrier <b>Maersk Demo Line</b>; lane <b>INMUM → SGSIN</b>. The seeded shipment <span class="mono">CO-SEA-D-2026-000001</span> (2×40HC cotton garments, 18 t / 128 CBM, ocean freight buy 2400 / sell 3200 USD) sits in <b>created</b> from booking <span class="mono">demo_booking_globex_001</span> — Scenario A drives it forward from there.</div>
+
+    <div class="footer"><span>Shipments — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A (happy path) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Direct FCL export — carry-forward &amp; readiness</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> take the confirmed Globex booking to a shipment that clears the completeness gate and reaches <b>ready_for_execution</b> with <b>no data re-keying</b>. <b>Role:</b> Operations clerk. <b>Start state:</b> booking <span class="mono">demo_booking_globex_001</span> is <span class="mono">confirmed</span>.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:22%">Action</th><th style="width:40%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open the confirmed booking; run <b>Create Shipment</b> (<span class="mono">create_from_booking</span>) choosing <span class="mono">movement_structure=single_mode</span>, <span class="mono">hierarchy_type=direct</span>.</td><td>New shipment created in <b>created</b>. Mode, org, POL/POD, place of receipt/delivery, incoterm, cut-offs, vessel/voyage and operation owner are <b>copied from the booking</b>.</td><td class="chk">Every routing/mode field matches the booking — nothing re-typed.</td><td>BTS-01<br>BTS-02</td></tr>
+            <tr><td class="stepno">2</td><td>Read the <b>Shipment / Job No.</b> field.</td><td>A composed number is auto-stamped by the numbering engine, e.g. <span class="mono">CO-SEA-D-2026-000001</span>.</td><td class="chk"><span class="mono">shipment_ref</span> populated, not blank.</td><td>BTS-03</td></tr>
+            <tr><td class="stepno">3</td><td>Confirm the single <b>leg</b> exists (sequence 1, sea) and one <b>cargo line</b> (2×40HC) is present.</td><td>Exactly one leg in <span class="mono">leg_status=planned</span>; cargo line carried with commodity, package count, gross weight.</td><td class="chk">1 leg, 1 cargo line, both populated.</td><td>BTS-09</td></tr>
+            <tr><td class="stepno">4</td><td>Confirm the mandatory <b>parties</b> (shipper, consignee, billing) + main-carriage carrier and the frozen <b>freight charge</b> are attached.</td><td>3 party roles present; charge shows buy 2400 / sell 3200 USD, frozen from the booking.</td><td class="chk">Parties + charge present; charge amounts read-only.</td><td>BTS-02</td></tr>
+            <tr><td class="stepno">5</td><td>Run <b>Mark Ready</b> (<span class="mono">mark_ready</span>).</td><td>The ten-condition gate runs (see §03). All pass → status flips to <b>ready_for_execution</b>, <span class="mono">validation_state=passed</span>, <span class="mono">ready_at</span> stamped, and a <span class="mono">shipment.ready_for_execution</span> event fires.</td><td class="chk">Status = <b>ready_for_execution</b>; validation = <b>passed</b>.</td><td>BTS-19<br>BTS-21/22</td></tr>
+            <tr><td class="stepno">6</td><td>Verify downstream consumers reacted (Documentation / Operations Execution / Tracking pick up the event).</td><td>A document checklist / execution plan / tracking activation appears for the shipment (covered in those modules' guides).</td><td class="chk">At least one downstream record now references this shipment.</td><td>event</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The shipment reached <b>ready_for_execution</b> entirely from carried-forward data plus a clean readiness gate — zero fields re-keyed, and the number was system-composed.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Watch the mode nuance</span>The shipment-level <span class="mono">transport_mode_id</span> is the <b>commercial framing mode</b> (mode of the governing B/L) — for a multimodal journey it is <i>not</i> necessarily every leg's mode. Scenario B exercises this.</div>
+
+    <div class="footer"><span>Shipments — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO A gate + negatives ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario A</div>
+    <h2><span class="num">03</span>The readiness gate &amp; the guards that must hold</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing a backbone is confirming it <b>refuses</b> bad input. First, the ten-condition <span class="mono">mark_ready</span> gate; then four negative checks that each trip a specific guard.</p>
+
+    <h3>The ten-condition completeness gate (BTS-19/21/22)</h3>
+    <p>To force a failure, clear one required field on a fresh shipment before <span class="mono">mark_ready</span> — the command returns <span class="mono">ok:false</span> with a <b>reasons list</b>, status parks at <b>pending_validation</b>, and <span class="mono">validation_state=failed</span>.</p>
+    <table>
+        <thead><tr><th style="width:5%">#</th><th style="width:48%">Condition checked</th><th style="width:47%">Failure message you should see if missing</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td>Source booking linked</td><td>“No source booking is linked”</td></tr>
+            <tr><td>2</td><td>Shipment number generated</td><td>“Shipment number not generated”</td></tr>
+            <tr><td>3</td><td>Movement structure selected</td><td>“Movement structure not selected”</td></tr>
+            <tr><td>4</td><td>Shipment hierarchy selected</td><td>“Shipment hierarchy not selected”</td></tr>
+            <tr><td>5</td><td>Operation owner assigned</td><td>“Operation owner not assigned”</td></tr>
+            <tr><td>6</td><td>Backup owner (only if <span class="mono">shipment.require_backup_owner</span> on)</td><td>“Backup owner required but not assigned”</td></tr>
+            <tr><td>7</td><td>Origin — facility <i>or</i> place of receipt</td><td>“Origin (facility or place of receipt) not set”</td></tr>
+            <tr><td>8</td><td>Destination — facility <i>or</i> place of delivery</td><td>“Destination (facility or place of delivery) not set”</td></tr>
+            <tr><td>9</td><td>Mandatory party roles present; cargo min detail + hazardous completeness</td><td>party / cargo–specific reason</td></tr>
+            <tr><td>10</td><td><b>Legs ≥ 2 for multimodal / intermodal</b> (single_mode needs 1)</td><td>leg-count reason — see Scenario B</td></tr>
+        </tbody>
+    </table>
+    <div class="callout"><span class="ct">Override path</span>A manager may pass <span class="mono">override=true</span> (with <span class="mono">shipment.allow_validation_override</span> on) to push a failing shipment through — status still flips to ready but <span class="mono">validation_state=override_approved</span> and the reasons are retained for audit. Confirm the override is recorded, not silently discarded.</div>
+
+    <h3>Negative checks — each must be refused</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:32%">Action</th><th style="width:40%">Expected refusal</th><th style="width:12%">✔</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">7</td><td><span class="mono">create_from_booking</span> against a <b>cancelled</b> booking.</td><td>Rejected: “cannot create a shipment from a cancelled booking”.</td><td class="chk">Blocked</td><td>BTS-01</td></tr>
+            <tr><td class="stepno">8</td><td><span class="mono">create_from_booking</span> against a booking that is neither confirmed nor ready.</td><td>Rejected: booking status “is not creation-eligible; a confirmed/ready booking is required”.</td><td class="chk">Blocked</td><td>BTS-01 / BR-01</td></tr>
+            <tr><td class="stepno">9</td><td>Create a <b>second</b> shipment from a booking that already has one, <i>without</i> <span class="mono">allow_duplicate</span>.</td><td>Rejected: “a shipment already exists for this booking; pass allow_duplicate with a split_reason”.</td><td class="chk">Blocked</td><td>BTS-24 / BR-02</td></tr>
+            <tr><td class="stepno">10</td><td>Edit any business field on a shipment in <b>in_execution</b>.</td><td>Rejected: “shipment is in execution — amendments are no longer permitted”.</td><td class="chk">Blocked</td><td>BTS-23</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Controlled split: repeat step 9 <i>with</i> <span class="mono">allow_duplicate=true</span> + a <span class="mono">split_reason</span> — it should now succeed and stamp the split lineage. Cancel is exercised via <span class="mono">cancel</span> and lands the shipment in terminal <b>cancelled</b>.</div>
+
+    <div class="footer"><span>Shipments — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO B (multi-leg) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario B — the multi-leg deep-dive</div>
+    <h2><span class="num">04</span>Multi-leg journeys — multimodal &amp; intermodal</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> build a door-to-door journey out of sequenced legs and prove the engine treats a multi-mode shipment as <b>one record with many legs</b> — never a flat single record, and never per-mode duplicate models. <b>Start:</b> create a shipment with <span class="mono">movement_structure=multimodal</span> (or <span class="mono">intermodal</span>).</p>
+
+    <div class="arrow-flow">
+    Leg 1 pickup (road) → Leg 2 main-carriage (sea) → Leg 3 transshipment (sea) → Leg 4 final delivery (road)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;each leg: own mode · carrier · booking-ref · planned/actual dates · equipment.usage · leg_status
+    </div>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>On the multimodal shipment, run <span class="mono">mark_ready</span> while it still has only <b>one</b> leg.</td><td>Gate <b>fails</b> — a leg-count reason is returned; status parks at <b>pending_validation</b>.</td><td class="chk">Single leg is rejected for multimodal.</td><td>gate #10<br>BR-LEG</td></tr>
+            <tr><td class="stepno">2</td><td>Add legs with <span class="mono">add_leg</span> — a pre-carriage <b>road</b> leg and a main-carriage <b>sea</b> leg, each with its own carrier / booking-ref / planned dates / equipment usage.</td><td>Legs appear sequenced; each holds its <b>own</b> mode and provider; the shipment framing mode is unchanged.</td><td class="chk">≥2 legs, per-leg mode differs from framing mode.</td><td>BTS-09<br>BR-LEG</td></tr>
+            <tr><td class="stepno">3</td><td>Add a <b>transshipment</b> leg and set the header <span class="mono">transshipment_id</span>.</td><td>Re-routing via the transship port is represented as its own leg; no data overwritten on the main leg.</td><td class="chk">Transship leg distinct from main carriage.</td><td>BR-LEG</td></tr>
+            <tr><td class="stepno">4</td><td>Re-run <span class="mono">mark_ready</span>.</td><td>With ≥2 legs (and other conditions met) the gate now <b>passes</b> → <b>ready_for_execution</b>.</td><td class="chk">Multi-leg shipment reaches ready.</td><td>BTS-19</td></tr>
+            <tr><td class="stepno">5</td><td>Attempt <span class="mono">remove_leg</span> <b>without</b> a reason.</td><td>Rejected: “remove_leg requires a reason”.</td><td class="chk">Reasonless removal blocked.</td><td>BR-SH-99</td></tr>
+            <tr><td class="stepno">6</td><td><span class="mono">remove_leg</span> <b>with</b> a reason, then re-check leg count vs. the structure.</td><td>Leg removed &amp; audit-logged; if the count drops below 2 the shipment would fail a subsequent readiness re-check.</td><td class="chk">Removal audited; count enforced.</td><td>BR-SH-99</td></tr>
+        </tbody>
+    </table>
+
+    <div class="grid2">
+        <div class="card"><h4>multimodal vs intermodal</h4><ul>
+            <li><b>multimodal</b> — ≥2 legs, <b>one</b> responsibility (single governing contract)</li>
+            <li><b>intermodal</b> — ≥2 legs, <b>leg-wise</b> responsibility</li>
+            <li>Both require ≥2 legs at the readiness gate; single_mode requires exactly 1</li>
+        </ul></div>
+        <div class="card"><h4>Leg ownership (with master/house)</h4><ul>
+            <li>Shared <b>main-carriage</b> legs live on the <b>master</b></li>
+            <li>First/last-mile legs live on the <b>house</b></li>
+            <li>Each leg binds <b>one</b> <span class="mono">equipment.usage</span> — don't share a usage ref across legs unless intentionally consolidating</li>
+        </ul></div>
+    </div>
+
+    <div class="callout warn"><span class="ct">⚠ The anti-pattern to catch</span>If you ever see mode-specific shipment records (<span class="mono">shipment.sea</span> / <span class="mono">.air</span> / <span class="mono">.road</span>) or a single flat record trying to hold two modes, that is a defect — the design is <b>one</b> <span class="mono">logistics.shipment</span> + N <span class="mono">logistics.shipment.leg</span> rows.</div>
+
+    <div class="footer"><span>Shipments — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — SCENARIO C (master/house) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Scenario C</div>
+    <h2><span class="num">05</span>Master / house consolidation, HBL &amp; delivery</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove the master/house structure — houses linked to a master, roll-up totals, split-allocation reconcile — then close the loop with HBL and POD. <b>Start:</b> a <span class="mono">hierarchy_type=master</span> shipment plus one or more house shipments.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:38%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>On the master, run <span class="mono">create_house</span> (or link an existing house) via <span class="mono">link_house</span> with a <b>direct</b> link type.</td><td>House↔master link row created; the house's <span class="mono">master_shipment_id</span> is set; a <span class="mono">house_master_linked</span> event fires.</td><td class="chk">House shows its master.</td><td>BTS-07/08</td></tr>
+            <tr><td class="stepno">2</td><td>Add a second house as a <b>split</b> link with <span class="mono">allocation_share</span> (e.g. 0.6 then 0.5).</td><td>First split accepted; the second is <b>rejected</b> when the shares for a house sum &gt; 1.0.</td><td class="chk">Over-allocation refused.</td><td>BR-SH-92</td></tr>
+            <tr><td class="stepno">3</td><td>Trigger <span class="mono">recompute_consolidation</span> on the master (auto-fires on link/unlink).</td><td>Master <span class="mono">consolidation_total_weight / volume / packages</span> equal the sum across its linked houses.</td><td class="chk">Roll-up totals reconcile.</td><td>BTS-07</td></tr>
+            <tr><td class="stepno">4</td><td><span class="mono">unlink_house</span> one house (then again with <span class="mono">cancel=true</span>).</td><td>Link lifecycle → <b>unlinked</b> (or <b>cancelled</b>); house FK cleared; totals recomputed downward.</td><td class="chk">Unlink recomputes roll-up.</td><td>§12</td></tr>
+            <tr><td class="stepno">5</td><td>On a house, run <span class="mono">generate_hbl</span>; on the master confirm the MBL slot.</td><td>HBL number stamped on the house; <span class="mono">bl_dependency_state</span> advances pending → referenced/issued.</td><td class="chk">HBL on house, MBL on master.</td><td>B/L slot</td></tr>
+            <tr><td class="stepno">6</td><td>Drive execution, then <span class="mono">capture_pod</span> at last-mile; observe <span class="mono">set_operational_status</span>.</td><td>POD recorded; <span class="mono">operational_status</span> walks not_started → in_transit → arrived → delivered → closed. With <span class="mono">auto_close_on_pod</span> on, delivery auto-closes.</td><td class="chk">POD closes the shipment (or per config).</td><td>BTS-12</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Config toggles worth flipping during the run</h3>
+    <table>
+        <thead><tr><th style="width:34%">Config key</th><th style="width:12%">Default</th><th>Effect to verify</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">shipment.auto_close_on_pod</span></td><td>false</td><td>On → shipment closes automatically when POD captured + empty equipment returned.</td></tr>
+            <tr><td><span class="mono">shipment.allow_partial_pod</span></td><td>true</td><td>Permit POD on some houses while the master stays open.</td></tr>
+            <tr><td><span class="mono">shipment.leg_status_derive</span></td><td>event</td><td>event → leg status from movement events; manual → maintained by hand.</td></tr>
+            <tr><td><span class="mono">shipment.allow_validation_override</span></td><td>true</td><td>Gates the manager override path in §03.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: carry-forward + readiness (A), ≥2-leg multi-modal journey with audited leg edits (B), and master/house roll-up + split reconcile + HBL/POD close (C) — with every negative guard in §03–§04 confirmed to refuse.</div>
+    <p class="note">Traceability: BTS-* IDs map to the “Booking to Shipment Creation” BRD; BR-LEG / BR-SH-* to <span class="mono">business-source/02-brs.md</span> (FR-G Legs &amp; Multimodal). Cross-module effects (documents, execution, tracking, profitability) are verified in those modules' own test guides.</p>
+
+    <div class="footer"><span>Shipments — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Shipment Profitability. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Shipment Profitability — Manual Test Guide.pdf" "profitability.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Shipment Profitability — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 10 of 11</div>
+        <h1>Shipment Profitability<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven, hands-on QA guide for the <b>logistics.profitability</b> operational layer — charge-line revenue/cost, gross-profit &amp; margin roll-up, multi-currency conversion, the approval-gated adjustment lifecycle, and the append-only audit ledger. This is an <b>operational</b> profitability view, not a finance system: Phase 1 runs on estimated cost + inherited revenue.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives you a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">Shipment Profitability BRD (BRD 6) · demo use-case · module source</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Profitability does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Profitability is the <b>operational</b> answer to "is this shipment making money?" — a read-friendly roll-up over a shipment's economics that <i>never</i> becomes an accounting system. The atomic unit is the <span class="mono">logistics.profitability.charge.line</span> (one revenue/cost pair per charge); the roll-up surface is the <span class="mono">logistics.shipment.profitability</span> header. Phase&nbsp;1 runs entirely on <b>estimated cost + inherited revenue</b> — no finance sync, no invoices, no vendor bills.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">6</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">5</div><div class="cap">Core models</div></div>
+        <div class="stat"><div class="big">~27%</div><div class="cap">Demo GP margin</div></div>
+    </div>
+
+    <h3>The three state vocabularies you will observe</h3>
+    <p>The header carries a <b>lifecycle stage</b>, every adjustment a <b>lifecycle status</b>, and every header a derived <b>margin flag</b>. Watch all three on the Profitability tab.</p>
+    <div class="arrow-flow">
+    stage&nbsp;&nbsp;&nbsp;&nbsp;: estimated → provisional → actual → closed &nbsp;(Phase&nbsp;1 stays at <b>estimated</b>)<br>
+    adj&nbsp;status: draft → pending_approval → approved → applied &nbsp;|&nbsp; rejected<br>
+    margin&nbsp;flag: healthy | warning | critical | negative &nbsp;(derived from margin_pct vs thresholds)
+    </div>
+
+    <h3>The two engines behind every number</h3>
+    <div class="grid2">
+        <div class="card"><h4>Roll-up (services/rollup.py)</h4><ul>
+            <li>Header stores <b>no</b> hand-entered totals (PRF-BR-02)</li>
+            <li>Sums the charge lines' <b>base-currency</b> amounts</li>
+            <li>Gross profit = revenue − effective cost (actual where synced, else estimated)</li>
+            <li>Fires from charge-line post-create / post-update / pre-delete hooks</li>
+        </ul></div>
+        <div class="card"><h4>Currency (services/currency.py)</h4><ul>
+            <li>Resolves revenue→base &amp; cost→base rates (PRF-20)</li>
+            <li>Writes <span class="mono">converted_revenue_amount</span> / <span class="mono">converted_cost_amount</span> onto the line</li>
+            <li>Single-currency lines convert at rate 1 (identity)</li>
+            <li>Upserts a <span class="mono">logistics.profitability.currency.line</span> FX record</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:18%">Scenario</th><th style="width:42%">What it proves</th><th style="width:24%">Key commands</th><th style="width:16%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Initialize &amp; roll-up</b></td><td>Inherit charge lines from the shipment's frozen charges, recompute the header, verify GP &amp; margin match the demo figures; RBAC gating</td><td><span class="mono">initialize</span>, <span class="mono">recompute</span></td><td>§02</td></tr>
+            <tr><td><b>B — Multi-currency</b></td><td>A charge bought in INR / sold in USD; the currency line's converted amounts feed the base-currency roll-up</td><td><span class="mono">recompute</span></td><td>§03</td></tr>
+            <tr><td><b>C — Adjustment lifecycle</b></td><td>submit → approve → apply through <span class="mono">foundation.approval</span>; audit trail + re-rolled margin; reject path</td><td>adjustment <span class="mono">submit/approve/reject/apply</span></td><td>§04</td></tr>
+            <tr><td><b>Guards</b></td><td>Every negative that must be refused — status-order guards, append-only ledger, immutable cost source</td><td>all six</td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Header <span class="mono">profitability.demo_header_globex_001</span> on the Globex shipment <span class="mono">CO-SEA-D-2026-000001</span> (base <b>USD</b>, stage <b>estimated</b>). Five charge lines — freight 3200/2400, origin 400/250, destination 300/200, customs 150/100, docs 100&nbsp;USD / 5000&nbsp;INR — roll up to <b>revenue 4150 · est cost 3010.24 · GP 1139.76 · margin 27.46%</b> (healthy). A pending detention-recovery adjustment (+200&nbsp;USD) and two audit entries complete the surface.</div>
+
+    <div class="footer"><span>Shipment Profitability — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Initialize &amp; roll-up — the profit object comes to life</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> stand up a profitability header over the Globex shipment, prove revenue/cost are <b>inherited not re-keyed</b> (PRF-BR-03), and confirm the roll-up matches the demo figures. <b>Role:</b> Profitability Editor. <b>Start state:</b> shipment <span class="mono">CO-SEA-D-2026-000001</span> with frozen charges.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Dispatch <span class="mono">logistics.profitability.initialize</span> with payload <span class="mono">{"shipment_id": &lt;uuid&gt;}</span>.</td><td>A <span class="mono">logistics.shipment.profitability</span> header is created (base = USD, stage <b>estimated</b>). One <span class="mono">charge.line</span> per frozen shipment charge is inherited: sell → <span class="mono">revenue_amount</span>, buy → <span class="mono">estimated_cost_amount</span>, source stamped.</td><td class="chk">Header exists; charge lines populated from the shipment — nothing re-typed.</td><td>PRF-01/02<br>PRF-06</td></tr>
+            <tr><td class="stepno">2</td><td>Dispatch <span class="mono">initialize</span> a <b>second</b> time against the same shipment.</td><td>Idempotent — the existing header UUID is returned; <b>no</b> duplicate header or duplicate lines are created.</td><td class="chk">Same <span class="mono">profitability_id</span>; line count unchanged.</td><td>PRF-BR-02</td></tr>
+            <tr><td class="stepno">3</td><td>Read the <b>freight</b> charge line's computed fields.</td><td><span class="mono">profit_amount</span> = 800 (3200 − 2400); <span class="mono">margin_pct</span> = 25.00. Computed in base currency, stored.</td><td class="chk">Per-line profit &amp; margin auto-computed, not entered.</td><td>PRF-BR-05</td></tr>
+            <tr><td class="stepno">4</td><td>Force a roll-up: dispatch <span class="mono">logistics.profitability.recompute</span> on the header.</td><td>Header totals re-derived from the lines: <b>total_revenue 4150 · total_estimated_cost 3010.24 · gross_profit 1139.76 · margin_pct 27.46</b>.</td><td class="chk">Roll-up totals equal the sum of the five lines.</td><td>PRF-BR-02<br>PRF-10/11</td></tr>
+            <tr><td class="stepno">5</td><td>Read the header <span class="mono">margin_flag</span>.</td><td>27.46% is above the warning threshold (default 15) so the flag is <b>healthy</b>. Gross profit &gt; 0 so the negative branch does not fire.</td><td class="chk"><span class="mono">margin_flag = healthy</span>.</td><td>margin cfg</td></tr>
+            <tr><td class="stepno">6</td><td>Log in as a user <b>without</b> a profitability role and open the shipment's Profitability tab.</td><td>The commercially-sensitive surface is gated by <span class="mono">ir.rbac</span> (roles <span class="mono">profitability_viewer / editor / approver</span>); a non-role user cannot read the header / lines / margins.</td><td class="chk">Profitability hidden from non-role users.</td><td>PRF-BR-17</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The header materialised from carried-forward charges, per-line profit/margin computed automatically, and the roll-up reconciled to <b>GP 1139.76 / margin 27.46%</b> — with the surface visible only to profitability roles.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Header totals are never authored</span>You cannot type totals onto the header — they are recomputed from the charge lines on every line create/update/delete (PRF-BR-02). If a total looks wrong, the fix is on a <b>line</b>, then let the hook (or <span class="mono">recompute</span>) re-roll it.</div>
+
+    <div class="footer"><span>Shipment Profitability — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO B (multi-currency) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario B — the multi-currency deep-dive</div>
+    <h2><span class="num">03</span>Multi-currency — one margin, many currencies</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove that a charge sold in one currency and bought in another still rolls up to a <b>single base-currency margin</b> — freight forwarding is inherently multi-currency (sell USD, buy EUR/INR, roll up in the org base). <b>Start:</b> the seeded <b>documentation</b> line — revenue 100&nbsp;USD, estimated cost <b>5000&nbsp;INR</b>, base USD.</p>
+
+    <div class="arrow-flow">
+    docs line: revenue 100 USD ── rate 1.0 ──► converted_revenue 100.00 USD<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cost 5000 INR ── rate 0.012048 ──► converted_cost 60.24 USD &nbsp;⇒ profit 39.76 USD
+    </div>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:40%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open the <b>documentation</b> charge line (<span class="mono">DOC-FEE</span>) and read its currencies.</td><td><span class="mono">revenue_currency_id</span> = USD, <span class="mono">cost_currency_id</span> = INR, <span class="mono">base_currency_id</span> = USD — a genuinely cross-currency line.</td><td class="chk">Revenue &amp; cost currencies differ.</td><td>PRF-20</td></tr>
+            <tr><td class="stepno">2</td><td>Read its <span class="mono">converted_revenue_amount</span> / <span class="mono">converted_cost_amount</span>.</td><td>Revenue converts at rate 1 (already USD) → 100.00; cost converts INR→USD at 0.012048 → <b>60.24</b>. These base amounts drive the line's profit compute.</td><td class="chk">converted_cost = 60.24 USD.</td><td>PRF-BR-11</td></tr>
+            <tr><td class="stepno">3</td><td>Open the matching <span class="mono">logistics.profitability.currency.line</span> FX record.</td><td>One FX row per cross-currency line: <span class="mono">cost_exchange_rate = 0.012048</span>, <span class="mono">exchange_rate_source = res_exchange_rate</span>, rate date, converted amounts, <span class="mono">fx_gain_loss_amount = 0</span> (realised only when actuals sync).</td><td class="chk">FX record captures rate, source &amp; date.</td><td>PRF-20</td></tr>
+            <tr><td class="stepno">4</td><td>Read the docs line <span class="mono">profit_amount</span>.</td><td>Profit computes in <b>base currency</b> from the converted amounts: 100.00 − 60.24 = <b>39.76 USD</b> — <i>not</i> 100 − 5000.</td><td class="chk">Profit uses converted, not raw, cost.</td><td>PRF-BR-05</td></tr>
+            <tr><td class="stepno">5</td><td><span class="mono">recompute</span> the header and confirm the total.</td><td>The roll-up sums <b>converted</b> base amounts (falling back to raw only for single-currency lines), so the docs cost enters as 60.24 — total est cost stays <b>3010.24</b> and margin <b>27.46%</b>.</td><td class="chk">Converted amount folds into the base total.</td><td>PRF-BR-02</td></tr>
+            <tr><td class="stepno">6</td><td>Inspect the four USD-only lines (freight / origin / destination / customs).</td><td>Single-currency lines carry <span class="mono">converted_*</span> equal to the raw amounts (rate 1); the roll-up treats them identically.</td><td class="chk">Identity conversion on same-currency lines.</td><td>PRF-20</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>The INR cost was resolved to 60.24 USD via the currency engine, stored on both the charge line and its FX record, and folded into a single USD margin — the header never mixes currencies.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Rate source drives the number</span>The applied rate comes from <span class="mono">profitability.exchange_rate_source</span> (default <span class="mono">res_exchange_rate</span> → latest <span class="mono">res.exchange.rate</span> for from→base). If no rate row exists, the engine falls back to identity (rate 1) — a missing FX master silently understates a cross-currency cost. Confirm the rate row exists before trusting the converted total.</div>
+
+    <div class="footer"><span>Shipment Profitability — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO C (adjustment lifecycle) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario C</div>
+    <h2><span class="num">04</span>Adjustment lifecycle — approval, apply &amp; audit</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> override an inherited amount the <b>auditable</b> way — never by silently editing a charge line (PRF-BR-03). Drive the seeded detention-recovery adjustment (+200&nbsp;USD on the freight line) submit → approve → apply, then confirm the header re-rolls and the audit ledger records it. <b>Roles:</b> Editor submits; Approver approves.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:38%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open the seeded adjustment <span class="mono">demo_adjustment_detention</span> — type <span class="mono">revenue_increase</span>, amount 200 USD, <span class="mono">status = pending_approval</span>, <span class="mono">requires_approval = true</span>.</td><td>Because <span class="mono">profitability.revenue_adjustment_requires_approval</span> is on (default true), the delta sits in <b>pending_approval</b> awaiting sign-off — it has <b>not</b> touched the freight line yet.</td><td class="chk">Line still reads 3200; adjustment pending.</td><td>PRF-06</td></tr>
+            <tr><td class="stepno">2</td><td>As Approver, dispatch <span class="mono">logistics.profitability.adjustment.approve</span>.</td><td>Status → <b>approved</b> then immediately <b>applied</b> (approve calls apply). The freight <span class="mono">revenue_amount</span> becomes 3200 + 200 = <b>3400</b>; <span class="mono">revenue_source</span> flips to <span class="mono">manual_adjustment</span>.</td><td class="chk">Freight revenue now 3400; status <b>applied</b>.</td><td>PRF-06</td></tr>
+            <tr><td class="stepno">3</td><td>Read the adjustment's <span class="mono">before_amount</span> / <span class="mono">after_amount</span>.</td><td>Stamped for audit: before 3200, after 3400.</td><td class="chk">Before/after captured on the adjustment.</td><td>PRF-06</td></tr>
+            <tr><td class="stepno">4</td><td>Read the header totals again.</td><td>Apply recomputes the roll-up: total revenue rises to <b>4350</b>, gross profit to <b>1339.76</b>, margin re-derived — no manual re-roll needed.</td><td class="chk">Header re-rolled after apply.</td><td>PRF-BR-02</td></tr>
+            <tr><td class="stepno">5</td><td>Open the <span class="mono">logistics.profitability.audit.entry</span> trail for the header.</td><td>A new <span class="mono">manual_override</span> entry is appended with the before/after JSON, the reason, and a pointer to the adjustment record.</td><td class="chk">Audit entry written for the apply.</td><td>PRF-BR-18</td></tr>
+            <tr><td class="stepno">6</td><td><b>Reject path (separate adjustment):</b> raise a new draft, <span class="mono">submit</span> it, then dispatch <span class="mono">adjustment.reject</span>.</td><td>Status → <b>rejected</b>; <b>no</b> charge-line mutation occurs, and a <span class="mono">manual_override</span> audit entry records the rejection reason.</td><td class="chk">Reject leaves lines untouched but audited.</td><td>PRF-06<br>PRF-BR-18</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario C pass criteria</span>The +200 delta reached the freight line <b>only</b> after approval, the header re-rolled automatically to GP 1339.76, and both the apply and the reject wrote immutable audit entries — the charge line was never edited directly.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Approval is config-gated</span>When <span class="mono">profitability.revenue_adjustment_requires_approval</span> is <b>off</b>, <span class="mono">submit</span> auto-approves and applies in one step (no pending state). Verify the config value before asserting where a freshly-submitted adjustment lands.</div>
+
+    <div class="footer"><span>Shipment Profitability — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — GUARDS / NEGATIVES ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Guards</div>
+    <h2><span class="num">05</span>The guards that must hold</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing a commercially-sensitive surface is confirming it <b>refuses</b> the wrong move. Each row below trips a real <span class="mono">ValueError</span> — the message shown is the exact string from the module source.</p>
+
+    <h3>Adjustment status-order guards</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:34%">Action</th><th style="width:50%">Expected refusal (verbatim)</th><th style="width:6%">✔</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Dispatch <span class="mono">adjustment.apply</span> on an adjustment that is still <b>pending_approval</b> / draft (not approved).</td><td>“only an approved adjustment can be applied”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">2</td><td>Dispatch <span class="mono">adjustment.submit</span> on an adjustment whose status is not <b>draft</b>.</td><td>“only a draft adjustment can be submitted”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">3</td><td>Dispatch <span class="mono">adjustment.approve</span> on an adjustment that is not <b>pending_approval / approved</b>.</td><td>“only a pending adjustment can be approved”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">4</td><td>Dispatch <span class="mono">adjustment.reject</span> on an adjustment that is not <b>pending_approval</b>.</td><td>“only a pending adjustment can be rejected”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">5</td><td>Apply a <span class="mono">revenue_increase</span> / <span class="mono">cost_increase</span> (etc.) adjustment with <b>no</b> target charge line.</td><td>“adjustment_type '…' requires a target charge line”</td><td class="chk">Blocked</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Ledger &amp; immutability guards</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:34%">Action</th><th style="width:50%">Expected refusal (verbatim)</th><th style="width:6%">✔</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">6</td><td>Attempt to <b>update</b> any <span class="mono">logistics.profitability.audit.entry</span> row.</td><td>“profitability audit entries are append-only and cannot be updated (PRF-BR-18)”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">7</td><td>Attempt to <b>delete</b> any <span class="mono">logistics.profitability.audit.entry</span> row.</td><td>“profitability audit entries are append-only and cannot be deleted (PRF-BR-18)”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">8</td><td>Change a charge line's <span class="mono">estimated_cost_source</span> to a different value once it is already set.</td><td>“estimated_cost_source is immutable once set (PRF-BR-04) — re-estimation must create a new audit entry, not overwrite the source”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">9</td><td>Dispatch <span class="mono">logistics.profitability.initialize</span> with an empty payload (no <span class="mono">shipment_id</span>).</td><td>“logistics.profitability.initialize requires payload.shipment_id”</td><td class="chk">Blocked</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Honest scope — what Phase&nbsp;1 does NOT do</span>
+    <b>Actual cost / actual revenue</b> stay 0 (no finance sync); <b>billing_status</b>, <b>cost_status</b>, <b>finance_sync_status</b>, and the <b>variance</b> fields are Phase-2 placeholders. <b>Closure</b>, <b>exceptions</b>, and <b>master/console cost allocation</b> are Phase 2. <b>Leg-wise profitability, AI estimates, and BI/reports</b> are Phase 3. Do not test these here — the enum values exist so later phases emit into them, but no Phase-1 command populates them.</div>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green — initialize + roll-up to GP 1139.76 / 27.46% (A), the INR→USD line folded into one base margin (B), the approval→apply→audit lifecycle with a re-rolled header and a clean reject path (C) — and every guard in §05 confirmed to refuse with its exact message.</div>
+    <p class="note">Traceability: PRF-* / PRF-BR-* IDs are the requirement tags carried in the <span class="mono">logistics.profitability</span> module source (models &amp; services), mapped to the Shipment Profitability BRD (BRD 6). Cross-module effects (shipment charges, approval cases) are verified in those modules' own test guides.</p>
+
+    <div class="footer"><span>Shipment Profitability — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+</body>
+</html>

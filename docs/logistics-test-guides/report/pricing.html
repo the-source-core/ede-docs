@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Pricing / Rate Management. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Pricing — Rate Management — Manual Test Guide.pdf" "pricing.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Pricing — Rate Management — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 02 of 11</div>
+        <h1>Rate Management<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven, hands-on QA guide for the <b>logistics.pricing</b> Rate Management System (RMS) — the buy/sell rate lifecycle, the margin &amp; predictive-margin engine, maker-checker approval, spot RFQs, contracts, immutable versioning and branch overrides. Every step traced to its RMS BRS requirement ID.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives you a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">RMS BRS v1.0 · SOW/TDS · demo use-case</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Pricing does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The <b>pricing</b> module is the RMS — the single authoritative source for every commercial price. A <span class="mono">pricing.rate</span> is a priced offering (buy or sell) for a service on a lane; charge lines (<span class="mono">pricing.rate.line</span>) carry the components, optionally per <b>leg segment</b>. Rates group under <span class="mono">pricing.contract</span>, are sourced ad-hoc via <span class="mono">pricing.spot.request</span>, and every amendment forks an immutable <span class="mono">pricing.rate.version</span>. Status is <span class="mono">workflow=True</span> — transitions are owned by <span class="mono">foundation.workflow</span> rows, not free writes.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">30</div><div class="cap">Domain commands</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Workflow state machines</div></div>
+        <div class="stat"><div class="big">4</div><div class="cap">Leg-segment tags</div></div>
+    </div>
+
+    <h3>The three state machines you will observe</h3>
+    <p>Rate, contract and spot-request each carry a <b>governed lifecycle</b> on a <span class="mono">workflow=True</span> status field. Watch the statusbar on each form header.</p>
+    <div class="arrow-flow">
+    rate&nbsp;&nbsp;&nbsp;&nbsp;: draft → pending_approval → approved → suspended | expired → archived&nbsp;&nbsp;(↘ rejected)<br>
+    contract: draft → active → suspended ⇄ reactivate&nbsp;&nbsp;| expired | terminated<br>
+    spot&nbsp;&nbsp;&nbsp;&nbsp;: pending → responded → selected&nbsp;&nbsp;| expired | cancelled
+    </div>
+
+    <h3>Two orthogonal classifications set at rate creation</h3>
+    <div class="grid2">
+        <div class="card"><h4>rate_type &amp; rate_source</h4><ul>
+            <li><b>rate_type</b> — <span class="mono">buy</span> (vendor cost) / <span class="mono">sell</span> (customer price)</li>
+            <li><b>rate_source</b> — contract · tariff · spot · promotional · agent · manual · api_feed</li>
+        </ul></div>
+        <div class="card"><h4>margin_risk_level (predictive)</h4><ul>
+            <li><b>safe</b> ≥ 8% · <b>watch</b> 5–8% · <b>risk</b> &lt; 5%</li>
+            <li><b>negative_risk</b> — margin amount &lt; 0 (billing below cost)</li>
+            <li>Thresholds config-driven (PM-008/PM-010); defaults 5% / 8%</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:17%">Scenario</th><th style="width:43%">What it proves</th><th style="width:22%">Key commands</th><th style="width:18%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Buy/Sell rate lifecycle</b></td><td>Create → line/leg-segment charges → margin &amp; predictive engine → submit → maker-checker approval → approved; margin gate + guards</td><td><span class="mono">submit</span>, <span class="mono">approve</span>, <span class="mono">amend</span></td><td>§02 · §03</td></tr>
+            <tr><td><b>B — Spot RFQ</b></td><td>Multi-vendor RFQ → responses → compare → award → rate creation; expiry &amp; cancel guards</td><td><span class="mono">respond</span>, <span class="mono">compare</span>, <span class="mono">award</span></td><td>§04</td></tr>
+            <tr><td><b>C — Contract &amp; versioning</b></td><td>Contract lifecycle + cascade amend → version compare/rollback → branch override &amp; publish; immutability guards</td><td><span class="mono">contract.amend</span>, <span class="mono">version.rollback</span></td><td>§05 · §06</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Forwarder <b>Acme Forwarding — Mumbai</b>; customer <b>Globex Inc.</b>; carrier <b>Maersk Demo Line</b>; lane <b>INMUM → SGSIN</b>. The seeded sell rate <span class="mono">demo_rate_sell_sea_globex_mbai_sg</span> (ocean freight + documentation) and the matching buy rate <span class="mono">demo_rate_buy_sea_maersk_mbai_sg</span> (freight + BAF + a <b>leg_segment=origin</b> THC line) both sit on the Globex lane; contract <span class="mono">demo_contract_maersk_sea</span> groups the buy side. Approvers: <span class="mono">demo_user_ops_manager</span> (pricing approver), <span class="mono">demo_user_finance</span> (high-value).</div>
+
+    <div class="footer"><span>Pricing — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A (happy path) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Buy/Sell rate lifecycle — creation to approved</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> price a new Globex <b>sell</b> rate on INMUM → SGSIN, watch the margin engine light up, and drive it through maker-checker approval to <b>approved</b>. <b>Role:</b> pricing executive (maker) + <span class="mono">demo_user_ops_manager</span> (checker). <b>Start:</b> a fresh draft on the demo lane.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:23%">Action</th><th style="width:39%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Create a <span class="mono">pricing.rate</span> with <span class="mono">rate_type=sell</span>, <span class="mono">rate_source=tariff</span>, mode Sea, currency USD, valid_from/valid_to set.</td><td>Rate created in <b>draft</b>; the <span class="mono">pre.pricing.rate.create</span> hook auto-stamps a number in format <span class="mono">RATE-YYYY-NNNNNN</span> immediately.</td><td class="chk"><span class="mono">rate_number</span> populated at birth, not blank.</td><td>RM-001<br>RM-005</td></tr>
+            <tr><td class="stepno">2</td><td>Add charge lines — base ocean freight (<span class="mono">leg_segment=main_leg</span>), documentation (<span class="mono">all</span>), a THC line (<span class="mono">origin</span>) — each with a <span class="mono">unit_rate</span> and a <span class="mono">minimum_selling_amount</span>.</td><td>Lines persist with their leg segment; <span class="mono">calculated_sell_amount</span> auto-recomputes (FX-converted to header currency) via the compute runtime.</td><td class="chk">Sell amount = Σ line rates; leg tags stored.</td><td>CHG-001<br>CAL-001</td></tr>
+            <tr><td class="stepno">3</td><td>Read <span class="mono">calculated_margin_percent</span> and <span class="mono">margin_risk_level</span> on the header.</td><td>Margin % and the four-bucket risk (<span class="mono">safe</span>/<span class="mono">watch</span>/<span class="mono">risk</span>/<span class="mono">negative_risk</span>) derive automatically from the thresholds (§03).</td><td class="chk">Risk badge matches the margin band.</td><td>MAR-001<br>PM-004</td></tr>
+            <tr><td class="stepno">4</td><td>Refresh predictive margin (<span class="mono">pricing.rate.recalculate_predictive_margin</span>) — also fires automatically via post-create / line-CRUD hooks.</td><td><span class="mono">PredictiveMarginService</span> writes <span class="mono">predictive_margin_amount / _percent</span> + <span class="mono">risk_reason</span> (FX exposure, volatile surcharge, expiry proximity).</td><td class="chk"><span class="mono">risk_reason</span> is human-readable, not blank.</td><td>PM-004<br>PM-005</td></tr>
+            <tr><td class="stepno">5</td><td>Run <b>Submit</b> (<span class="mono">pricing.rate.submit</span>) on a <b>risky</b>-margin rate.</td><td>Rate flips <b>draft → pending_approval</b>; the margin rule (<span class="mono">margin_risk_level in ('risk','negative_risk')</span>) routes an <span class="mono">ir.approval.case</span> to role <span class="mono">pricing.approver</span>; submitter + approver notified.</td><td class="chk">Status <b>pending_approval</b>; approval task visible to ops_manager.</td><td>WF-001<br>BR-009</td></tr>
+            <tr><td class="stepno">6</td><td>As <span class="mono">demo_user_ops_manager</span> run <b>Approve</b> (<span class="mono">pricing.rate.approve</span>).</td><td>Maker-checker passes (checker ≠ owner) → <b>approved</b>. A safe/watch rate instead auto-approves on submit via the catch-all rule.</td><td class="chk">Status = <b>approved</b>; rate now quotable.</td><td>WF-001<br>WF-002</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Multi-leg emphasis — <span class="mono">leg_segment</span> on every charge line</span>Each <span class="mono">pricing.rate.line</span> carries <span class="mono">leg_segment</span> ∈ <span class="mono">origin · main_leg · destination · all</span> (default <span class="mono">all</span>). The demo buy rate's <b>THC</b> line is tagged <span class="mono">origin</span> and the Stark sell rate's THC is tagged <span class="mono">destination</span> — so a single rate prices distinct charges per journey leg without duplicating the header. Confirm the tag survives a save and appears in the version snapshot (§05).</div>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The rate reached <b>approved</b> with a system-composed <span class="mono">RATE-YYYY-NNNNNN</span> number, an auto-computed sell amount / margin / risk badge, a predictive-margin reason, and a maker-checker approval that the owner could not self-approve.</div>
+
+    <div class="footer"><span>Pricing — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO A margin gate + negatives ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario A</div>
+    <h2><span class="num">03</span>The margin engine &amp; the guards that must hold</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing pricing is confirming it <b>refuses</b> bad input. First the margin classification thresholds; then eight negative checks that each trip a specific <span class="mono">ValueError</span> (or <span class="mono">PermissionError</span>).</p>
+
+    <h3>Margin classification thresholds (defaults; config-driven per PM-008/PM-010)</h3>
+    <table>
+        <thead><tr><th style="width:20%">Band</th><th style="width:33%">Condition</th><th style="width:47%">Routing effect on submit</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">safe</span></td><td>margin % ≥ 8.0</td><td>Auto-approve rule (priority 10) → approved on submit.</td></tr>
+            <tr><td><span class="mono">watch</span></td><td>5.0 ≤ margin % &lt; 8.0</td><td>Auto-approve — but visibly flagged for review.</td></tr>
+            <tr><td><span class="mono">risk</span></td><td>margin % &lt; 5.0</td><td>Risk rule (priority 30) → pending_approval to <span class="mono">pricing.approver</span>.</td></tr>
+            <tr><td><span class="mono">negative_risk</span></td><td>margin amount &lt; 0</td><td>Routes to approval regardless of percent — needs senior sign-off (BR-010).</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Negative checks — each must be refused with the real message</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:46%">Expected refusal (verbatim)</th><th style="width:10%">✔</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td><span class="mono">submit</span> a rate with <b>no charge lines</b>.</td><td>“Rate must have at least one charge line before submission.”</td><td class="chk">Blocked</td><td>RM-001</td></tr>
+            <tr><td class="stepno">2</td><td><span class="mono">submit</span> a rate whose <span class="mono">valid_to</span> is already past.</td><td>“Rate validity period has already expired — extend the validity window (valid_to) before submitting this rate for approval.”</td><td class="chk">Blocked</td><td>RM-009</td></tr>
+            <tr><td class="stepno">3</td><td><span class="mono">submit</span> a rate whose key fields + lines duplicate an active rate.</td><td>“A rate with identical key fields already exists: &lt;RATE-№&gt;. Duplicate rates are not allowed …”</td><td class="chk">Blocked</td><td>BR-015</td></tr>
+            <tr><td class="stepno">4</td><td>Rate owner runs <span class="mono">approve</span> on their <b>own</b> rate.</td><td>“Maker-checker violation: you cannot approve your own rate.”</td><td class="chk">Blocked</td><td>WF-001</td></tr>
+            <tr><td class="stepno">5</td><td>Edit a locked header field (e.g. <span class="mono">currency_id</span>, <span class="mono">mode_id</span>, <span class="mono">valid_to</span>) on a <b>pending/approved</b> rate.</td><td>“Rate is locked while its approval case is PENDING or APPROVED — use Amend (Phase 2) to fork a new version or Suspend …”</td><td class="chk">Blocked</td><td>BR-011</td></tr>
+            <tr><td class="stepno">6</td><td>Create / edit / delete a <b>charge line</b> under a locked rate.</td><td>“Cannot modify pricing.rate.line — parent rate's approval case is PENDING/APPROVED. Use Amend (Phase 2) on the parent rate or Suspend it.”</td><td class="chk">Blocked</td><td>BR-011</td></tr>
+            <tr><td class="stepno">7</td><td>Write a line where <span class="mono">unit_rate &lt; minimum_selling_amount</span>.</td><td>“unit_rate &lt;v&gt; is below the minimum selling amount &lt;msp&gt;.”</td><td class="chk">Blocked</td><td>MAR-004</td></tr>
+            <tr><td class="stepno">8</td><td><span class="mono">suspend</span> a rate that is still <b>draft</b> (not approved).</td><td>“Only approved rates can be suspended.”</td><td class="chk">Blocked</td><td>WF-013</td></tr>
+        </tbody>
+    </table>
+    <div class="callout warn"><span class="ct">⚠ Amend is the escape hatch, not a header edit</span>To change a locked rate, run <span class="mono">pricing.rate.amend</span> (reason mandatory — omitting it raises “amendment_reason is required when amending a rate (BR-017, VER-003).”). Amend forks a <span class="mono">pricing.rate.version</span> snapshot and resets the rate to <b>draft</b> for re-editing. Only <b>approved</b> or <b>suspended</b> rates may be amended; <span class="mono">archive</span> is the terminal end-of-life move (status <span class="mono">archived</span>, <span class="mono">active=False</span>).</div>
+
+    <div class="footer"><span>Pricing — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO B (spot RFQ) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario B</div>
+    <h2><span class="num">04</span>Spot RFQ — multi-vendor enquiry to awarded rate</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> raise a one-off buy RFQ on the Globex lane, collect competing vendor responses, compare against standing tariffs, and award the winner — which auto-creates a <span class="mono">rate_source=spot</span> rate. <b>Role:</b> pricing desk. <b>Start:</b> a fresh <span class="mono">pricing.spot.request</span>.</p>
+
+    <div class="arrow-flow">
+    pending → responded → selected&nbsp;&nbsp;| expired | cancelled&nbsp;&nbsp;(select/award only from responded)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;each response = one pricing.spot.response (vendor · rate_amount · currency · rate_expiry_at · is_awarded)
+    </div>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:39%">Expected result</th><th style="width:21%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Create a <span class="mono">pricing.spot.request</span> with <span class="mono">request_type=buy</span>, mode Sea, origin/dest set, vendor = Maersk.</td><td>Created in <b>pending</b>; <span class="mono">pre-create</span> stamps <span class="mono">SPT-YYYY-NNNNNN</span>; the post-create hook opens an <span class="mono">activity.log</span> TASK and a <span class="mono">mail.outbox</span> email to the vendor (skipped if no email on file).</td><td class="chk"><span class="mono">request_number</span> set; RFQ activity + outbox row present.</td><td>SPT-001<br>SPT-003</td></tr>
+            <tr><td class="stepno">2</td><td>Record a vendor reply via <span class="mono">pricing.spot.request.respond</span> (vendor_id, provider_rate_amount, currency, rate_expiry_at).</td><td>Status <b>pending → responded</b>; a <span class="mono">pricing.spot.response</span> child is created; <span class="mono">response_count</span> / <span class="mono">best_quote_amount</span> auto-recompute.</td><td class="chk">1 response child; count = 1.</td><td>SPT-011</td></tr>
+            <tr><td class="stepno">3</td><td><span class="mono">respond</span> again with a second vendor's (cheaper) quote.</td><td>Stays <b>responded</b>; second child added; <span class="mono">best_quote_amount</span> drops to the lower figure.</td><td class="chk">count = 2; best = min(quotes).</td><td>SPT-011</td></tr>
+            <tr><td class="stepno">4</td><td>Run <span class="mono">pricing.spot.request.compare</span>.</td><td>Returns matching active contracts + approved tariff rates on the same lane/mode, sorted by amount — spot vs standing price side by side.</td><td class="chk">Comparison list returned, cheapest first.</td><td>SPT-008</td></tr>
+            <tr><td class="stepno">5</td><td>Run <span class="mono">pricing.spot.request.award</span> with the winning <span class="mono">awarded_response_id</span>.</td><td>Response marked <span class="mono">is_awarded</span>; siblings cleared; status <b>responded → selected</b>; a <span class="mono">pricing.rate</span> (<span class="mono">rate_source=spot</span>) + one line is created, linked via <span class="mono">linked_rate_id</span>, and auto-submitted.</td><td class="chk">selected; linked spot rate exists.</td><td>SPT-006<br>BR-008</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Negative checks — award &amp; expiry guards</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:28%">Action</th><th style="width:52%">Expected refusal (verbatim)</th><th style="width:16%">✔ / Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">6</td><td><span class="mono">award</span> without <span class="mono">awarded_response_id</span>.</td><td>“'awarded_response_id' is required — please select one vendor response to award.”</td><td class="chk">Blocked · SPT-011</td></tr>
+            <tr><td class="stepno">7</td><td><span class="mono">select</span> when responses exist but none is awarded.</td><td>“Multiple vendor responses exist. Please select one response as 'Awarded' using the 'Award &amp; Select' button …”</td><td class="chk">Blocked · SPT-011</td></tr>
+            <tr><td class="stepno">8</td><td><span class="mono">select</span> / award an <b>expired</b> spot request (or an expired quoted rate).</td><td>“Expired spot request cannot be selected or reused (BR-022).” / “The selected spot rate has expired and cannot be selected (BR-022).”</td><td class="chk">Blocked · BR-022</td></tr>
+            <tr><td class="stepno">9</td><td><span class="mono">expire</span> then (on another) <span class="mono">cancel</span> a request.</td><td>Status lands in terminal <b>expired</b> / <b>cancelled</b> respectively (from pending or responded).</td><td class="chk">Terminal · SPT-003</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>An RFQ went pending → responded with ≥2 collated vendor responses, compared against standing rates, and awarded a winner that produced an auto-submitted <span class="mono">spot</span> rate — with the two award guards and the expiry guard all confirmed to refuse.</div>
+
+    <div class="footer"><span>Pricing — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — SCENARIO C (contract + versioning) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Scenario C</div>
+    <h2><span class="num">05</span>Contract lifecycle &amp; rate versioning</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> drive a contract through its lifecycle, cascade an amendment onto its linked rates, then compare and roll back rate versions. <b>Start:</b> contract <span class="mono">demo_contract_maersk_sea</span> with its linked buy rate. <b>Role:</b> contract owner + pricing manager.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:25%">Action</th><th style="width:38%">Expected result</th><th style="width:21%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">pricing.contract.activate</span> on a draft contract.</td><td>Status <b>draft → active</b>; its customer/lane/mode rates now take precedence over general tariffs in rate search.</td><td class="chk">Contract <b>active</b>; overrides tariff.</td><td>CON-001<br>BR-006</td></tr>
+            <tr><td class="stepno">2</td><td>Run <span class="mono">pricing.contract.amend</span> with an <span class="mono">amendment_reason</span>.</td><td>Every linked <b>approved/suspended</b> rate is auto-<span class="mono">amend</span>ed (forking a version each) and the contract is reset to <b>draft</b> for re-approval.</td><td class="chk"><span class="mono">amended_rates_count</span> &gt; 0; contract draft.</td><td>CON-008</td></tr>
+            <tr><td class="stepno">3</td><td>Confirm the cascade produced a <span class="mono">pricing.rate.version</span> v1 snapshot on the amended rate (header + lines + slabs as JSON).</td><td>Version row created, <span class="mono">version_number=1</span>, mandatory <span class="mono">amendment_reason</span> stored, rate reset to <b>draft</b>.</td><td class="chk">v1 snapshot present &amp; complete.</td><td>VER-001<br>VER-003</td></tr>
+            <tr><td class="stepno">4</td><td>Edit the draft rate's freight line (a GRI), re-submit &amp; approve, then amend again → v2.</td><td>v2 snapshot captured; <span class="mono">change_summary</span> auto-describes the delta (header fields + <span class="mono">+/-</span> lines changed).</td><td class="chk">v2 exists; change_summary populated.</td><td>VER-005</td></tr>
+            <tr><td class="stepno">5</td><td>Run <span class="mono">pricing.rate.version.compare</span> on v2 (defaults to preceding version).</td><td>Field-level diff old → new: <span class="mono">header_changes</span> + <span class="mono">line_changes</span> (added / removed / changed), lines aligned by product + sequence.</td><td class="chk">Diff shows the freight-rate delta.</td><td>VER-008</td></tr>
+            <tr><td class="stepno">6</td><td>Run <span class="mono">pricing.rate.version.rollback</span> targeting v1.</td><td>Current state is first snapshotted (a fresh version), then v1's header + lines are restored onto the now-<b>draft</b> rate; it re-enters approval on next submit. History never mutated.</td><td class="chk">Rate matches v1; status <b>draft</b>.</td><td>VER-009</td></tr>
+            <tr><td class="stepno">7</td><td>Exercise the rest of the contract machine: <span class="mono">suspend</span> → <span class="mono">reactivate</span> → <span class="mono">terminate</span>; separately <span class="mono">renew</span>.</td><td>active→suspended→active→terminated as commanded; <span class="mono">renew</span> creates a fresh <b>draft</b> contract (+1yr) and copies rates, marking the old one <span class="mono">renewal_status=renewed</span>.</td><td class="chk">Each transition lands correctly.</td><td>CON-007</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Rollback needs a live rate to land on</span><span class="mono">version.rollback</span> only runs when the parent rate is <b>approved</b> or <b>suspended</b> — on any other status it raises “Only approved or suspended rates can be rolled back (current status: …).” It reuses the <span class="mono">amend</span> path, so the mandatory-reason and snapshot rules from §03 all apply. Branch visibility (<span class="mono">branch_ids</span>) is deliberately <i>not</i> rolled back — that is governed only by publish-to-branches (§06).</div>
+
+    <div class="footer"><span>Pricing — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+<!-- ============================ SECTION 06 — SCENARIO C cont'd (branch override + guards) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 06 · Scenario C — continued</div>
+    <h2><span class="num">06</span>Branch overrides, publish &amp; immutability guards</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove head-office publish-to-branch and branch-local overrides are privileged, and that version history is permanently immutable. <b>Roles:</b> pricing manager (holds <span class="mono">pricing.rate:publish_to_branches</span>) vs an ordinary user.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:27%">Action</th><th style="width:45%">Expected result / refusal (verbatim)</th><th style="width:10%">✔</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">pricing.rate.create_branch_override</span> with a <span class="mono">branch_id</span> on a global/parent rate.</td><td>A branch-scoped <b>draft</b> clone is created, linked via <span class="mono">override_of_rate_id</span>, <span class="mono">branch_ids=[branch]</span> — deliberately not auto-submitted (a verbatim clone shares the parent's dedupe hash).</td><td class="chk">Override draft linked to parent.</td><td>ME-007</td></tr>
+            <tr><td class="stepno">2</td><td><span class="mono">create_branch_override</span> with no <span class="mono">branch_id</span>.</td><td>“branch_id is required to create a branch tariff override.”</td><td class="chk">Blocked</td><td>ME-007</td></tr>
+            <tr><td class="stepno">3</td><td>Override a rate scoped to <i>other</i> branches while <span class="mono">pricing.branch_sharing_mode=strict</span>.</td><td>“Inter-branch sharing is strict: this branch cannot override a rate scoped to other branches. Set pricing.branch_sharing_mode=permissive to allow it.”</td><td class="chk">Blocked</td><td>ME-008</td></tr>
+            <tr><td class="stepno">4</td><td>As pricing manager run <span class="mono">pricing.rate.publish_to_branches</span> with a branch list.</td><td>The rate's <span class="mono">branch_ids</span> M2M is set to the supplied orgs (empty list = global to all branches).</td><td class="chk">Visibility updated.</td><td>ME-006</td></tr>
+            <tr><td class="stepno">5</td><td>As an ordinary user, try a plain <span class="mono">ede.update</span> writing <span class="mono">branch_ids</span> directly.</td><td>Vetoed: “Updating branch_ids requires pricing.rate:publish_to_branches — use the pricing.rate.publish_to_branches command instead.” (unauthorised publish also raises “User lacks pricing.rate:publish_to_branches …”)</td><td class="chk">Blocked</td><td>ME-006</td></tr>
+            <tr><td class="stepno">6</td><td>Attempt to update an <b>approved</b> <span class="mono">pricing.rate.version</span> snapshot.</td><td>“pricing.rate.version is immutable once approved — use pricing.rate.amend to create a new version instead of editing the historical snapshot.”</td><td class="chk">Blocked</td><td>VER-001</td></tr>
+            <tr><td class="stepno">7</td><td>Attempt to <span class="mono">delete</span> any <span class="mono">pricing.rate.version</span> record.</td><td>“pricing.rate.version records cannot be deleted — version history is permanent for audit purposes (VER-001).”</td><td class="chk">Blocked</td><td>VER-001</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Config toggles &amp; the renewal sweep worth verifying</h3>
+    <table>
+        <thead><tr><th style="width:34%">Config key / job</th><th style="width:16%">Default</th><th>Effect to verify</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">pricing.branch_sharing_mode</span></td><td>strict</td><td>strict → override only global / already-visible rates; permissive → any branch may override any rate (step 3).</td></tr>
+            <tr><td><span class="mono">pricing.margin.threshold_*</span></td><td>5% / 8%</td><td>Shift the risk / watch bands (PM-008/PM-010) → changes which rates route to approval (§03).</td></tr>
+            <tr><td><span class="mono">pricing.rate.renewal_sweep</span></td><td>cron 0 2 * * *</td><td>Daily job: rates inside <span class="mono">days_before_expiry</span> get <span class="mono">renewal_status=due</span> + reminder; auto-suspends lapsed rates; contract volume alerts at 80/90/100% bands.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: rate lifecycle with margin engine + maker-checker (A), multi-vendor spot RFQ to awarded rate (B), and contract cascade + version compare/rollback + branch override/publish (C) — with every negative guard across §03, §04 and §06 confirmed to refuse with its real message.</div>
+    <p class="note">Traceability: RM-/CHG-/MAR-/CAL-/CUR-/WF-/VER-/SPT-/CON-/REN-/PM-/ME-/BR- IDs map to the RMS BRS v1.0 via <span class="mono">roadmap/logistics/pricing/sow.md</span> (§2, §5) and <span class="mono">tds.md</span>. Cross-module effects (quote consumption via <span class="mono">pricing.rate.usage_check_requested</span> event, job costing) are verified in the sales-crm and shipment guides.</p>
+
+    <div class="footer"><span>Pricing — Manual Test Guide · MaargSetu Logistics</span><span>7</span></div>
+</section>
+
+</body>
+</html>

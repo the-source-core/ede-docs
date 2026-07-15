@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Masters. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Masters — Manual Test Guide.pdf" "masters.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Masters — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 01 of 11</div>
+        <h1>Masters<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven QA guide for <b>logistics.masters</b> — the governed reference-data foundation the whole domain reads from: UN/LOCODE trade locations, transport modes, equipment &amp; facility masters, commodities, and the carrier network. Here you <b>set up and govern</b> the masters the Globex INMUM&nbsp;→&nbsp;SGSIN lane needs, rather than run a transaction.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a real validator to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">masters.md · demo-usecase usecase.md (no BRD)</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Masters does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead"><b>logistics.masters</b> is the domain's reference-data layer — 42 registered masters that every downstream module (pricing, sales-crm, booking, shipment, operations, tracking) references via <span class="mono">fields.Reference("logistics.…")</span>. It is <b>read-mostly</b>: most masters have no commands and are driven through generic CRUD. The exceptions are the <b>carrier network</b> (approval governance) and two <b>sync-not-seed</b> masters (UN/LOCODE, sailing schedule). Cross-ERP masters — country, city, UOM, party, currency — live in the platform (<span class="mono">res.*</span>), not here.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">42</div><div class="cap">Masters registered</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">5</div><div class="cap">Real validator hooks</div></div>
+    </div>
+
+    <h3>The three real commands (everything else is generic CRUD)</h3>
+    <div class="arrow-flow">
+    carrier governance : <b>logistics.carrier.approve</b> → approved+active · emits logistics.carrier.approved<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>logistics.carrier.reject</b>&nbsp; → rejected+inactive · emits logistics.carrier.rejected<br>
+    schedule sync&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <b>logistics.sailing.schedule.sync</b> → idempotent upsert of sailings (sync-not-seed)
+    </div>
+
+    <h3>Two classifications you set on the carrier network</h3>
+    <div class="grid2">
+        <div class="card"><h4>carrier_type (logistics.carrier)</h4><ul>
+            <li><b>shipping_line</b> · <b>airline</b> · <b>road_transporter</b></li>
+            <li><b>rail_operator</b> · <b>nvocc</b></li>
+            <li><span class="mono">mode_id</span> is <b>required</b>; identity is delegated to <span class="mono">res.partner</span></li>
+        </ul></div>
+        <div class="card"><h4>approval_state (Feature 08 governance)</h4><ul>
+            <li><b>draft → submitted → approved</b> | <b>rejected</b></li>
+            <li>Default <b>approved</b> — governance is <b>off</b> unless opted in</li>
+            <li>Opt in via <span class="mono">masters.governance.enabled_models</span></li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:18%">Scenario</th><th style="width:42%">What it proves</th><th style="width:24%">Key mechanism</th><th style="width:16%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Seed &amp; verify lane masters</b></td><td>Ports INMUM/SGSIN, sea mode, trade lane, FAK commodity exist and are referenceable by downstream modules</td><td><span class="mono">ede.search</span> · display-name format</td><td>§02</td></tr>
+            <tr><td><b>B — Carrier network onboarding</b></td><td>Delegated carrier/provider create, the maker-checker governance gate, approve / reject with real status transitions + events</td><td><span class="mono">carrier.approve</span> / <span class="mono">.reject</span></td><td>§03</td></tr>
+            <tr><td><b>C — Validation guards (negative)</b></td><td>Trip the real pre-create/update validator hooks on <span class="mono">vendor.service</span> and <span class="mono">haz.class</span>; confirm the exact refusal messages</td><td>lifecycle hooks</td><td>§04</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Ports <span class="mono">masters.demo_port_inmum</span> (INMUM) + <span class="mono">masters.demo_port_sgsin</span> (SGSIN); sea mode <span class="mono">masters.transport_mode_sea</span>; lane <span class="mono">masters.demo_lane_inmum_sgsin</span> (transit 7 d); carrier <b>Maersk Line</b> <span class="mono">masters.demo_carrier_maersk</span> (MAEU); NVOCC provider <span class="mono">masters.demo_provider_nvocc</span>; commodity <b>FAK</b> <span class="mono">masters.demo_commodity_fak</span>; DG commodity <b>LIBAT</b> (UN3480). UN/LOCODE + sailing schedules are <b>sync-not-seed</b> — the two demo ports exist only because the demo tenant has no sync configured.</div>
+
+    <div class="footer"><span>Masters — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Seed &amp; verify the lane's masters</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> confirm the reference data the Globex <b>INMUM → SGSIN</b> lane depends on is present, well-formed, and <b>referenceable by downstream modules</b> (pricing / sales-crm / booking all <span class="mono">ref=</span> these rows). <b>Role:</b> Logistics admin. <b>Start state:</b> tenant loaded with <span class="mono">--with-demo=all</span>.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open <b>Administration → Facilities / Transport &amp; Equipment</b> and read the two lane ports (<span class="mono">logistics.unlocode.master</span>).</td><td>Rows <span class="mono">INMUM</span> (Mumbai, India) and <span class="mono">SGSIN</span> (Singapore) exist; each renders as <b>[INMUM] Mumbai</b> / <b>[SGSIN] Singapore</b> — the <span class="mono">display_name_format "[{code}] {name}"</span>.</td><td class="chk">Both ports present; code shows in the label.</td><td>demo_ports</td></tr>
+            <tr><td class="stepno">2</td><td>Open the <b>sea transport mode</b> (<span class="mono">logistics.transport.mode.master</span>).</td><td>Row <span class="mono">SEA</span> present with the system-trusted <span class="mono">mode_type=sea</span> (fixed enum: sea/air/road/rail).</td><td class="chk"><span class="mono">mode_type</span> = <b>sea</b>, not free text.</td><td>seed CSV</td></tr>
+            <tr><td class="stepno">3</td><td>Open the demo <b>trade lane</b> (<span class="mono">logistics.trade.lane</span>, id <span class="mono">masters.demo_lane_inmum_sgsin</span>).</td><td>Lane binds origin <span class="mono">INMUM</span> → destination <span class="mono">SGSIN</span> over <span class="mono">transport_mode_id=sea</span>, <span class="mono">standard_transit_days=7</span>.</td><td class="chk">Lane endpoints + mode resolve to the seeded masters.</td><td>demo</td></tr>
+            <tr><td class="stepno">4</td><td>Open the baseline <b>commodity</b> (<span class="mono">logistics.commodity.master</span>, id <span class="mono">masters.demo_commodity_fak</span>).</td><td><b>FAK — Freight All Kinds</b>, HS 9999, <span class="mono">stackable=true</span>, <span class="mono">dg_flag=false</span>. Renders as <b>[FAK] Freight All Kinds</b>.</td><td class="chk">FAK present; not flagged DG.</td><td>demo</td></tr>
+            <tr><td class="stepno">5</td><td>Confirm an <b>equipment</b> master row is available for load planning (<span class="mono">logistics.equipment.type.master</span> catalogue).</td><td>A container equipment type is resolvable for the lane's FCL cargo (dimensions / payload datasheet on the row).</td><td class="chk">Equipment type resolvable for FCL.</td><td>seed CSV</td></tr>
+            <tr><td class="stepno">6</td><td><b>Referenceability check:</b> open the pricing (or sales-crm) demo and confirm its rate / quote resolves these lane endpoints.</td><td>The downstream record's origin/destination/mode/commodity FKs point at exactly the rows verified above — no free-text drift.</td><td class="chk">Downstream record references the same master rows.</td><td>FK</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>Every lane master exists, carries its system-trusted enum / display code, and is bound by FK from at least one downstream demo record — proving the masters are the single source of truth the domain reads from.</div>
+
+    <div class="callout warn"><span class="ct">⚠ UN/LOCODE &amp; sailing schedule are sync-not-seed</span>In production the UN/LOCODE catalogue is <b>synced on demand</b> from an external reference platform — it is <b>never CSV/XML-seeded</b>. The two demo ports exist only because the demo tenant has no sync configured. Likewise sailing schedules are populated only via <span class="mono">logistics.sailing.schedule.sync</span> — consumers <b>search</b> synced rows, never hand-create them. Do not treat the demo ports as the production seeding pattern.</div>
+
+    <div class="footer"><span>Masters — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO B ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario B</div>
+    <h2><span class="num">03</span>Carrier network onboarding &amp; approval governance</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> onboard a carrier/provider and prove the <b>maker-checker governance gate</b> — new master rows can be held <b>submitted + inactive</b> until an approver acts, so unreviewed reference data never reaches transactions. <b>Role:</b> Logistics admin (maker) + governance approver (checker). <b>Start:</b> governance <b>off</b> by default.</p>
+
+    <div class="arrow-flow">
+    approval_state :&nbsp; draft&nbsp;→&nbsp;submitted&nbsp;→&nbsp;approved&nbsp;(active=true)&nbsp;&nbsp;|&nbsp;&nbsp;submitted&nbsp;→&nbsp;rejected&nbsp;(active=false)<br>
+    governance gate: opt in per master via ir.config <b>masters.governance.enabled_models</b> = "logistics.carrier"
+    </div>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:36%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>With governance <b>off</b>, create a carrier (<span class="mono">ede.create</span> on <span class="mono">logistics.carrier</span>) with only <span class="mono">name</span>, <span class="mono">carrier_type=shipping_line</span>, <span class="mono">mode_id=sea</span>.</td><td>Carrier created live. Identity is <b>delegated to res.partner</b> — a partner shadow is auto-created; the pre-create hook <b>defaults</b> the shadow's <span class="mono">country_id</span> + <span class="mono">email</span> so no partner fields need typing. <span class="mono">approval_state=approved</span>, <span class="mono">active=true</span>.</td><td class="chk">Carrier live; partner shadow auto-created.</td><td>F01<br>hook</td></tr>
+            <tr><td class="stepno">2</td><td>Set ir.config <span class="mono">masters.governance.enabled_models</span> = <span class="mono">logistics.carrier</span>, then create a <b>second</b> carrier.</td><td>The governance gate fires: the new row is forced <span class="mono">approval_state=submitted</span> and <span class="mono">active=false</span> — it will not surface to transactions until approved.</td><td class="chk">New carrier parks at <b>submitted</b>, inactive.</td><td>F08<br>gate</td></tr>
+            <tr><td class="stepno">3</td><td>As the approver, run <span class="mono">logistics.carrier.approve</span> against the submitted carrier.</td><td><span class="mono">approval_state=approved</span>, <span class="mono">active=true</span>; a <span class="mono">logistics.carrier.approved</span> event fires with the carrier id. Handler returns <span class="mono">{ok:true, carrier_id}</span>.</td><td class="chk">Carrier activated; approved event emitted.</td><td>F08<br>event</td></tr>
+            <tr><td class="stepno">4</td><td>Create a third carrier (governance on), then run <span class="mono">logistics.carrier.reject</span> with a <span class="mono">reason</span>.</td><td><span class="mono">approval_state=rejected</span>, <span class="mono">active=false</span> (stays out of transactions); a <span class="mono">logistics.carrier.rejected</span> event fires carrying the reason.</td><td class="chk">Carrier rejected + inactive; reason on event.</td><td>F08<br>event</td></tr>
+            <tr><td class="stepno">5</td><td>Onboard a <b>shipping provider</b> (<span class="mono">logistics.provider</span>) — e.g. <span class="mono">provider_type=nvocc</span> — and a <b>carrier agent</b> (<span class="mono">logistics.carrier.agent</span>, <span class="mono">agent_type=gsa</span>) under the approved carrier.</td><td>Both created; each delegates identity to <span class="mono">res.partner</span> with the same country/email defaulting hook. Agent's <span class="mono">carrier_id</span> is required and resolves to the carrier.</td><td class="chk">Provider + agent created, partner shadows present.</td><td>F01<br>hook</td></tr>
+            <tr><td class="stepno">6</td><td>Run <span class="mono">logistics.sailing.schedule.sync</span> with a batch of rows for the lane, then re-run the same batch.</td><td>First run creates sailings; the re-run <b>updates in place</b> (idempotent upsert on <span class="mono">(source, source_ref)</span>) — no duplicates. Returns <span class="mono">{ok, created, updated, total}</span>.</td><td class="chk">Re-sync produces zero duplicates.</td><td>F03<br>sync</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>Governance off = carriers go live immediately; governance on = new carriers park at <b>submitted/inactive</b> until <span class="mono">approve</span> (→ approved/active + event) or <span class="mono">reject</span> (→ rejected/inactive + event). Delegated identity means partner shadows appear with no re-keying, and schedule sync is idempotent.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Approve/reject need a target record</span>Both <span class="mono">approve</span> and <span class="mono">reject</span> operate on <span class="mono">cmd.record</span>. Dispatching either with no target raises <span class="mono">"logistics.carrier.approve requires a target carrier"</span> (resp. <span class="mono">"…reject requires a target carrier"</span>) — always route the command at a concrete carrier row.</div>
+
+    <div class="footer"><span>Masters — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO C (negatives) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario C — the guard deep-dive</div>
+    <h2><span class="num">04</span>Validation guards — the refusals that must hold</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing reference data is confirming it <b>refuses</b> malformed rows. This module raises on exactly two masters — the <b>dangerous-goods taxonomy</b> and the <b>vendor-service catalogue</b> — via pre-create / pre-update lifecycle hooks. Each row below trips a real hook and states the <b>exact</b> <span class="mono">ValueError</span> string.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action (bad input)</th><th style="width:42%">Expected refusal — exact message</th><th style="width:10%">✔</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Create a <span class="mono">logistics.haz.class</span> with <span class="mono">level=division</span> but <b>no</b> <span class="mono">parent_id</span>.</td><td>Rejected: <span class="mono">"A dangerous-goods division requires a parent class (parent_id)."</span></td><td class="chk">Blocked</td><td>BR-HZ-01<br>haz create hook</td></tr>
+            <tr><td class="stepno">2</td><td>Create a <span class="mono">logistics.haz.class</span> with <span class="mono">level=class</span> but a <span class="mono">parent_id</span> set.</td><td>Rejected: <span class="mono">"A dangerous-goods class is top-level and cannot have a parent_id."</span></td><td class="chk">Blocked</td><td>BR-HZ-02<br>haz create hook</td></tr>
+            <tr><td class="stepno">3</td><td><b>Update</b> an existing division to clear its <span class="mono">parent_id</span> (write <span class="mono">level=division</span>, <span class="mono">parent_id=null</span>).</td><td>Rejected with the same division message — the <b>update</b> hook enforces the invariant too, not only create.</td><td class="chk">Blocked on update</td><td>BR-HZ-01<br>haz update hook</td></tr>
+            <tr><td class="stepno">4</td><td>Partial update of a haz class touching <b>neither</b> <span class="mono">level</span> nor <span class="mono">parent_id</span> (e.g. rename).</td><td><b>Allowed</b> — the guard only fires when the write includes <span class="mono">level</span> or <span class="mono">parent_id</span>; unrelated edits pass.</td><td class="chk">Rename succeeds</td><td>hook scope</td></tr>
+            <tr><td class="stepno">5</td><td>Create a <span class="mono">logistics.vendor.service</span> with <span class="mono">valid_to</span> <b>earlier than</b> <span class="mono">valid_from</span>.</td><td>Rejected: <span class="mono">"Vendor service valid_to must be on or after valid_from."</span></td><td class="chk">Blocked</td><td>BR-VC-02<br>vs create hook</td></tr>
+            <tr><td class="stepno">6</td><td><b>Update</b> a valid vendor-service row to set <span class="mono">valid_to</span> before <span class="mono">valid_from</span>.</td><td>Rejected with the same message — the <b>update</b> hook re-validates the window.</td><td class="chk">Blocked on update</td><td>BR-VC-02<br>vs update hook</td></tr>
+            <tr><td class="stepno">7</td><td>Dispatch <span class="mono">logistics.carrier.approve</span> / <span class="mono">.reject</span> with <b>no target record</b>.</td><td>Rejected: <span class="mono">"logistics.carrier.approve requires a target carrier"</span> (resp. <span class="mono">…reject…</span>).</td><td class="chk">Blocked</td><td>F08<br>command guard</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Not every master hook is a validator — carrier / agent / provider create hooks only DEFAULT</span>The <span class="mono">pre.logistics.carrier.create</span>, <span class="mono">…carrier.agent.create</span> and <span class="mono">…provider.create</span> hooks <b>do not reject bad input</b> — they <b>default</b> the delegated <span class="mono">res.partner</span> shadow's <span class="mono">country_id</span> + <span class="mono">email</span> (and, for carrier, apply the governance gate). Only <span class="mono">haz.class</span> and <span class="mono">vendor.service</span> raise <span class="mono">ValueError</span>. Do not expect a refusal from a carrier create with a missing partner field — it is silently completed.</div>
+
+    <div class="grid2">
+        <div class="card"><h4>Where the guards live</h4><ul>
+            <li><span class="mono">haz.class</span> — <span class="mono">pre.…create</span> + <span class="mono">pre.…update</span> (level ↔ parent invariant)</li>
+            <li><span class="mono">vendor.service</span> — <span class="mono">pre.…create</span> + <span class="mono">pre.…update</span> (validity window)</li>
+            <li><span class="mono">carrier</span> — <span class="mono">approve</span> / <span class="mono">reject</span> commands guard on a target row</li>
+        </ul></div>
+        <div class="card"><h4>Read-only masters have no guards</h4><ul>
+            <li>Most of the 42 masters are pure CRUD reference rows</li>
+            <li><span class="mono">is_standard_locked=true</span> is a UI contract, <b>not</b> a command-layer block</li>
+            <li>Commodity's "UN number when dg_flag" is a <b>docstring rule</b>, not an enforced hook</li>
+        </ul></div>
+    </div>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: lane masters exist &amp; are referenceable (A); carrier governance approve/reject with real status + events (B); and every documented validator (<span class="mono">haz.class</span>, <span class="mono">vendor.service</span>, carrier command guard) confirmed to refuse with its exact message (C).</div>
+    <p class="note">Traceability: BR-HZ-01/02 and BR-VC-02 are the model docstring rule IDs; F01/F03/F08 map to <span class="mono">masters</span> Phase 2 features 01 (party masters) / 03 (sailing schedule) / 08 (approval governance). Source inputs: <span class="mono">src/domains/logistics/docs/masters.md</span> + <span class="mono">docs/demo-usecase/modules/logistics-masters/usecase.md</span> — this module ships no BRD.</p>
+
+    <div class="footer"><span>Masters — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Consolidation. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Consolidation — Manual Test Guide.pdf" "consolidation.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Consolidation — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 07 of 11</div>
+        <h1>Consolidation<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven QA guide for <b>logistics.consolidation</b> — the orchestration layer that groups many house shipments under one master <b>console</b> and enforces capacity, cut-off, and mode-aware manifest discipline. Grounded on the SGSIN LCL groupage lane out of Mumbai.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds. <b>Phase-1 honesty:</b> house-linking is Phase 2, so capacity <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">used</span> is 0 and a fresh master yields 0 manifest lines until houses are linked — noted where it matters.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">Consolidation Mgmt BRD (BRD 3) · consolidation use-case · module docs</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN (LCL)</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Consolidation does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Consolidation is <b>“many shipments sharing one equipment usage.”</b> The module owns very little cargo data — it sits on top of Shipments (master + houses) and Equipment-Ops (the shared <span class="mono">equipment.usage</span>). It owns the <b>console</b> (the orchestration header + status lifecycle), the <b>policy / type</b> reference masters, and three computed projections: <b>eligibility</b>, <b>capacity snapshot</b>, and the mode-aware <b>manifest</b>.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">9</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">5</div><div class="cap">Console lifecycle states</div></div>
+        <div class="stat"><div class="big">8</div><div class="cap">Consolidation types</div></div>
+    </div>
+
+    <h3>The state machines you will observe</h3>
+    <p>The <b>console</b> carries the governed lifecycle; two derived enums track cut-off discipline and manifest issue. Watch all three during Scenarios B and C.</p>
+    <div class="arrow-flow">
+    console.status&nbsp;&nbsp;: draft → planning → confirmed → frozen &nbsp;|&nbsp; cancelled (from draft / planning / confirmed only)<br>
+    cutoff_state&nbsp;&nbsp;&nbsp;&nbsp;: open → soft_closed → hard_closed &nbsp;(soft = etd − consol.cutoff_hours_before_departure)<br>
+    manifest.status&nbsp;: draft → generated → issued &nbsp;|&nbsp; superseded &nbsp;&nbsp;·&nbsp;&nbsp; eligibility: eligible / eligible_with_warning / ineligible
+    </div>
+
+    <h3>The nine commands, grouped by scenario</h3>
+    <div class="grid2">
+        <div class="card"><h4>Config &amp; projections (A / C)</h4><ul>
+            <li><span class="mono">eligibility.recompute</span> — per-shipment verdict</li>
+            <li><span class="mono">capacity.snapshot.recompute</span> — capacity remaining</li>
+            <li><span class="mono">manifest.generate</span> · <span class="mono">manifest.issue</span></li>
+            <li>Pool = a saved search over <span class="mono">consolidation.eligibility</span> via <span class="mono">consolidation.pool.filter</span></li>
+        </ul></div>
+        <div class="card"><h4>Console lifecycle (B)</h4><ul>
+            <li><span class="mono">console.set_planning</span> — draft → planning</li>
+            <li><span class="mono">console.confirm</span> — completeness gate + auto-master</li>
+            <li><span class="mono">console.evaluate_cutoff</span> — recompute cut-off state</li>
+            <li><span class="mono">console.freeze</span> · <span class="mono">console.cancel</span></li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:18%">Scenario</th><th style="width:44%">What it proves</th><th style="width:22%">Key commands</th><th style="width:16%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Config &amp; eligibility</b></td><td>Policy / type masters, scope-priority resolve, per-shipment eligibility verdict, saved pool filter</td><td><span class="mono">eligibility.recompute</span></td><td>§02</td></tr>
+            <tr><td><b>B — Console lifecycle</b></td><td>set_planning → confirm → freeze, auto-master, capacity snapshot, cut-off discipline + guards</td><td><span class="mono">set_planning</span>, <span class="mono">confirm</span>, <span class="mono">freeze</span></td><td>§03 · §04</td></tr>
+            <tr><td><b>C — Manifest</b></td><td>Mode-aware doc-type, house-line aggregation, supersede on regenerate, issue gate</td><td><span class="mono">manifest.generate</span>, <span class="mono">manifest.issue</span></td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Org <b>Acme Forwarding — Mumbai</b> (<span class="mono">base.default_organization</span>). Standard seed: 3 tenant-wide policies (<span class="mono">GROUP-BY-POD / CUSTOMER / CARRIER</span>) + 8 <span class="mono">consolidation.type</span> defaults. Branch demo: <span class="mono">DEMO-SGSIN-LCL</span> (destination-grouping, 36 h cut-off, 10% buffer) and <span class="mono">DEMO-AIR-CONSOLE</span> (customer-grouping, 12 h cut-off), plus a <b>draft</b> console <span class="mono">consolidation.demo_console_sgsin_lcl</span> (type <span class="mono">lcl_groupage</span>, mode sea) — Scenario B drives it forward.</div>
+
+    <div class="footer"><span>Consolidation — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Config masters, scope resolution &amp; eligibility</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> confirm the two reference masters seed correctly, that a branch-scoped policy beats the tenant-wide default (BR-PM-01), and that the per-shipment eligibility projection computes a real verdict. <b>Role:</b> Consolidation coordinator.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:38%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open the <b>Consolidation Policies</b> list.</td><td>5 rows: 3 tenant-wide (<span class="mono">GROUP-BY-POD/CUSTOMER/CARRIER</span>) + 2 Mumbai-branch (<span class="mono">DEMO-SGSIN-LCL</span>, <span class="mono">DEMO-AIR-CONSOLE</span>). Order = <span class="mono">priority desc</span>.</td><td class="chk">Branch rows carry <span class="mono">organization_id</span>; defaults are null.</td><td>CON-04</td></tr>
+            <tr><td class="stepno">2</td><td>Open the <b>Consolidation Types</b> list (8 rows).</td><td><span class="mono">lcl_groupage</span> → sea, <span class="mono">air_console</span> → air; <span class="mono">export_console / import_deconsole / multimodal_console</span> have <b>no</b> mode (mode-agnostic). Each carries a default equipment family + manifest doc-type.</td><td class="chk">Mode-bound vs mode-agnostic split is correct.</td><td>BR-CT-02</td></tr>
+            <tr><td class="stepno">3</td><td>Resolve a policy for the demo lane: <span class="mono">group_by=destination</span>, <span class="mono">organization_id=</span>Mumbai, <span class="mono">transport_mode_id=</span>sea.</td><td><span class="mono">DEMO-SGSIN-LCL</span> wins over the tenant-wide <span class="mono">GROUP-BY-POD</span> — highest priority, then most-specific scope.</td><td class="chk">Org-scoped row beats the wildcard default.</td><td>BR-PM-01</td></tr>
+            <tr><td class="stepno">4</td><td>Note the demo policy's own <span class="mono">capacity_buffer_pct=10</span> / <span class="mono">cutoff_hours_before_departure=36</span>.</td><td>These override the org <span class="mono">ir.config</span> defaults (5% / 24 h) for consoles created under the policy.</td><td class="chk">Policy override values read back as seeded.</td><td>BR-PM-02</td></tr>
+            <tr><td class="stepno">5</td><td>Run <span class="mono">consolidation.eligibility.recompute</span> with the seeded Globex export shipment's <span class="mono">shipment_id</span>.</td><td>An eligibility row is upserted: <span class="mono">is_eligible</span> + <span class="mono">eligibility_state</span> computed from real fields (status, POL/POD, validation_state); pool dims (weight / volume / hazardous / reefer) rolled up from cargo lines.</td><td class="chk">One row per shipment; verdict populated.</td><td>BR-EL-01/02</td></tr>
+            <tr><td class="stepno">6</td><td>Recompute against a <b>cancelled</b> shipment and read <span class="mono">blocking_reasons</span>.</td><td><span class="mono">eligibility_state=ineligible</span>; the reason list names <span class="mono">status_ok</span> → “shipment status does not permit consolidation (cancelled / terminal)”. <b>Every</b> failed criterion is listed, not just the first.</td><td class="chk">All-reasons list, not first-fail.</td><td>BR-EL-04</td></tr>
+            <tr><td class="stepno">7</td><td>Build a <b>pool filter</b> — save a <span class="mono">consolidation.pool.filter</span> over eligibility (e.g. <span class="mono">is_eligible=true</span>, POD = SGSIN). Toggle <span class="mono">is_shared</span>.</td><td>Filter saved; private to owner until <span class="mono">is_shared=true</span>, then visible branch-wide. The pool is a search view over eligibility — no separate pool entity.</td><td class="chk">Shared toggle changes visibility scope.</td><td>BR-PS-03</td></tr>
+            <tr><td class="stepno">8</td><td><b>Negative:</b> call <span class="mono">eligibility.recompute</span> with no <span class="mono">shipment_id</span>.</td><td>Rejected: “recompute requires a shipment_id”.</td><td class="chk">Blocked.</td><td>guard</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>Both masters seeded, the org-scoped policy wins the resolve, the eligibility verdict is computed from real shipment data with a full reasons list, and a shareable pool filter persists.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Phase-1 safe-pass criteria</span>Four eligibility criteria (<span class="mono">cargo_ready_ok</span>, <span class="mono">cutoff_ok</span>, <span class="mono">compatibility_ok</span>, <span class="mono">hold_status_ok</span>) <b>safe-pass</b> today — the holds / CON-08 compatibility data lands in Phase 2. Don't read a green verdict as “all seven criteria evaluated”; only status / route / doc-readiness carry real signal now.</div>
+
+    <div class="footer"><span>Consolidation — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO B (happy path) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario B</div>
+    <h2><span class="num">03</span>Console lifecycle — planning → confirm → freeze</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> drive the demo console through its full governed lifecycle, watch the auto-master + capacity snapshot appear on confirm, and freeze it under clean cut-offs. <b>Start:</b> <span class="mono">consolidation.demo_console_sgsin_lcl</span> in <b>draft</b> (type <span class="mono">lcl_groupage</span>, mode sea).</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:40%">Expected result</th><th style="width:18%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Read the console's <span class="mono">console_number</span>.</td><td>Auto-stamped from <span class="mono">ir.sequence('CONS')</span> → <span class="mono">CONS-2026-NNNNNN</span>; immutable.</td><td class="chk">Number present, not blank.</td><td>BR-CC-03</td></tr>
+            <tr><td class="stepno">2</td><td>Fill the confirm-required fields the demo leaves blank: <span class="mono">pol_id</span>, <span class="mono">pod_id</span>, <span class="mono">carrier_id</span>, <span class="mono">equipment_type_id</span> (mode is already sea).</td><td>Fields accept; console still <b>draft</b>.</td><td class="chk">All five required fields now set.</td><td>BR-CC-05</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">consolidation.console.set_planning</span>.</td><td>Status <b>draft → planning</b>; <span class="mono">planning_at</span> stamped.</td><td class="chk">Status = <b>planning</b>.</td><td>BR-CC-01</td></tr>
+            <tr><td class="stepno">4</td><td>Run <span class="mono">consolidation.console.confirm</span>.</td><td>Completeness gate passes → status <b>confirmed</b>, <span class="mono">confirmed_at</span> stamped. With <span class="mono">consol.auto_create_master_on_confirm=true</span> a master <span class="mono">logistics.shipment</span> (<span class="mono">hierarchy_type=master</span>) is created and linked; a <span class="mono">consolidation.console.confirmed</span> event fires.</td><td class="chk"><span class="mono">master_shipment_id</span> now set.</td><td>BR-CC-04/05</td></tr>
+            <tr><td class="stepno">5</td><td>Open the <b>Capacity Snapshot</b> for the master (auto-built by the confirm event).</td><td>A <span class="mono">consolidation.capacity.snapshot</span> row exists — totals denormalized from the equipment type, buffer resolved from the policy (10%), <span class="mono">used=0</span>, <span class="mono">remaining = total × (1 − buffer)</span>.</td><td class="chk">Snapshot present; buffer = policy's 10%.</td><td>BR-CAP-01/03</td></tr>
+            <tr><td class="stepno">6</td><td>Run <span class="mono">consolidation.console.evaluate_cutoff</span> (set <span class="mono">etd</span> + <span class="mono">cargo_cut_off</span> first).</td><td><span class="mono">cutoff_state</span> + <span class="mono">soft_cutoff_at</span> recomputed: <span class="mono">soft_cutoff_at = etd − 24 h</span>; state <b>open</b> before soft, <b>soft_closed</b> between soft and cargo cut-off, <b>hard_closed</b> after.</td><td class="chk">State matches the now-vs-cut-off window.</td><td>BR-CO-01/02/03</td></tr>
+            <tr><td class="stepno">7</td><td>With all three carrier cut-offs (<span class="mono">si_cut_off</span> / <span class="mono">vgm_cut_off</span> / <span class="mono">customs_cut_off</span>) in the future, run <span class="mono">consolidation.console.freeze</span>.</td><td>Status <b>confirmed → frozen</b>, <span class="mono">frozen_at</span> stamped; a <span class="mono">consolidation.console.frozen</span> event fires.</td><td class="chk">Status = <b>frozen</b>.</td><td>BR-CO-05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>The console walked draft → planning → confirmed → frozen; the master shipment and capacity snapshot were created automatically on confirm; cut-off state recomputed correctly. Negatives that must refuse are in §04.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Capacity <span class="mono">used</span> is 0 by design in Phase 1</span>House-linking (<span class="mono">consolidation.house.link</span>) is Phase 2, so no houses consume the master yet — <span class="mono">used_*</span> reads 0 and <span class="mono">remaining</span> equals the full buffered total. The over-capacity arithmetic (BR-CAP-02) is implemented and unit-tested; it becomes live the moment real <span class="mono">used</span> numbers arrive.</div>
+
+    <div class="footer"><span>Consolidation — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO B negatives ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario B — the guards that must hold</div>
+    <h2><span class="num">04</span>Lifecycle &amp; cut-off guards — each must refuse</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing an orchestrator is confirming it <b>refuses</b> out-of-order transitions and past-cut-off freezes. Each row trips a real <span class="mono">ValueError</span> — the quoted text is the exact message from the command handler. Use a <b>fresh</b> console (or reset the demo one) so each guard is reached cleanly.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:42%">Expected refusal (exact message)</th><th style="width:12%">✔</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td><span class="mono">confirm</span> a console still in <b>draft</b> (skip <span class="mono">set_planning</span>).</td><td>“cannot confirm a console in status 'draft' (allowed: ['planning']) — BR-CC-01”.</td><td class="chk">Blocked</td><td>BR-CC-01</td></tr>
+            <tr><td class="stepno">2</td><td>Move to planning, then <span class="mono">confirm</span> <b>before</b> filling POL/POD/carrier/equipment.</td><td>“cannot confirm — these must be set first: pol_id, pod_id, carrier_id, equipment_type_id (BR-CC-05)”.</td><td class="chk">Blocked</td><td>BR-CC-05</td></tr>
+            <tr><td class="stepno">3</td><td>On a <b>confirmed</b> console, back-date <span class="mono">si_cut_off</span> (or <span class="mono">vgm/customs</span>) to the past, then <span class="mono">freeze</span> without an override.</td><td>“cannot freeze — these carrier cut-offs are already in the past: si_cut_off (BR-CO-05; pass cutoff_override to proceed)”.</td><td class="chk">Blocked</td><td>BR-CO-05</td></tr>
+            <tr><td class="stepno">4</td><td>Re-run step 3's <span class="mono">freeze</span> passing <span class="mono">cutoff_override=true</span> in the payload.</td><td>Override accepted → status <b>frozen</b>; the past cut-off is bypassed by explicit override.</td><td class="chk">Override path works</td><td>BR-CO-05</td></tr>
+            <tr><td class="stepno">5</td><td><span class="mono">freeze</span> a console that is still in <b>planning</b> (not yet confirmed).</td><td>“cannot freeze a console in status 'planning' (allowed: ['confirmed']) — BR-CC-01”.</td><td class="chk">Blocked</td><td>BR-CC-01</td></tr>
+            <tr><td class="stepno">6</td><td><span class="mono">cancel</span> a <b>frozen</b> console.</td><td>“cannot cancel a console in status 'frozen' (allowed: ['confirmed', 'draft', 'planning']) — BR-CC-01”. A frozen console is terminal for cancellation.</td><td class="chk">Blocked</td><td>BR-CC-01</td></tr>
+            <tr><td class="stepno">7</td><td>Edit <span class="mono">console_number</span> on any existing console.</td><td>“console_number is immutable (BR-CC-03)”.</td><td class="chk">Blocked</td><td>BR-CC-03</td></tr>
+            <tr><td class="stepno">8</td><td>Create a console whose <span class="mono">consolidation_type</span> is mode-bound (e.g. <span class="mono">lcl_groupage</span> = sea) but set <span class="mono">transport_mode_id</span> to air.</td><td>Rejected: “consolidation_type 'lcl_groupage' is bound to a different transport mode than the console's (BR-CC-02)”.</td><td class="chk">Blocked</td><td>BR-CC-02</td></tr>
+            <tr><td class="stepno">9</td><td><b>Positive close:</b> <span class="mono">cancel</span> a <b>draft</b> / <b>planning</b> / <b>confirmed</b> console with a <span class="mono">reason</span>.</td><td>Status <b>cancelled</b>, <span class="mono">cancelled_at</span> + reason stamped; a <span class="mono">consolidation.console.cancelled</span> event fires.</td><td class="chk">Cancel lands terminal.</td><td>BR-CC-01</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Cut-off state engine (BR-CO-01..03)</span><span class="mono">soft_cutoff_at = etd − consol.cutoff_hours_before_departure</span> (org default 24 h; a policy may override). State walks <span class="mono">open → soft_closed → hard_closed</span>, with <span class="mono">cargo_cut_off</span> as the hard boundary. Missing <span class="mono">etd</span> / <span class="mono">cargo_cut_off</span> degrade toward <span class="mono">open</span> — nothing to enforce yet.</div>
+
+    <div class="footer"><span>Consolidation — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — SCENARIO C (manifest) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Scenario C</div>
+    <h2><span class="num">05</span>Mode-aware manifest — generate, aggregate &amp; issue</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> generate one manifest that rolls up every house linked to the console's master, prove the doc-type is picked by mode (never operator-typed), and gate the issue on the console being confirmed / frozen. <b>Start:</b> a <b>confirmed</b> or <b>frozen</b> console (from Scenario B) with a linked master.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:28%">Action</th><th style="width:40%">Expected result</th><th style="width:16%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">consolidation.manifest.generate</span> with the <span class="mono">console_id</span>.</td><td>A <span class="mono">consolidation.manifest</span> is created in <b>generated</b>, numbered from <span class="mono">ir.sequence('CNMF')</span> → <span class="mono">CNMF-2026-NNNNNN</span>; <span class="mono">generated_at</span> stamped; a <span class="mono">consolidation.manifest.generated</span> event fires.</td><td class="chk">Manifest = <b>generated</b>, numbered.</td><td>CON-18</td></tr>
+            <tr><td class="stepno">2</td><td>Read <span class="mono">document_type_id</span> on the manifest.</td><td>Auto-selected from the master's <span class="mono">transport_mode_id</span> (sea → sea-manifest doc-type); never operator-picked.</td><td class="chk">Doc-type matches the mode.</td><td>BR-MF-01</td></tr>
+            <tr><td class="stepno">3</td><td>Inspect the manifest <b>lines</b> and totals.</td><td>One <span class="mono">consolidation.manifest.line</span> per <b>active</b> house on the master (<span class="mono">house_ref</span>, packages, gross, CBM, chargeable weight); header totals = the sum across lines.</td><td class="chk">Lines aggregate the houses; totals reconcile.</td><td>BR-MF-02</td></tr>
+            <tr><td class="stepno">4</td><td>Note the <b>chargeable weight</b> per line (sea LCL).</td><td>Sea: <span class="mono">max(gross, cbm × 1000)</span>. (Air would use <span class="mono">cbm × 1e6 / 6000</span>; road / rail / FCL co-load use actual gross.) Divisors come from <span class="mono">consol.sea_volumetric_factor</span> / <span class="mono">consol.air_volumetric_divisor</span>.</td><td class="chk">Chargeable weight follows the mode rule.</td><td>BR-MF-04</td></tr>
+            <tr><td class="stepno">5</td><td>Re-run <span class="mono">manifest.generate</span> for the same master.</td><td>The prior <b>generated</b> manifest flips to <b>superseded</b>; a fresh <b>generated</b> one replaces it — only one live manifest per master.</td><td class="chk">Old manifest = <b>superseded</b>.</td><td>BR-MF-03</td></tr>
+            <tr><td class="stepno">6</td><td>Run <span class="mono">consolidation.manifest.issue</span> on the generated manifest.</td><td>Status <b>generated → issued</b>, <span class="mono">issued_at</span> stamped — allowed because the owning console is confirmed / frozen.</td><td class="chk">Manifest = <b>issued</b>.</td><td>BR-MF-05</td></tr>
+            <tr><td class="stepno">7</td><td><b>Negative:</b> <span class="mono">issue</span> a manifest whose console is still in <b>draft / planning</b>.</td><td>Rejected: “manifest cannot be issued until the console is confirmed or frozen (BR-MF-05)”.</td><td class="chk">Blocked</td><td>BR-MF-05</td></tr>
+            <tr><td class="stepno">8</td><td><b>Negative:</b> <span class="mono">issue</span> a manifest that is not in <b>generated</b> (e.g. already issued or superseded).</td><td>Rejected: “only a generated manifest can be issued”.</td><td class="chk">Blocked</td><td>guard</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Phase-1 honesty — 0 lines on an auto-created master</span>The console's auto-master starts with <b>no houses</b> (house-linking is Phase 2), so a first <span class="mono">generate</span> yields <span class="mono">house_count=0</span> and no lines — the header, mode-aware doc-type, supersede lifecycle, and issue gate are all still exercised. To see real line aggregation now, point one or more existing <span class="mono">logistics.shipment.house</span> rows at the master (<span class="mono">master_shipment_id</span>) before generating; the engine reads active houses + their cargo lines directly.</div>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: config masters + eligibility + pool filter (A); console draft → frozen with auto-master, capacity snapshot, cut-off discipline and every lifecycle guard refusing (B); mode-aware manifest with house aggregation, supersede-on-regenerate and a gated issue (C).</div>
+
+    <p class="note">Traceability: <span class="mono">CON-*</span> IDs map to the Consolidation Management BRD scope areas (1 Eligibility · 2 Pool · 3 Console · 4 Type · 18 Reports/Manifest); <span class="mono">BR-CC / BR-CO / BR-CAP / BR-MF / BR-EL / BR-PM / BR-CT / BR-PS</span> are the module's feature-level business rules. House-linking, 3D load planning, and AI recommendation (BRD scope 5, 9–13) are Phase 2 and out of this guide.</p>
+
+    <div class="footer"><span>Consolidation — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+</body>
+</html>

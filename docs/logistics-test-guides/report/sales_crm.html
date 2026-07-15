@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Sales & CRM. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Sales & CRM — Manual Test Guide.pdf" "sales_crm.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sales &amp; CRM — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 03 of 11</div>
+        <h1>Sales &amp; CRM<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven, hands-on QA guide for the <b>logistics.sales_crm</b> commercial control layer — the 14-step lifecycle from inbound inquiry through lead, opportunity, priced quote, pricing approval, customer acceptance, and the auto-created operations <b>handover</b>. "No re-keying" is the delivery standard every step verifies.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives you a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">sales-crm.md · demo use-case · inquiry→booking e2e plan</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Sales &amp; CRM does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Sales &amp; CRM is the <b>commercial control layer</b>: it captures customer intent, qualifies it, prices it correctly, enforces pricing governance, and hands accepted business to operations — without manual re-keying. Five transactional records carry one deal: <span class="mono">crm.inquiry</span> → <span class="mono">crm.lead</span> → <span class="mono">crm.opportunity</span> → <span class="mono">crm.quote</span> (with a versioned <span class="mono">crm.quote.version</span>) → <span class="mono">crm.handover</span>. Each conversion copies party + routing + commercial context forward.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">38</div><div class="cap">Domain commands</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">5</div><div class="cap">Lifecycle state machines</div></div>
+        <div class="stat"><div class="big">10</div><div class="cap">Quote stages</div></div>
+    </div>
+
+    <h3>The five state machines you will observe</h3>
+    <p>Inquiry / lead / opportunity / quote status fields are <span class="mono">workflow=True</span> — direct writes raise <span class="mono">StageWriteForbidden</span>; transitions flow through <span class="mono">env.workflow.transition_by_command</span>. Handover is a plain command-driven state field (8 states).</p>
+    <div class="arrow-flow">
+    inquiry&nbsp;&nbsp;&nbsp;: NEW_PROSPECT → PROSPECT_DISQUALIFIED<br>
+    lead&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: LEAD_QUALIFIED → LEAD_DROPPED<br>
+    opp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: OPP_PROPOSAL_SENT → OPP_NEGOTIATION → OPP_WON | OPP_LOST<br>
+    quote&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: QUOTE_DRAFT → SUBMITTED → UNDER_APPROVAL → APPROVED → SENT → ACCEPTED | REJECTED | EXPIRED | CANCELLED | LOST<br>
+    handover&nbsp;&nbsp;: draft → submitted → under_review → accepted → completed &nbsp;(↳ returned / escalated / rejected)
+    </div>
+
+    <div class="grid2">
+        <div class="card"><h4>Pricing-approval routing</h4><ul>
+            <li><b>low-margin</b> — <span class="mono">margin_below_threshold==True</span> (mode×lane×tier floor)</li>
+            <li><b>sell-below-buy</b> — <span class="mono">total_sell_amount &lt; total_cost_amount</span></li>
+            <li>Payment-term / service-scope / validity-extension rules also route</li>
+            <li>Case lands on <span class="mono">sales_crm.sales_manager</span> role-bound users</li>
+        </ul></div>
+        <div class="card"><h4>Multi-leg routing (quote.route)</h4><ul>
+            <li>One quote version, N <span class="mono">crm.quote.route</span> legs</li>
+            <li><span class="mono">leg_type</span>: origin_haulage · main_carriage · transshipment · destination_haulage</li>
+            <li>Door-to-door with transshipment = 4 legs, one deal</li>
+            <li>Transit days roll up to the version; route summary flows to the handover</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:16%">Scenario</th><th style="width:44%">What it proves</th><th style="width:22%">Key commands</th><th style="width:18%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Full commercial pipeline</b></td><td>Globex happy path: inquiry → won opportunity → priced quote → approval → accept → handover auto-created, all carry-forward (no re-keying)</td><td><span class="mono">convert_to_lead</span>, <span class="mono">create_quote</span>, <span class="mono">accept</span></td><td>§02 · §03</td></tr>
+            <tr><td><b>B — Approval &amp; negotiation</b></td><td>Low-margin / sell-below-buy approval routing, the no-send gate, spot-rate RFQ, negotiation log &amp; quote revision</td><td><span class="mono">request_approval</span>, <span class="mono">log_negotiation</span>, <span class="mono">revise</span></td><td>§04</td></tr>
+            <tr><td><b>C — Handover &amp; lost states</b></td><td>Handover ops lifecycle, return/resubmit rework guard, Y-fork routing, plus lead-drop / opp-lost / inquiry-disqualify storylines</td><td><span class="mono">submit</span>, <span class="mono">route_to_fulfillment</span>, <span class="mono">drop</span></td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Forwarder <b>Acme Forwarding — Mumbai</b>; customers <b>Globex</b> (Platinum), <b>Stark</b> (Gold), <b>Wayne</b> (Silver). Globex ships an inquiry → lead → opportunity → draft quote chain (<span class="mono">demo_quote_globex_001</span>, QUOTE_DRAFT); Stark sits mid-flight at <span class="mono">QUOTE_SENT</span>. <b>Workflow note:</b> XML seeds records only in their <i>initial</i> stage — every advance (Submit → Send → Accept, Drop, Disqualify, Close Lost) is a browser click, which is the demo.</div>
+
+    <div class="footer"><span>Sales &amp; CRM — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A part 1 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Full pipeline — inquiry to a priced, won quote</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> carry the Globex enquiry from an inbound inquiry to a won opportunity with a priced draft quote — every field copied forward, nothing re-typed. <b>Role:</b> Sales Rep. <b>Start state:</b> <span class="mono">demo_inquiry_globex_001</span> in <span class="mono">NEW_PROSPECT</span>, not yet converted.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open the inquiry; run <b>Assign</b> (<span class="mono">crm.inquiry.assign</span>) with a <span class="mono">user_id</span>.</td><td>Inquiry <span class="mono">ownership_user_id</span> is updated to the chosen rep.</td><td class="chk">Owner reflects the assignee.</td><td>command</td></tr>
+            <tr><td class="stepno">2</td><td>Run <b>Convert to Lead</b> (<span class="mono">crm.inquiry.convert_to_lead</span>).</td><td>A <span class="mono">crm.lead</span> is created in <b>LEAD_QUALIFIED</b>; partner, contact, service type, origin/destination, shipment type, transport mode, load type &amp; service mode are <b>copied</b>. Inquiry <span class="mono">converted_lead_id</span> set → button hides.</td><td class="chk">Lead carries every routing field; navigates to it.</td><td>lifecycle</td></tr>
+            <tr><td class="stepno">3</td><td>On the lead, run <b>Convert to Opportunity</b> (<span class="mono">crm.lead.convert_to_opportunity</span>).</td><td>A <span class="mono">crm.opportunity</span> is created in <b>OPP_PROPOSAL_SENT</b> with carried-forward context + estimated revenue. Lead <span class="mono">converted_opportunity_id</span> set.</td><td class="chk">Opportunity created; button hides.</td><td>lifecycle</td></tr>
+            <tr><td class="stepno">4</td><td>(Optional) <b>Start Negotiation</b> (<span class="mono">crm.opportunity.start_negotiation</span>), then <b>Close Won</b> (<span class="mono">crm.opportunity.close_as_won</span>).</td><td>Stage walks to <b>OPP_NEGOTIATION</b> then <b>OPP_WON</b>. Guard <span class="mono">opp_has_close_date</span> passes (a default close date is stamped at create).</td><td class="chk">Status = <b>OPP_WON</b>.</td><td>guard: opp_has_close_date</td></tr>
+            <tr><td class="stepno">5</td><td>Run <b>Create Quote</b> (<span class="mono">crm.opportunity.create_quote</span>).</td><td>A draft <span class="mono">crm.quote</span> (<b>QUOTE_DRAFT</b>) is created; the <span class="mono">post.crm.quote.create</span> hook auto-mints <b>v1</b> and points <span class="mono">current_version_id</span> at it. Issue date today, expiry +30 days, payment terms Net 30.</td><td class="chk">Quote + v1 exist; header pre-filled from the opportunity.</td><td>hook: post.create</td></tr>
+            <tr><td class="stepno">6</td><td>On v1, run the <b>rate picker</b> — <span class="mono">crm.quote.create_lines_from_rate</span> with an approved <span class="mono">pricing.rate</span>.</td><td>Each <span class="mono">pricing.rate.line</span> is copied as a <span class="mono">crm.quote.line</span> with a <b>frozen</b> buy/sell snapshot (<span class="mono">buy_snapshot</span> / <span class="mono">sell_snapshot</span>, <span class="mono">source_rate_id</span>) — immutable even if the source rate later changes.</td><td class="chk">Lines present; snapshot amounts stored on each line.</td><td>rate picker</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Multi-leg emphasis — one quote, many legs</span>For a door-to-door move (e.g. Wayne Mumbai → Singapore <i>T/S</i> → Sydney) author <b>four</b> <span class="mono">crm.quote.route</span> rows on the single version: <span class="mono">origin_haulage</span> → <span class="mono">main_carriage</span> → <span class="mono">transshipment</span> → <span class="mono">destination_haulage</span>. Confirm the legs order by <span class="mono">leg_sequence</span>, transit days roll up to the version, and the composed <span class="mono">route_summary</span> is the same string that later lands in the handover's <span class="mono">special_instruction_text</span>. The deal stays <b>one</b> quote — never one record per leg.</div>
+
+    <div class="callout warn"><span class="ct">⚠ The rate snapshot is a freeze, not a link</span>Editing the source <span class="mono">pricing.rate</span> after the picker runs must <b>not</b> change the quote line — the buy/sell snapshot is what the customer is quoted. Submit (§03) re-validates the source rate is still <b>approved</b> and unexpired via <span class="mono">validate_source_rate_usable</span>; a suspended rate blocks submit.</div>
+
+    <div class="footer"><span>Sales &amp; CRM — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO A part 2 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario A — continued</div>
+    <h2><span class="num">03</span>Quote lifecycle to accepted &amp; the auto-handover</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> drive the priced quote through submit → approval → send → accept, and confirm the <b>handover materializes automatically</b> on accept with denormalized commercial context. <b>Start state:</b> the QUOTE_DRAFT from §02 with ≥1 charge line.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">7</td><td>Run <b>Submit</b> (<span class="mono">crm.quote.submit</span>).</td><td>Requires <span class="mono">current_version_id</span> + ≥1 charge line; re-validates each line's source rate. Stage → <b>QUOTE_SUBMITTED</b>.</td><td class="chk">Status = <b>QUOTE_SUBMITTED</b>.</td><td>gate</td></tr>
+            <tr><td class="stepno">8</td><td>Run <b>Request Approval</b> (<span class="mono">crm.quote.request_approval</span>).</td><td>The mode×lane×tier margin floor is resolved and stamped (<span class="mono">margin_below_threshold</span>); an <span class="mono">ir.approval.case</span> opens. Stage → <b>QUOTE_UNDER_APPROVAL</b>.</td><td class="chk">Status = <b>UNDER_APPROVAL</b>; a case exists.</td><td>WS4</td></tr>
+            <tr><td class="stepno">9</td><td>In the <b>Approvals</b> inbox (admin bound to <span class="mono">sales_crm.sales_manager</span>), <b>Approve</b> the case.</td><td>The event bridge advances the quote UNDER_APPROVAL → <b>QUOTE_APPROVED</b> (async — poll the DB, not the DOM).</td><td class="chk">Status = <b>QUOTE_APPROVED</b>.</td><td>approval bridge</td></tr>
+            <tr><td class="stepno">10</td><td>Run <b>Send to Customer</b> (<span class="mono">crm.quote.send</span>).</td><td>No-send gate passes (no open approval case remains). Stage → <b>QUOTE_SENT</b>; <span class="mono">accepted_at</span> slot prepared.</td><td class="chk">Status = <b>QUOTE_SENT</b>.</td><td>WS5 no-send gate</td></tr>
+            <tr><td class="stepno">11</td><td>Run <b>Customer Accepted</b> (<span class="mono">crm.quote.accept</span>) — quote header carries a <span class="mono">contact_id</span>.</td><td>Guard <span class="mono">quote_not_expired</span> passes; pre-accept revalidation (FX / service-scope / buying-rate) passes; a <span class="mono">crm.quote.acceptance</span> row (<span class="mono">decision_type=accepted</span>) is written; stage → <b>QUOTE_ACCEPTED</b>; <span class="mono">accepted_at</span> stamped.</td><td class="chk">Status = <b>ACCEPTED</b>; acceptance row present.</td><td>guard: quote_not_expired · QAB-06</td></tr>
+            <tr><td class="stepno">12</td><td>Open the <b>Handovers</b> menu.</td><td>A <span class="mono">crm.handover</span> was <b>auto-created</b> in <b>draft</b> (<span class="mono">crm.handover.auto_create_on_accept</span> default true) with denormalized partner / contact / service-type / incoterm / currency / totals, seeded customer + shipper <span class="mono">crm.handover.party</span> rows, a policy-driven document checklist, and a cargo summary.</td><td class="chk">Exactly one handover references this quote.</td><td>Enh 06</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The deal travelled inquiry → lead → opportunity → quote → handover with <b>zero re-keying</b> — every conversion copied context forward, the priced lines froze a rate snapshot, the approval routed and cleared, and the handover materialized on accept without a manual create.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Subject-lock timing</span>Add all quote children (lines / routes / packages) while the version is <b>draft</b>. Once the version reaches <span class="mono">sent</span> / <span class="mono">accepted</span> / <span class="mono">superseded</span> the subject-lock freezes it — the only escape is <span class="mono">crm.quote.revise</span>, which mints a fresh <span class="mono">version_number+1</span> and marks the prior <span class="mono">superseded</span> (§04).</div>
+
+    <div class="footer"><span>Sales &amp; CRM — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO B ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario B</div>
+    <h2><span class="num">04</span>Pricing approval, spot rates &amp; negotiation</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> exercise the commercial-governance surface — the approval rules that must route a thin-margin quote, the gate that stops a quote leaking to the customer mid-approval, spot-rate RFQs, and the negotiation-log → revision loop. <b>Role:</b> Sales Rep + Pricing Approver.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:38%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Price a quote below the resolved margin floor (Globex = Platinum, SEA lane floor 6%), then <b>Request Approval</b>.</td><td>The <span class="mono">low_margin</span> rule fires (<span class="mono">margin_below_threshold==True</span>) and routes the case up the pricing chain — sales manager then pricing approver.</td><td class="chk">Low-margin chain selected, not the default.</td><td>WS4 low_margin</td></tr>
+            <tr><td class="stepno">2</td><td>Price a line so <span class="mono">total_sell_amount &lt; total_cost_amount</span>, then <b>Request Approval</b>.</td><td>The <span class="mono">sell_below_buy</span> rule fires and escalates to the mandatory finance / country-head chain.</td><td class="chk">Sell-below-buy escalation selected.</td><td>WS4 sell_below_buy</td></tr>
+            <tr><td class="stepno">3</td><td>While the case is still open, attempt <b>Send</b> (<span class="mono">crm.quote.send</span>).</td><td>Refused — <span class="mono">"cannot send to the customer while an approval is still open"</span>. The quote cannot bypass the approval chain.</td><td class="chk">Send blocked mid-approval.</td><td>WS5 no-send gate</td></tr>
+            <tr><td class="stepno">4</td><td>On the opportunity, run <b>Request Spot Rate</b> (<span class="mono">crm.opportunity.request_spot_rate</span>).</td><td>A <span class="mono">pricing.spot.request</span> is raised carrying <span class="mono">related_model="crm.opportunity"</span> + <span class="mono">related_id</span>; route / commodity / customer default from the opportunity. Surfaces read-only under <span class="mono">spot_request_ids</span>.</td><td class="chk">Spot RFQ linked back to the opportunity.</td><td>Phase 2 WS3</td></tr>
+            <tr><td class="stepno">5</td><td>On a sent quote, <b>Log Negotiation</b> (<span class="mono">crm.quote.log_negotiation</span>) — e.g. <span class="mono">negotiation_type="price"</span> + a customer request text.</td><td>A <span class="mono">crm.quote.negotiation</span> row is appended with <span class="mono">outcome="pending"</span>. Type must be one of price / validity_extension / cargo_change / routing_change / service_addition / payment_term / other.</td><td class="chk">Pending negotiation logged.</td><td>QAB-03</td></tr>
+            <tr><td class="stepno">6</td><td>Run <b>Revise</b> (<span class="mono">crm.quote.revise</span>) — optionally with <span class="mono">from_negotiation_id</span>.</td><td>A new version (<span class="mono">version_number+1</span>, status draft) is minted; lines / routes / packages copied; prior version marked <b>superseded</b>; <span class="mono">current_version_id</span> re-pointed. A linked pending negotiation auto-resolves to <span class="mono">accepted_into_revision</span>.</td><td class="chk">New editable version; prior frozen.</td><td>QAB-03</td></tr>
+            <tr><td class="stepno">7</td><td>Resolve a standalone negotiation via <b>Resolve Negotiation</b> (<span class="mono">crm.quote.resolve_negotiation</span>) with <span class="mono">outcome</span> ∈ {accepted_into_revision, declined, withdrawn}.</td><td>Outcome stamped; <span class="mono">revision_version_id</span> required when accepted_into_revision. Re-resolving a resolved row is refused.</td><td class="chk">Outcome recorded once.</td><td>QAB-03</td></tr>
+            <tr><td class="stepno">8</td><td>Terminal branches: <b>Reject</b> (<span class="mono">crm.quote.reject</span>, needs <span class="mono">lost_reason_id</span>), <b>Mark Lost</b> (<span class="mono">crm.quote.mark_lost</span>), <b>Mark Expired</b> (<span class="mono">crm.quote.mark_expired</span>), <b>Cancel</b> (<span class="mono">crm.quote.cancel</span>).</td><td>Stage lands in <b>QUOTE_REJECTED</b> / <b>LOST</b> / <b>EXPIRED</b> / <b>CANCELLED</b>. Reject writes a <span class="mono">crm.quote.acceptance</span> (<span class="mono">decision_type=rejected</span>) — <b>no handover</b> is created.</td><td class="chk">Terminal reached; reject creates no handover.</td><td>guard: quote_has_lost_reason</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>Thin-margin and sell-below-buy quotes both route to approval rather than sending directly; the no-send gate holds while a case is open; spot RFQs bind back to the opportunity; and the negotiation → revise loop supersedes the prior version while keeping it immutable for audit.</div>
+
+    <div class="footer"><span>Sales &amp; CRM — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — SCENARIO C ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Scenario C</div>
+    <h2><span class="num">05</span>Handover ops lifecycle, Y-fork routing &amp; lost states</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> drive the auto-created handover through the ops review lifecycle, prove the rework guardrail and the frozen Y-fork routing slot, then walk the three lost / dropped storylines. <b>Role:</b> Ops Manager (review) + Sales Rep (corrections). <b>Start:</b> the <b>draft</b> handover from §03.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>On the handover, resolve the required doc-items, add a <b>consignee</b> party, then <b>Submit</b> (<span class="mono">crm.handover.submit</span>).</td><td>Submit guards pass (shipper + consignee present; no required doc pending). Status <b>draft → submitted</b>.</td><td class="chk">Status = <b>submitted</b>.</td><td>Enh 06 guards</td></tr>
+            <tr><td class="stepno">2</td><td><b>Start Review</b> (<span class="mono">crm.handover.start_review</span>), then <b>Return to Sales</b> (<span class="mono">crm.handover.return_to_sales</span>) with a <span class="mono">reason_text</span>.</td><td>Status → <b>under_review</b> → <b>returned</b>; <span class="mono">return_reason_text</span> stored; a doc-related reason resets <span class="mono">document_check_status</span> to pending. Opportunity chatter mirrors the return.</td><td class="chk">Returned with reason; opp notified.</td><td>QAB-11</td></tr>
+            <tr><td class="stepno">3</td><td>Sales fixes, runs <b>Confirm Documents</b> (<span class="mono">crm.handover.confirm_documents</span>), then <b>Resubmit</b> (<span class="mono">crm.handover.resubmit_after_return</span>).</td><td><span class="mono">document_check_status=confirmed</span>; status returned → <b>submitted</b>; <span class="mono">return_count</span> increments. After <span class="mono">crm.handover.auto_reject_after_returns</span> (default 3) the next resubmit auto-rejects.</td><td class="chk">Resubmitted; return_count +1.</td><td>QAB-20</td></tr>
+            <tr><td class="stepno">4</td><td>Confirm documents, then <b>Accept Handover</b> (<span class="mono">crm.handover.accept</span>).</td><td>Requires <span class="mono">document_check_status=confirmed</span>. Status → <b>accepted</b>; <span class="mono">acknowledged_at</span> stamped; <span class="mono">crm.handover.accepted</span> event fires.</td><td class="chk">Status = <b>accepted</b>.</td><td>QAB-11</td></tr>
+            <tr><td class="stepno">5</td><td><b>Route to Fulfillment</b> (<span class="mono">crm.handover.route_to_fulfillment</span>) with a downstream <span class="mono">target_code</span> (e.g. booking).</td><td>Neutral slot <span class="mono">fulfillment_target_id</span> set once; <span class="mono">fulfillment_status=routed</span>; <span class="mono">crm.handover.path_decided</span> event fires. Re-routing to a different target is frozen.</td><td class="chk">Routed exactly once.</td><td>BR-HO-ROUTE-01</td></tr>
+            <tr><td class="stepno">6</td><td>Consumer advances <b>Set Fulfillment Status</b> (<span class="mono">crm.handover.set_fulfillment_status</span>) → in_fulfillment → <b>fulfilled</b>.</td><td>On <span class="mono">fulfilled</span> the producer self-completes: <span class="mono">handover_status → completed</span>, <span class="mono">completed_at</span> stamped, <span class="mono">crm.handover.fulfillment_completed</span> + <span class="mono">completed</span> events fire.</td><td class="chk">Handover auto-completes on fulfilled.</td><td>Enh 08</td></tr>
+        </tbody>
+    </table>
+
+    <div class="card"><h4>Lost / dropped storylines (each a terminal state)</h4><ul>
+        <li><b>Lead drop</b> — <span class="mono">crm.lead.drop</span> (optional <span class="mono">drop_reason_id</span>) → <b>LEAD_DROPPED</b>. (Wayne went dark after follow-ups.)</li>
+        <li><b>Opportunity lost</b> — <span class="mono">crm.opportunity.close_as_lost</span> requires <span class="mono">lost_reason_id</span> (guard <span class="mono">opp_lost_has_reason</span>) → <b>OPP_LOST</b>. (Stark lost to competitor.)</li>
+        <li><b>Inquiry disqualify</b> — <span class="mono">crm.inquiry.disqualify</span> → <b>PROSPECT_DISQUALIFIED</b> (unsupported hazardous lane).</li>
+    </ul></div>
+
+    <div class="callout good"><span class="ct">✔ Scenario C pass criteria</span>The handover walks draft → submitted → under_review → returned → resubmitted → accepted → completed with the rework guard enforced, the Y-fork slot frozen after one route, and every lost storyline landing in its structured terminal state with a captured reason.</div>
+
+    <div class="footer"><span>Sales &amp; CRM — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+<!-- ============================ SECTION 06 — NEGATIVE GUARDS ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 06 · Negative checks</div>
+    <h2><span class="num">06</span>The guards that must refuse — real error messages</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing a commercial spine is confirming it <b>refuses</b> bad input. Each row below trips a specific guard and states the <b>real</b> error string the command raises. The command must reject — no partial write, no state advance.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:54%">Expected refusal (real message)</th><th style="width:12%">✔</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td><span class="mono">convert_to_opportunity</span> on a lead not in LEAD_QUALIFIED.</td><td>“crm.lead.convert_to_opportunity: lead must be in LEAD_QUALIFIED status”.</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">2</td><td><span class="mono">create_quote</span> on an opportunity with no customer.</td><td>“…opportunity must have a customer (partner_id) before a quote can be drafted from it.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">3</td><td><span class="mono">crm.quote.submit</span> on a quote with no current version.</td><td>“…quote has no current version — create one first via crm.quote.revise or initial save.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">4</td><td><span class="mono">crm.quote.submit</span> on a version with no charge lines.</td><td>“…the current version has no charge lines — add at least one before submitting.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">5</td><td><span class="mono">crm.quote.accept</span> with no contact on payload or header.</td><td>“…customer-side contact is required to capture acceptance (decided_by_contact_id on payload, or contact_id on the quote header)…”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">6</td><td><span class="mono">crm.quote.reject</span> without a <span class="mono">lost_reason_id</span>.</td><td>“…lost_reason_id is required so the rejection feeds win/loss analytics. Pass it on the command payload.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">7</td><td><span class="mono">crm.quote.send</span> while an approval case is still open.</td><td>“…cannot send to the customer while an approval is still open (case state=…)…”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">8</td><td><span class="mono">create_lines_from_rate</span> from a non-approved rate.</td><td>“Rate &lt;n&gt; is not approved (status=…) — cannot quote it.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">9</td><td><span class="mono">crm.handover.submit</span> missing shipper / consignee.</td><td>“crm.handover.submit: missing required parties — consignee. Add shipper/consignee party rows before submitting…”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">10</td><td><span class="mono">crm.handover.accept</span> before documents confirmed.</td><td>“…document_check_status must be 'confirmed' before accept — run crm.handover.confirm_documents first.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">11</td><td><span class="mono">route_to_fulfillment</span> on a handover not yet accepted.</td><td>“…handover_status must be 'accepted' to route; got …”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">12</td><td><span class="mono">route_to_fulfillment</span> a second time (already routed).</td><td>“crm.handover is already routed … cannot re-route (BR-HO-ROUTE-01) — clear the route first.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">13</td><td><span class="mono">crm.handover.return_to_sales</span> without a <span class="mono">reason_text</span>.</td><td>“crm.handover.return_to_sales: reason_text is required.”</td><td class="chk">Blocked</td></tr>
+            <tr><td class="stepno">14</td><td><span class="mono">crm.quote.log_negotiation</span> with no customer request text.</td><td>“crm.quote.log_negotiation: customer_request_text is required.”</td><td class="chk">Blocked</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Workflow vs. command guards</span>Status-field refusals differ by layer. A <b>direct write</b> to a <span class="mono">workflow=True</span> status raises <span class="mono">StageWriteForbidden</span> from the kernel; a <b>workflow guard</b> (<span class="mono">opp_has_close_date</span>, <span class="mono">opp_lost_has_reason</span>, <span class="mono">quote_not_expired</span>, <span class="mono">quote_has_lost_reason</span>) raises <span class="mono">GuardFailed</span> from the engine; the messages above are the <b>command-handler</b> <span class="mono">ValueError</span>s that run before or instead of a transition. Confirm each surfaces as an error toast, not a silent no-op.</div>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green — pipeline carry-forward + auto-handover (A), approval routing + no-send gate + negotiation loop (B), handover ops lifecycle + Y-fork + lost states (C) — and every negative guard in §06 confirmed to refuse with its real message.</div>
+    <p class="note">Traceability: QAB-* IDs map to the Sales-CRM BRS (QAB-03 negotiation, QAB-06 accept revalidation, QAB-11 handover states, QAB-20 rework rate); BR-HO-ROUTE-01 to the handover Y-fork mutual-exclusion invariant; WS4/WS5 to the Phase 2 pricing-approval work streams. Cross-module effects (booking created off the handover) are verified in the Booking module's own test guide.</p>
+
+    <div class="footer"><span>Sales &amp; CRM — Manual Test Guide · MaargSetu Logistics</span><span>7</span></div>
+</section>
+
+</body>
+</html>

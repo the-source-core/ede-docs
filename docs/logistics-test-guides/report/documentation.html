@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Documentation. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Documentation — Manual Test Guide.pdf" "documentation.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Documentation — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 08 of 11</div>
+        <h1>Documentation<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven QA guide for the <b>logistics.documentation</b> layer — the <b>one polymorphic</b> <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">logistics.document</span> envelope (HBL / MBL / MAWB / HAWB / CMR / RWB / Manifest + SI / VGM / DO / POD), the DOC-12 status lifecycle, the checklist&nbsp;→&nbsp;gate spine, versioning + final lock, and the B/L release flow.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">logistics-documentation use-case · documentation.md · module code</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Documentation does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Documentation is <b>one model</b>, <span class="mono">logistics.document</span> — every transport document the platform issues (HBL, MBL, MAWB, HAWB, CMR, CIM-RWB, Manifest) <i>and</i> every operational / uploaded document (SI, VGM, DO, POD, pre-alert) share the same envelope. <span class="mono">document_type_id</span> discriminates; there are <b>no per-type models</b> (BR-DOC-01). Container / seal numbers are <b>read-through</b> from equipment.usage, never re-typed (BR-DOC-03).</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">23</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">11</div><div class="cap">DOC-12 status values</div></div>
+        <div class="stat"><div class="big">8</div><div class="cap">Downstream gate points</div></div>
+    </div>
+
+    <h3>The DOC-12 lifecycle you will observe</h3>
+    <p>One unified <span class="mono">status</span> enum is the single source of truth for document state (BR-DOC-STA-01). Transitions are guarded (BR-DOC-STA-02); some require a reason (BR-DOC-STA-04). The upload flow is a slice of the same lifecycle.</p>
+    <div class="arrow-flow">
+    status&nbsp;: required → pending → draft → under_review → approved → released → completed<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;offshoots: correction_required · rejected · expired · waived&nbsp;(terminal)<br>
+    upload&nbsp;: uploaded → reviewed → accepted (→ approved)&nbsp;|&nbsp;rejected (→ rejected)<br>
+    issue&nbsp;&nbsp;: draft → approved&nbsp;&nbsp;— "approved" IS the issued/final state; there is no separate "issued"
+    </div>
+
+    <h3>Two orthogonal facets set on every document</h3>
+    <div class="grid2">
+        <div class="card"><h4>origin</h4><ul>
+            <li><b>generated</b> — DRE-rendered (HBL, SI, VGM, manifest…)</li>
+            <li><b>uploaded</b> — user file via <span class="mono">upload</span>, carries an <span class="mono">upload_status</span></li>
+        </ul></div>
+        <div class="card"><h4>reason-gated &amp; terminal states</h4><ul>
+            <li><b>reason required</b> → correction_required · rejected · waived</li>
+            <li><b>terminal</b> (no exit) → rejected · expired · waived · completed</li>
+            <li><b>satisfies checklist</b> → approved · released · completed</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:17%">Scenario</th><th style="width:43%">What it proves</th><th style="width:23%">Key commands</th><th style="width:17%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Issue a House B/L</b></td><td>prepare-from-subject (no re-typing), checklist generate + recompute, issue → DOC-12 draft→approved, final-version lock</td><td><span class="mono">prepare_from_subject</span>, <span class="mono">checklist.generate</span>, <span class="mono">issue</span></td><td>§02</td></tr>
+            <tr><td><b>B — Versions, gates &amp; legs</b></td><td>create/lock version + locked-write guard, per-leg document expansion (DOC-08), the DOC-13 mandatory-doc gate, waive / reject / expire</td><td><span class="mono">version.create_version</span>, <span class="mono">gate.check</span>, <span class="mono">waive_item</span></td><td>§03 · §04</td></tr>
+            <tr><td><b>C — Release &amp; uploads</b></td><td>B/L release approval flow (release / endorse / surrender / amend), the upload → review → accept path, negative guards</td><td><span class="mono">release</span>, <span class="mono">surrender</span>, <span class="mono">upload</span></td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    On the Globex export: a draft <b>House B/L</b> <span class="mono">demo_doc_hbl</span> on the house <span class="mono">shipments.demo_house_001</span> (<span class="mono">origin=generated</span>, <span class="mono">status=draft</span>, <span class="mono">visibility=customer</span>, 3 originals; field values <span class="mono">bl_type=original</span>, <span class="mono">place_of_receipt=Mumbai ICD</span>), a draft <b>Shipping Instruction</b> <span class="mono">demo_doc_si</span> on the master, and a master <b>checklist</b> <span class="mono">demo_checklist_globex</span> (ocean / export / master) at <b>0.00%</b> with two mandatory items — <b>HBL</b> and <b>SI</b> — both still <span class="mono">required</span>.</div>
+
+    <div class="footer"><span>Documentation — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Issue a House B/L — prepare, checklist, issue</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> take the draft Globex <b>House B/L</b> from <span class="mono">draft</span> to an issued, numbered, final-locked document that satisfies its checklist item — with parties and container numbers pulled from the subject, not re-keyed. <b>Role:</b> Documentation clerk. <b>Start:</b> <span class="mono">demo_doc_hbl</span> is <span class="mono">status=draft</span>.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>On the draft HBL, run <span class="mono">prepare_from_subject</span>.</td><td>Parties + charges are copied from the house (<span class="mono">logistics.shipment.party</span> / <span class="mono">.charge</span>); container &amp; seal numbers are read-through from the bound <span class="mono">equipment_usage_id</span> into field values <span class="mono">container_no</span> / <span class="mono">seal_no</span>. Additive — re-running does not duplicate.</td><td class="chk">Return shows <span class="mono">parties_added / charges_added / equipment_fields_added</span>; nothing re-typed.</td><td>DOC-01<br>BR-DOC-03</td></tr>
+            <tr><td class="stepno">2</td><td>Run <span class="mono">prepare_from_subject</span> again on the <b>same</b> document.</td><td>No duplicate parties/charges/fields — the mapper skips a document that already carries them.</td><td class="chk">Counts return 0 on the second run.</td><td>BR-DOC-PARTY-02</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">checklist.generate</span> for the master (<span class="mono">target_model_key=logistics.shipment</span>, <span class="mono">target_record_uuid=</span> the Globex master).</td><td>Additive refresh of <span class="mono">demo_checklist_globex</span> — rule-matched required documents appear; existing HBL/SI items are preserved (not re-created). A <span class="mono">checklist.generated</span> event fires.</td><td class="chk">Checklist present; existing items untouched.</td><td>DOC-01<br>BR-DOC-CHK-01/02</td></tr>
+            <tr><td class="stepno">4</td><td>Link the HBL checklist item to this document (set <span class="mono">satisfied_by_document_id</span> → <span class="mono">demo_doc_hbl</span>), then run <span class="mono">issue</span> on the HBL.</td><td>Field schema validated; if blank, <span class="mono">document_number</span> is stamped from the <span class="mono">DOC</span> sequence; with <span class="mono">doc.version.lock_on_issue=true</span> the version is locked (<span class="mono">is_final=true</span>); a history row + status-history row are written; status flips <b>draft → approved</b>; <span class="mono">document.issued</span> fires.</td><td class="chk">Status = <b>approved</b>; <span class="mono">is_final=true</span>; number populated.</td><td>DOC-12<br>BR-DOC-06</td></tr>
+            <tr><td class="stepno">5</td><td>Re-read the linked HBL checklist item and the checklist header.</td><td>Reaching a <b>satisfying</b> status (approved) auto-flips the linked item to <span class="mono">satisfied</span> (BR-DOC-STA-05); recompute lifts <span class="mono">completion_percent</span> off 0%.</td><td class="chk">Item = <b>satisfied</b>; completion rises.</td><td>BR-DOC-CHK-ITEM-02</td></tr>
+            <tr><td class="stepno">6</td><td>Run <span class="mono">checklist.recompute_completion</span> on the master checklist.</td><td>Returns <span class="mono">completion_percent</span> = satisfied-or-waived mandatory ÷ mandatory items (SI still <span class="mono">required</span> → ~50%).</td><td class="chk">Percent reconciles with item states.</td><td>BR-DOC-CHK-05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The HBL reached <b>approved</b> (issued/final) from carried-forward subject data, got a system-composed number, locked its version, and satisfied its checklist item — zero fields re-keyed.</div>
+
+    <div class="callout warn"><span class="ct">⚠ "Issued" is not a status</span>Do not look for an <span class="mono">issued</span> value — <span class="mono">issue</span> maps <b>draft → approved</b>, and <span class="mono">approved</span> IS the issued/final state (feature 05). Only a <span class="mono">draft</span> or <span class="mono">under_review</span> document can be issued — anything else returns <i>"only a draft/under_review document can be issued"</i>.</div>
+
+    <div class="footer"><span>Documentation — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO B part 1 (versioning) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario B</div>
+    <h2><span class="num">03</span>Versioning &amp; the final-version lock (DOC-09)</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove corrections cut a <b>new version</b> and that a locked version can never be overwritten — correction = new version, never in-place edit. <b>Start:</b> the issued HBL from §02 (<span class="mono">is_final=true</span>).</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:40%">Expected result</th><th style="width:12%">✔</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">version.create_version</span> with a <span class="mono">version_reason</span> for the HBL.</td><td>An append-only <span class="mono">logistics.document.version</span> row is cut with a JSON <span class="mono">field_value_snapshot</span>; the document's <span class="mono">version_number</span> bumps, <span class="mono">current_version_id</span> repoints, <span class="mono">is_final</span> resets to false; <span class="mono">version_created</span> fires.</td><td class="chk">New version row; number bumped.</td><td>DOC-09<br>BR-DOC-VER-04</td></tr>
+            <tr><td class="stepno">2</td><td>Run <span class="mono">version.create_version</span> <b>without</b> a reason (<span class="mono">doc.version.require_reason=true</span>).</td><td>Rejected by the pre-create hook: <i>"a version reason is required (doc.version.require_reason=true) (BR-DOC-VER-01)"</i>.</td><td class="chk">Reasonless version blocked.</td><td>BR-DOC-VER-01</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">version.lock_version</span> against the current version row.</td><td>Version <span class="mono">is_locked=true</span> — the final-version lock is set (locks on issue/release).</td><td class="chk">Version shows locked.</td><td>BR-DOC-VER-02</td></tr>
+            <tr><td class="stepno">4</td><td>Attempt to <span class="mono">write</span> (update) that <b>locked</b> version row.</td><td>Rejected by the pre-update hook: <i>"this version is locked (final-version lock) — create a new version instead (BR-DOC-VER-02)"</i>.</td><td class="chk">Locked-version edit refused.</td><td>BR-DOC-VER-02</td></tr>
+            <tr><td class="stepno">5</td><td>Run <span class="mono">amend</span> on the issued document with <span class="mono">doc.allow_post_issue_amendment=false</span> (default).</td><td>Rejected: <i>"post-issue amendment is not permitted (doc.allow_post_issue_amendment=false) (BR-DOC-05)"</i>.</td><td class="chk">Post-issue amend blocked.</td><td>BR-DOC-05</td></tr>
+            <tr><td class="stepno">6</td><td>Flip <span class="mono">doc.allow_post_issue_amendment=true</span>, re-run <span class="mono">amend</span> <b>without</b> a reason.</td><td>Rejected: <i>"a revision reason is required to amend (doc.version.require_reason=true)"</i>. With a reason it succeeds — bumps <span class="mono">revision_number</span>, clears <span class="mono">is_final</span>, logs history, emits <span class="mono">document.amended</span>.</td><td class="chk">Reason enforced; amend audited.</td><td>BR-DOC-05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Append-only version + release trails</span>Both <span class="mono">logistics.document.version</span> and <span class="mono">logistics.document.release</span> reject updates and deletes at the hook layer (BR-DOC-VER / BR-DOC-REL-01) — the audit trail is immutable. A released/issued version is never overwritten; a correction always cuts a new version row.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Delete is blocked past draft</span>The <span class="mono">pre.logistics.document.delete</span> hook refuses any document in <span class="mono">approved</span> / <span class="mono">released</span> or a terminal status: <i>"cannot delete a {status} document — archive or supersede instead"</i>. The trail must survive.</div>
+
+    <div class="footer"><span>Documentation — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO B part 2 (legs + gates) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario B — the multi-leg &amp; gate deep-dive</div>
+    <h2><span class="num">04</span>Per-leg documents (DOC-08) &amp; the mandatory-doc gate (DOC-13)</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove the checklist expands <b>per leg</b> on a multimodal shipment via the leg-document matrix, and that the DOC-13 gate <b>blocks</b> a downstream action while any mandatory document is unsatisfied. <b>Start:</b> a multimodal shipment (road pre-carriage → ocean main-carriage → road delivery).</p>
+
+    <div class="arrow-flow">
+    leg matrix : road/pickup → CMR&nbsp;(opt) · ocean/main_carriage → HBL·MBL·SI·VGM · road/delivery → DO·POD<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SEA→ocean · leg_type transshipment→on_carriage · expand gated by doc.checklist.expand_per_leg
+    </div>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:38%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>With <span class="mono">doc.checklist.expand_per_leg=true</span>, run <span class="mono">checklist.generate</span> for the multimodal shipment.</td><td>Beyond the rule-matched items, one item is added <b>per applicable leg</b> from <span class="mono">logistics.document.leg.matrix</span>: ocean main-carriage pulls HBL/MBL/SI/VGM (mandatory), road delivery pulls DO/POD, road pickup pulls CMR (optional).</td><td class="chk">Leg documents present; matrix respected.</td><td>DOC-08</td></tr>
+            <tr><td class="stepno">2</td><td>Run <span class="mono">gate.check</span> with <span class="mono">gate_code=bl_awb_release</span> for the subject while a mandatory item is still <span class="mono">required</span>.</td><td>Returns <span class="mono">passed=false</span>, <span class="mono">blocked=true</span>, <span class="mono">enforced=true</span>, plus a <span class="mono">missing_items</span> list of unsatisfied mandatory document types; a <span class="mono">document.gate_blocked</span> event fires.</td><td class="chk">Gate blocks on missing mandatory doc.</td><td>DOC-13<br>BR-DOC-GATE-01</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">gate.check</span> with <span class="mono">gate_code=customs_filing</span> (seeded <span class="mono">is_enforced=false</span>) with the same gap.</td><td><span class="mono">passed=false</span> but <span class="mono">blocked=false</span> — a non-enforced gate downgrades to a warning (<span class="mono">gate_warned</span>), not a block.</td><td class="chk">Non-enforced gate warns, not blocks.</td><td>BR-DOC-GATE-02</td></tr>
+            <tr><td class="stepno">4</td><td>Run <span class="mono">checklist.waive_item</span> on a mandatory item <b>without</b> a reason.</td><td>Rejected: <i>"a waiver reason is required to waive a checklist item (BR-DOC-CHK-ITEM-03)"</i>.</td><td class="chk">Reasonless waiver blocked.</td><td>BR-DOC-CHK-ITEM-03</td></tr>
+            <tr><td class="stepno">5</td><td><span class="mono">waive_item</span> <b>with</b> a reason, then re-run <span class="mono">gate.check</span> (<span class="mono">bl_awb_release</span>).</td><td>Item → <span class="mono">waived</span>; a waived item counts as satisfying (BR-DOC-GATE-03), parent recomputes, and if it was the last gap the gate now <span class="mono">passes</span>.</td><td class="chk">Waived item clears the gate.</td><td>BR-DOC-GATE-03</td></tr>
+            <tr><td class="stepno">6</td><td>On a pending document with a past <span class="mono">valid_until</span>, run <span class="mono">expire_due</span> (<span class="mono">doc.status.auto_expire=true</span>).</td><td>The sweep moves non-terminal documents past their <span class="mono">valid_until</span> to <span class="mono">expired</span> (only where the transition is legal) and stamps <span class="mono">expiry_check_at</span>.</td><td class="chk">Expired count &gt; 0; terminals skipped.</td><td>BR-DOC-STA-03</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Guarded transitions everywhere</span>Every status move runs through the guard: an illegal jump returns <i>"illegal status transition {from} → {to} (BR-DOC-STA-02)"</i>, and moving to <span class="mono">correction_required</span> / <span class="mono">rejected</span> / <span class="mono">waived</span> without a reason returns <i>"a reason is required to move a document to {status} (BR-DOC-STA-04)"</i>. Try <span class="mono">reject</span> / <span class="mono">waive</span> without a <span class="mono">reason</span> to confirm.</div>
+
+    <div class="footer"><span>Documentation — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — SCENARIO C (release + uploads) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Scenario C</div>
+    <h2><span class="num">05</span>B/L release approval, surrender &amp; uploads (guards)</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> drive the append-only B/L release lifecycle (release → endorse → surrender) with its approval + originals guards, then the upload → review → accept path. Half of testing this is confirming refusals. <b>Start:</b> the issued (<span class="mono">approved</span>) HBL.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:28%">Action</th><th style="width:40%">Expected result / refusal</th><th style="width:14%">✔</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">release</span> with <span class="mono">doc.bl.release_requires_approval=true</span> but no approval decision.</td><td>Rejected: <i>"B/L release requires an approval decision (doc.bl.release_requires_approval=true) — pass release_approval_id or approved=True (BR-DOC-REL-03)"</i>.</td><td class="chk">Unapproved release blocked.</td><td>BR-DOC-REL-03</td></tr>
+            <tr><td class="stepno">2</td><td>Re-run <span class="mono">release</span> with <span class="mono">approved=True</span> and <span class="mono">release_type_id=telex</span>.</td><td>Status <b>approved → released</b>; an append-only <span class="mono">logistics.document.release</span> row is written; <span class="mono">released_at</span> stamped; <span class="mono">document.released</span> fires.</td><td class="chk">Released; release row appended.</td><td>BR-DOC-REL-02</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">release</span> passing a release type whose <span class="mono">applicable_to</span> excludes this type (e.g. <span class="mono">do_release</span> on an HBL).</td><td>Rejected: <i>"release type 'do_release' does not apply to document type 'HBL' (BR-DOC-REL-04)"</i>.</td><td class="chk">Wrong release type refused.</td><td>BR-DOC-REL-04</td></tr>
+            <tr><td class="stepno">4</td><td>Run <span class="mono">surrender</span> returning fewer originals than <span class="mono">number_of_originals</span> (3), with <span class="mono">doc.bl.require_original_return_on_surrender=true</span>.</td><td>Rejected: <i>"originals returned (N) must match number of originals (3) on surrender (BR-DOC-REL-02)"</i>. Matching 3 → status <b>released → completed</b>.</td><td class="chk">Originals count enforced.</td><td>BR-DOC-REL-02</td></tr>
+            <tr><td class="stepno">5</td><td>Attempt to <span class="mono">endorse</span> a document that is <b>not</b> released (still approved).</td><td>Rejected: <i>"only a released document can be endorsed"</i>. Also try to <span class="mono">write</span> a release row → <i>"logistics.document.release is append-only and cannot be modified"</i>.</td><td class="chk">Endorse + release-edit blocked.</td><td>BR-DOC-REL-01</td></tr>
+            <tr><td class="stepno">6</td><td><span class="mono">upload</span> a file → <span class="mono">review_upload</span> → <span class="mono">accept_upload</span>.</td><td>Creates <span class="mono">origin=uploaded</span>, <span class="mono">status=pending</span>, <span class="mono">upload_status=uploaded</span>; review → <span class="mono">reviewed</span>/<span class="mono">under_review</span>; accept → <span class="mono">accepted</span>/DOC-12 <span class="mono">approved</span> (satisfies the checklist item).</td><td class="chk">Upload walks to accepted/approved.</td><td>DOC-03<br>BR-DOC-REP-05</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Upload guards worth tripping</h3>
+    <table>
+        <thead><tr><th style="width:34%">Action</th><th style="width:52%">Expected refusal</th><th style="width:14%">Config</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">upload</span> without a <span class="mono">document_type_id</span></td><td><i>"upload requires a document_type_id"</i></td><td>—</td></tr>
+            <tr><td><span class="mono">upload</span> a disallowed MIME (e.g. <span class="mono">exe</span>)</td><td><i>"mime type 'exe' is not permitted (doc.upload.allowed_mime_types)"</i></td><td><span class="mono">doc.upload.allowed_mime_types</span></td></tr>
+            <tr><td><span class="mono">upload</span> a file over the size cap</td><td><i>"upload size NMB exceeds the 25MB limit (doc.upload.max_size_mb)"</i></td><td><span class="mono">doc.upload.max_size_mb=25</span></td></tr>
+            <tr><td><span class="mono">accept_upload</span> before <span class="mono">review_upload</span></td><td><i>"upload must be reviewed before it can be accepted (doc.upload.require_review=true)"</i></td><td><span class="mono">doc.upload.require_review</span></td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: issue + checklist satisfy (A); versioning + final lock + per-leg gate with waive/expire (B); release approval + originals-return + append-only + upload accept (C) — with every negative guard confirmed to refuse with its exact message.</div>
+    <p class="note">Traceability: DOC-* and BR-DOC-* IDs map to the logistics.documentation feature set (features 01–12) in <span class="mono">src/domains/logistics/docs/documentation.md</span>; VGM-before-SI, per-leg matrix, and gate enforcement are config-gated (<span class="mono">doc.*</span> keys in <span class="mono">data/documentation_config.xml</span>). Cross-module effects (shipment readiness triggering auto-generation, storage byte immutability) are verified in those modules' guides.</p>
+
+    <div class="footer"><span>Documentation — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+</body>
+</html>

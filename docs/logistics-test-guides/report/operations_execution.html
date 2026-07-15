@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Operations Execution (Control Tower). Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Operations Execution (Control Tower) — Manual Test Guide.pdf" "operations_execution.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Operations Execution (Control Tower) — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 09 of 11</div>
+        <h1>Operations Execution · Control Tower<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven QA guide for the <b>logistics.operations_execution</b> Control Tower — the reader of physical truth and writer of operational decisions over the mid-flight Globex shipment. Covers activation, plan generation, task &amp; leg execution, milestones, cut-offs, exceptions and the completion gate. Every step traced to its BRD-2 <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">SOE-*</span> / <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">BR-*</span> rule.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a real guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">Shipment &amp; Ops Execution BRD-2 · business_rules.md (BR-01…14) · demo use-case</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What the Control Tower does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The <b>Control Tower</b> turns a <span class="mono">ready_for_execution</span> shipment into a live, governed <span class="mono">logistics.execution</span>. It <b>reads physical truth</b> (equipment movements, gate events, cut-offs) and <b>writes operational decisions</b> (tasks, legs, exceptions, completion), then projects a customer-facing <span class="mono">execution_status</span> back onto <span class="mono">logistics.shipment</span> via <span class="mono">@api.extend_model</span> (SOE-16) — the shipments source file is never edited.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">29</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Walkthrough scenarios</div></div>
+        <div class="stat"><div class="big">4</div><div class="cap">BR-01 activation gate inputs</div></div>
+        <div class="stat"><div class="big">8</div><div class="cap">SOE-13 exception categories</div></div>
+    </div>
+
+    <h3>The state machines you will observe</h3>
+    <p>The execution carries a governed lifecycle; the shipment carries a <b>derived</b> operational projection recomputed by <span class="mono">logistics.execution.derive_status</span> from execution + leg state. Watch both, plus the leg and cut-off machines.</p>
+    <div class="arrow-flow">
+    execution&nbsp;&nbsp;&nbsp;: draft → activated → in_execution → completed &nbsp;|&nbsp; cancelled<br>
+    ship.exec&nbsp;&nbsp;&nbsp;: not_activated → activated → in_execution → on_hold → completed &nbsp;(SOE-16, derived)<br>
+    leg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: pending → in_progress → completed &nbsp;|&nbsp; skipped<br>
+    cut-off&nbsp;&nbsp;&nbsp;: pending → at_risk → met &nbsp;|&nbsp; missed &nbsp;|&nbsp; waived
+    </div>
+
+    <div class="grid2">
+        <div class="card"><h4>The BR-01 activation gate</h4><ul>
+            <li>Shipment must be <span class="mono">ready_for_execution</span></li>
+            <li>An <b>owner</b> is set (<span class="mono">ops.execution.require_owner_before_activation</span>)</li>
+            <li><b>No duplicate</b> active execution for the shipment</li>
+            <li><b>No unresolved critical exception</b> (<span class="mono">ops.execution.block_on_critical_exception</span>)</li>
+        </ul></div>
+        <div class="card"><h4>Auto-opened exceptions (SOE-13)</h4><ul>
+            <li><b>cutoff_miss</b> · critical — on a missed cut-off</li>
+            <li><b>cargo_issue</b> · high — on pickup/delivery damage</li>
+            <li><b>vendor_issue</b> · medium — on a provider decline</li>
+            <li>Eight categories total; severity ladder low→medium→high→critical</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:17%">Scenario</th><th style="width:43%">What it proves</th><th style="width:26%">Key commands</th><th style="width:14%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Activate, plan &amp; tasks</b></td><td>BR-01 gate, deterministic plan generation, task lifecycle &amp; dependency, plus the field-ops bookends (pickup / dispatch / driver / provider)</td><td><span class="mono">execution.activate</span>, <span class="mono">plan.generate</span>, <span class="mono">task.complete</span></td><td>§02</td></tr>
+            <tr><td><b>B — Leg execution &amp; tracking</b></td><td>Sequential multi-leg roll-up (SOE-04), milestone planned-vs-actual, SI/VGM cut-offs, append-only events</td><td><span class="mono">leg.start</span>/<span class="mono">complete</span>, <span class="mono">milestone.record_actual</span>, <span class="mono">cutoff.evaluate</span></td><td>§03</td></tr>
+            <tr><td><b>C — Exceptions &amp; completion</b></td><td>Exception open→assign→escalate→resolve, the mandatory completion gate, and approval-gated carry-forward (SOE-17)</td><td><span class="mono">exception.case.*</span>, <span class="mono">execution.complete</span></td><td>§04</td></tr>
+            <tr><td><b>Guard matrix</b></td><td>Every guard that must refuse — with the real <span class="mono">ValueError</span> message</td><td>consolidated</td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    One live execution <span class="mono">demo_execution_globex</span> over shipment <span class="mono">CO-SEA-D-2026-000001</span>, <b>in_execution</b>: a generated plan (4 tasks + 5 milestones), a completed pre-carriage <b>road</b> leg (factory → INMUM) and an in-progress main <b>sea</b> leg (INMUM → SGSIN), the confirmed factory pickup, the SI cut-off (met) and VGM cut-off (at_risk), and one open <b>vessel-rollover</b> exception (transport_delay, medium) worked by the ops manager.</div>
+
+    <div class="footer"><span>Operations Execution — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Activate, generate the plan &amp; run tasks + field ops</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> take a ready shipment through the BR-01 gate into a live execution, confirm the plan is generated deterministically, run the task board, and exercise the field-ops bookends. <b>Role:</b> Operations manager (<span class="mono">demo_user_ops_manager</span>). <b>Start:</b> a shipment in <span class="mono">ready_for_execution</span> with an owner set.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">logistics.execution.activate</span> with <span class="mono">shipment_id</span> + <span class="mono">owner_uid</span>.</td><td>New <span class="mono">logistics.execution</span> in <b>activated</b>, <span class="mono">activated_at</span> stamped; <span class="mono">logistics.execution.activated</span> event fires; shipment <span class="mono">execution_status</span> projects <b>activated</b>.</td><td class="chk">Execution created; status = <b>activated</b>.</td><td>SOE-01<br>BR-01</td></tr>
+            <tr><td class="stepno">2</td><td>Confirm the plan (auto-generated when <span class="mono">ops.execution.auto_generate_plan_on_activate</span> is on), or run <span class="mono">logistics.execution.plan.generate</span>.</td><td><span class="mono">logistics.execution.plan</span> in <b>generated</b>; <span class="mono">task_count</span> / <span class="mono">milestone_count</span> populated from the mode-matched templates. Re-running <b>supersedes</b> the prior plan, never duplicates.</td><td class="chk">Plan generated; re-gen sets old plan <b>superseded</b>.</td><td>SOE-02<br>BR-02</td></tr>
+            <tr><td class="stepno">3</td><td>Open the task board — tasks instantiated from <span class="mono">logistics.task.template.master</span>, each with owner / due / SLA / priority / dependency.</td><td>Demo set present: <b>Confirm Booking</b> (done), <b>Generate Pickup Order</b> (done), <b>Submit SI</b> (in_progress), <b>Customs Docs</b> (not_started).</td><td class="chk">4 tasks; each carries SLA + priority.</td><td>SOE-03<br>BR-04</td></tr>
+            <tr><td class="stepno">4</td><td>On a task whose <span class="mono">depends_on_id</span> is <b>done</b>, run <span class="mono">logistics.execution.task.complete</span>.</td><td>Task flips to <b>done</b>; <span class="mono">execution.task.completed</span> event fires.</td><td class="chk">Dependent task completes cleanly.</td><td>SOE-03</td></tr>
+            <tr><td class="stepno">5</td><td>Run <span class="mono">logistics.execution.task.reassign</span> with a new <span class="mono">owner_uid</span>.</td><td>Task <span class="mono">owner_uid</span> updated to the new owner.</td><td class="chk">Owner changed; status untouched.</td><td>SOE-03</td></tr>
+            <tr><td class="stepno">6</td><td>On the factory pickup (proof attached), run <span class="mono">logistics.cargo.pickup.confirm</span>.</td><td>Pickup → <b>confirmed</b>; <span class="mono">logistics.cargo.pickup_confirmed</span> event. (A damaged pickup would flip to <b>exception</b> + auto-open a <span class="mono">cargo_issue</span> case.)</td><td class="chk">Pickup confirmed with proof.</td><td>SOE-05/06<br>BR-08</td></tr>
+            <tr><td class="stepno">7</td><td>Drive the pre-carriage dispatch: <span class="mono">ops.dispatch.order.start</span> → <span class="mono">.complete</span>; assign a driver via <span class="mono">ops.driver.assignment.assign</span> (<span class="mono">dispatch_order_id</span> + <span class="mono">driver_partner_id</span>), then <span class="mono">.accept</span> → <span class="mono">.start</span>.</td><td>Dispatch → <b>in_progress</b> → <b>completed</b> (<span class="mono">ops.dispatch.completed</span>); driver assignment sequenced (relay-aware) and started.</td><td class="chk">Dispatch completed; driver started.</td><td>SOE-01</td></tr>
+            <tr><td class="stepno">8</td><td>Confirm the nominated trucker with <span class="mono">logistics.execution.provider.confirm</span>.</td><td>Provider → <b>confirmed</b>; <span class="mono">logistics.execution.provider_confirmed</span> event. (A decline auto-opens a <span class="mono">vendor_issue</span> case; a replace supersedes + audits — BR-11.)</td><td class="chk">Provider confirmed.</td><td>SOE-10<br>BR-11</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The shipment activated through a clean BR-01 gate, the plan generated deterministically from templates (and superseded cleanly on re-run), the task board ran with dependency respected, and every field-ops bookend confirmed — all from carried-forward data.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Duplicate activation is refused</span>The demo already seeds an active execution for the Globex shipment. Re-running <span class="mono">activate</span> against it must be rejected with <span class="mono">"BR-01: an execution already exists for this shipment"</span> — one active execution per shipment (see §05).</div>
+
+    <div class="footer"><span>Operations Execution — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO B (multi-leg deep dive) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario B — the multi-leg deep-dive</div>
+    <h2><span class="num">03</span>Leg execution, milestones &amp; cut-offs</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove the Control Tower drives a multi-leg journey as <b>one execution with sequenced legs</b> — a prior leg must complete before the next starts (BR-03) — and that leg progress re-derives the shipment status. Then record milestones and evaluate cut-offs. <b>Start:</b> the demo execution with its road pre-carriage leg (seq 1) + sea main leg (seq 2).</p>
+
+    <div class="arrow-flow">
+    Leg 1 pre_carriage (road, factory → INMUM) &nbsp;→&nbsp; Leg 2 main_carriage (sea, INMUM → SGSIN)<br>
+    &nbsp;&nbsp;each leg: own sequence · leg_type · transport_mode · provider · planned/actual · status<br>
+    a leg entering in_progress/completed re-derives ship.exec → <b>in_execution</b> (SOE-16)
+    </div>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:25%">Action</th><th style="width:38%">Expected result</th><th style="width:21%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Read the two legs on the execution.</td><td>Seq 1 <b>pre_carriage / road</b>, seq 2 <b>main_carriage / sea</b> — each holds its <b>own</b> mode + provider + planned/actual times.</td><td class="chk">2 sequenced legs, distinct modes.</td><td>SOE-04</td></tr>
+            <tr><td class="stepno">2</td><td>While leg 1 is still <span class="mono">pending</span>, run <span class="mono">logistics.execution.leg.start</span> on <b>leg 2</b>.</td><td>Refused: <span class="mono">"BR-03: a prior leg must complete before this leg can start"</span> (unless <span class="mono">ops.leg.allow_overlapping_legs</span> is set).</td><td class="chk">Out-of-order start blocked.</td><td>SOE-04<br>BR-03</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">logistics.execution.leg.start</span> on <b>leg 1</b>.</td><td>Leg 1 → <b>in_progress</b>; <span class="mono">logistics.execution.leg_started</span> + <span class="mono">leg_changed</span> events; shipment <span class="mono">execution_status</span> re-derives to <b>in_execution</b>.</td><td class="chk">Leg 1 running; ship status derived.</td><td>SOE-16</td></tr>
+            <tr><td class="stepno">4</td><td>Run <span class="mono">logistics.execution.leg.complete</span> on leg 1, then <span class="mono">.leg.start</span> on leg 2.</td><td>Leg 1 → <b>completed</b>; leg 2 now starts (prior is completed). Roll-up honoured.</td><td class="chk">Sequential roll-up holds forward.</td><td>SOE-04<br>BR-03</td></tr>
+            <tr><td class="stepno">5</td><td>On the <b>Gated In</b> milestone, run <span class="mono">logistics.milestone.record_actual</span> with an on-time <span class="mono">actual_at</span>.</td><td>Milestone → <b>reached</b>; <span class="mono">logistics.milestone.reached</span> event; planned-vs-actual now visible on the timeline.</td><td class="chk">Actual stamped; status reached.</td><td>SOE-12<br>BR-06</td></tr>
+            <tr><td class="stepno">6</td><td>Repeat step 5 with a <b>late</b> actual (<span class="mono">actual_at</span> &gt; <span class="mono">planned_at</span>) and <b>no</b> delay reason.</td><td>Refused: <span class="mono">"BR-06: a late milestone requires a delay reason"</span>. Supply <span class="mono">delay_reason</span> → it succeeds.</td><td class="chk">Late milestone forces a reason.</td><td>SOE-12<br>BR-06</td></tr>
+            <tr><td class="stepno">7</td><td>On the SI / VGM cut-offs, run <span class="mono">logistics.execution.cutoff.evaluate</span>.</td><td>State re-derived by <span class="mono">planned_at</span> vs <span class="mono">alert_threshold_hours</span>: <b>pending → at_risk → missed</b>. A fresh <b>miss</b> auto-opens a <b>critical</b> <span class="mono">cutoff_miss</span> exception (<span class="mono">ops.cutoff.auto_exception_on_miss</span>).</td><td class="chk">VGM shows at_risk; a miss raises a case.</td><td>SOE-11<br>BR-05</td></tr>
+            <tr><td class="stepno">8</td><td>Close a cut-off: <span class="mono">logistics.execution.cutoff.mark_met</span>; and (manager-gated) <span class="mono">logistics.execution.cutoff.waive</span>.</td><td><span class="mono">met</span> / <span class="mono">waived</span> set; <span class="mono">cutoff_waived</span> event on waive. A met/waived cut-off is not re-derived by a later evaluate.</td><td class="chk">Cut-off closed; waive audited.</td><td>SOE-11</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>Legs executed strictly in sequence, leg progress re-derived the shipment status (SOE-16), milestones captured planned-vs-actual with the late-reason guard enforced, and cut-offs evaluated with a miss auto-raising a critical exception.</div>
+    <div class="callout warn"><span class="ct">⚠ Cargo events are append-only</span>Capture a gate event with <span class="mono">logistics.cargo.handover.event.capture</span>; then try to edit its <span class="mono">occurred_at</span> / <span class="mono">event_type</span>. The <span class="mono">pre.logistics.cargo.handover.event.update</span> hook vetoes it — only <span class="mono">active</span> may change. A late event without a reason is refused (BR-06) just like a milestone.</div>
+
+    <div class="footer"><span>Operations Execution — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO C (exceptions + completion) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario C</div>
+    <h2><span class="num">04</span>Exceptions, the completion gate &amp; carry-forward</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> work the vessel-rollover exception through its full lifecycle, then prove the mandatory completion gate refuses an incomplete execution — and that a manager can push it through with an <b>approval-gated carry-forward</b> for non-blocking unmet items (SOE-17/18). <b>Start:</b> the demo execution with its open <span class="mono">transport_delay</span> exception.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:25%">Action</th><th style="width:38%">Expected result</th><th style="width:21%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Open a case with <span class="mono">ops.exception.case.open</span> (payload <span class="mono">category</span> or a <span class="mono">code_id</span> that resolves one).</td><td>Case in <b>open</b>, one of the 8 SOE-13 categories, severity + <span class="mono">escalation_chain</span> seeded; <span class="mono">ops.exception.opened</span> event. Demo: vessel rollover, <span class="mono">transport_delay</span>, medium.</td><td class="chk">Case opened with a category.</td><td>SOE-13<br>BR-07</td></tr>
+            <tr><td class="stepno">2</td><td>Run <span class="mono">ops.exception.case.assign</span> with an <span class="mono">owner_uid</span>.</td><td>Owner set; status moves <b>open → investigating</b>.</td><td class="chk">Assigned; now investigating.</td><td>SOE-13</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">ops.exception.case.escalate</span>.</td><td><span class="mono">ops.exception.escalated</span> event fires carrying the <span class="mono">escalation_chain</span> (e.g. <span class="mono">dispatcher → ops_manager</span>).</td><td class="chk">Escalation follows the chain.</td><td>SOE-13<br>BR-07</td></tr>
+            <tr><td class="stepno">4</td><td>Run <span class="mono">ops.exception.case.resolve</span>.</td><td>Status → <b>resolved</b>; <span class="mono">ops.exception.resolved</span> event. A resolved case no longer blocks activation or completion.</td><td class="chk">Case resolved; unblocks gates.</td><td>SOE-13</td></tr>
+            <tr><td class="stepno">5</td><td>With all mandatory tasks <b>done</b>, mandatory milestones <b>reached</b>, no unresolved critical exception, and POD present where delivery is in scope, run <span class="mono">logistics.execution.complete</span>.</td><td><span class="mono">logistics.execution.completion</span> in <b>completed</b>; execution → <b>completed</b>; shipment <span class="mono">execution_status</span> → <b>completed</b>; <span class="mono">Execution.Completed</span> event fires for downstream (documentation / billing / tracking).</td><td class="chk">Execution completes; event fired.</td><td>SOE-17/18<br>BR-09/10</td></tr>
+            <tr><td class="stepno">6</td><td>Reset an execution with a mandatory task open (or a missing POD) and run <span class="mono">logistics.execution.complete</span> with no carry-forward.</td><td>Refused: <span class="mono">"BR-09/10: execution cannot be completed — …"</span> listing the live blockers (see below).</td><td class="chk">Incomplete completion blocked.</td><td>SOE-17<br>BR-09/10</td></tr>
+            <tr><td class="stepno">7</td><td>Re-run <span class="mono">logistics.execution.complete</span> with <span class="mono">carry_forward=true</span> + a <span class="mono">carry_forward_note</span> (gated by <span class="mono">ops.completion.allow_carry_forward</span>).</td><td>Completion record in <b>carry_forward</b>, the note retained; execution completes anyway; the blocker list is returned for audit.</td><td class="chk">Carry-forward completes + records the reason.</td><td>SOE-17/18</td></tr>
+            <tr><td class="stepno">8</td><td>Manual hold / resume: <span class="mono">logistics.execution.hold</span> then <span class="mono">logistics.execution.resume</span>.</td><td>Hold projects ship.exec → <b>on_hold</b> (<span class="mono">ops.status.allow_manual_hold</span>); resume re-derives it back from execution + leg state.</td><td class="chk">Hold/resume toggles derived status.</td><td>SOE-16</td></tr>
+        </tbody>
+    </table>
+
+    <h3>The completion blockers (BR-09/10)</h3>
+    <div class="grid2">
+        <div class="card"><h4>What blocks completion</h4><ul>
+            <li><b>mandatory task(s) open</b> — a mandatory task not <span class="mono">done</span></li>
+            <li><b>mandatory milestone(s) open</b> — not <span class="mono">reached</span></li>
+            <li><b>unresolved critical exception</b> — not resolved/closed</li>
+            <li><b>POD missing where delivery in scope</b> — no <span class="mono">pod_doc_id</span></li>
+        </ul></div>
+        <div class="card"><h4>Carry-forward semantics (SOE-17)</h4><ul>
+            <li>Not a separate command — the <span class="mono">carry_forward</span> flag on <span class="mono">complete</span></li>
+            <li>Gated by <span class="mono">ops.completion.allow_carry_forward</span></li>
+            <li>Completion row stamped <span class="mono">carry_forward</span>, note kept</li>
+            <li>Blockers still returned in the result for audit</li>
+        </ul></div>
+    </div>
+
+    <div class="footer"><span>Operations Execution — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — GUARD MATRIX + CONFIG ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · negative checks</div>
+    <h2><span class="num">05</span>The guard matrix — every refusal that must hold</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing the Control Tower is confirming it <b>refuses</b> bad input. Each row trips a real <span class="mono">ValueError</span> — the message shown is the exact string raised by the command handler. Reproduce each and tick it.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:52%">Expected refusal (verbatim message)</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td><span class="mono">execution.activate</span> on a shipment that is not <span class="mono">ready_for_execution</span>.</td><td>“BR-01: shipment must be 'ready_for_execution' to activate”</td><td>BR-01</td></tr>
+            <tr><td class="stepno">2</td><td><span class="mono">execution.activate</span> with no owner (owner-gate on).</td><td>“BR-01: an owner is required before activation”</td><td>BR-01</td></tr>
+            <tr><td class="stepno">3</td><td><span class="mono">execution.activate</span> against a shipment that already has an active execution.</td><td>“BR-01: an execution already exists for this shipment”</td><td>BR-01</td></tr>
+            <tr><td class="stepno">4</td><td><span class="mono">execution.activate</span> with an unresolved critical exception on the shipment.</td><td>“BR-01: an unresolved critical exception blocks activation”</td><td>BR-01</td></tr>
+            <tr><td class="stepno">5</td><td><span class="mono">execution.task.complete</span> whose dependency task is not done.</td><td>“BR-04: cannot complete a task while its dependency is not done”</td><td>BR-04</td></tr>
+            <tr><td class="stepno">6</td><td><span class="mono">execution.leg.start</span> on a leg whose prior leg has not completed.</td><td>“BR-03: a prior leg must complete before this leg can start”</td><td>BR-03</td></tr>
+            <tr><td class="stepno">7</td><td><span class="mono">milestone.record_actual</span> with a late actual and no delay reason.</td><td>“BR-06: a late milestone requires a delay reason”</td><td>BR-06</td></tr>
+            <tr><td class="stepno">8</td><td><span class="mono">cargo.pickup.confirm</span> with no proof attached (proof-gate on).</td><td>“pickup requires proof before it can be confirmed”</td><td>BR-08</td></tr>
+            <tr><td class="stepno">9</td><td><span class="mono">destination.delivery.confirm</span> with no POD where delivery is in scope.</td><td>“BR-10: delivery cannot be confirmed without a POD where delivery is in scope”</td><td>BR-10</td></tr>
+            <tr><td class="stepno">10</td><td>Edit a captured <span class="mono">cargo.handover.event</span>'s content.</td><td>“cargo handover events are append-only — cannot edit […]”</td><td>SOE-08</td></tr>
+            <tr><td class="stepno">11</td><td><span class="mono">driver.assignment.start</span> before the driver accepted (accept-gate on).</td><td>“the driver must accept the assignment before starting”</td><td>SOE-01</td></tr>
+            <tr><td class="stepno">12</td><td><span class="mono">execution.complete</span> with an open mandatory item / missing POD, no carry-forward.</td><td>“BR-09/10: execution cannot be completed — …” (blocker list)</td><td>BR-09/10</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Config toggles worth flipping during the run</h3>
+    <table>
+        <thead><tr><th style="width:42%">Config key (<span class="mono">ir.config</span>)</th><th style="width:12%">Default</th><th>Effect to verify</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">ops.execution.auto_generate_plan_on_activate</span></td><td>true</td><td>On → the plan is generated automatically when the execution activates.</td></tr>
+            <tr><td><span class="mono">ops.leg.allow_overlapping_legs</span></td><td>false</td><td>On → the BR-03 sequential gate is bypassed; legs may start in parallel.</td></tr>
+            <tr><td><span class="mono">ops.cutoff.auto_exception_on_miss</span></td><td>true</td><td>On → a missed cut-off auto-opens a critical <span class="mono">cutoff_miss</span> case.</td></tr>
+            <tr><td><span class="mono">ops.delivery.require_pod</span></td><td>true</td><td>On → delivery cannot confirm without a POD where in scope (BR-10).</td></tr>
+            <tr><td><span class="mono">ops.completion.allow_carry_forward</span></td><td>true</td><td>Gates the manager carry-forward path in §04.</td></tr>
+            <tr><td><span class="mono">ops.driver.require_accept</span></td><td>false</td><td>On → a driver must accept before the run can start.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green — activation + plan + tasks + field ops (A), sequential multi-leg execution + milestones + cut-offs (B), exception lifecycle + completion + carry-forward (C) — and every guard in this matrix confirmed to refuse with its exact message.</div>
+    <p class="note">Traceability: SOE-* IDs map to the BRD-2 “Shipment &amp; Operations Execution” document; BR-01…BR-14 to <span class="mono">docs/business_rules.md</span> (mirrored in <span class="mono">tests/test_business_rules.py</span>). Downstream effects of <span class="mono">Execution.Completed</span> (documentation, billing, tracking) are verified in those modules' own guides.</p>
+
+    <div class="footer"><span>Operations Execution — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+</body>
+</html>

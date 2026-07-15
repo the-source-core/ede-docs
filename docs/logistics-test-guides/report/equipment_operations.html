@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Equipment Operations (CECS). Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Equipment Operations (CECS) — Manual Test Guide.pdf" "equipment_operations.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Equipment Operations (CECS) — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 05 of 11</div>
+        <h1>Equipment Operations (CECS)<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven QA guide for the <b>logistics.equipment_operations</b> physical-truth layer — the mode-agnostic equipment registry, the <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">equipment.usage</span> binding every downstream module references, append-only seal &amp; movement logs, and the load-calculation + 3D-viewer engines. Behaviour is <b>hook-driven</b>: create / update / delete an operational record and the pre/post hooks are the code under test.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives a precondition, an action (a record op or a command), the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip an <b>append-only</b> or validation guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">CECS BRS (BR-CECS/EQ/USG/SEAL/EVT/CALC) · impl docs · demo use-case</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Equipment Operations does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">CECS (Centralized Equipment Control System) is the <b>mode-agnostic physical truth layer</b>. One model — <span class="mono">logistics.equipment</span> — holds every real container, truck, wagon or ULD; mode is read through <span class="mono">equipment_type_id.transport_mode_id</span>, never a per-mode subclass. The load-bearing record is <span class="mono">logistics.equipment.usage</span> — the "stay" that binds a physical unit to an operation for a time window, referenced by Booking, Shipments, Consolidation, Documentation, Ops Execution &amp; Tracking (BR-CECS-01/25/60).</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">7</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">18</div><div class="cap">Lifecycle hooks</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Append-only logs</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+    </div>
+
+    <h3>The two derived state machines you will observe</h3>
+    <p>Equipment status and usage status are both <b>derived</b>, never free-typed. Usage status flips from movement events once any event exists on the usage (BR-CECS-24/43).</p>
+    <div class="arrow-flow">
+    equipment.current_status : Available → Reserved → In-Use → Available (loop)  |  Under-Repair · Damaged · Retired (terminal)<br>
+    usage.status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: planned → reserved → active → completed  |  cancelled&nbsp;&nbsp;(reserved on allocate; derived after 1st event)<br>
+    event-code → usage&nbsp;&nbsp;&nbsp;: loaded → active · delivered → completed · cancelled → cancelled&nbsp;(BR-EVT-10, hardcoded Phase 1)
+    </div>
+
+    <h3>The physical-truth layer everyone else reads</h3>
+    <div class="arrow-flow">
+    logistics.equipment ──▶ equipment.usage ──▶ { seal.application* · movement.event* }&nbsp;&nbsp;(* = append-only)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;equipment.usage is referenced by: Booking · Shipments · Consolidation · Documentation · Ops&nbsp;Execution · Tracking<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;one usage binds one shipment <b>leg</b>; consolidation lets one usage host many shipments (BR-CECS-05/26)
+    </div>
+
+    <h3>Four classifications set at record creation</h3>
+    <div class="grid2">
+        <div class="card"><h4>lease_type · seal_slot</h4><ul>
+            <li><b>lease_type</b> — owned · leased · chartered · carrier_supplied</li>
+            <li><b>seal_slot</b> — primary · secondary · customs · redundant (label only, no uniqueness)</li>
+        </ul></div>
+        <div class="card"><h4>event source · load result_status</h4><ul>
+            <li><b>source</b> — manual (Phase 1) · edi · carrier_api · iot (forward-compat)</li>
+            <li><b>result_status</b> — single_unit_fit · multi_unit_fit · no_fit_oversize · no_fit_capacity · no_fit_compatibility</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:17%">Scenario</th><th style="width:43%">What it proves</th><th style="width:22%">Key commands</th><th style="width:18%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Register &amp; bind</b></td><td>Register a mode-agnostic unit, allocate a usage on the INMUM→SGSIN leg, seal it, drive it to completion via movement events — every validator + status derivation fires</td><td><span class="mono">allocate.usage</span>, <span class="mono">apply.seal</span>, <span class="mono">log.movement.event</span></td><td>§02</td></tr>
+            <tr><td><b>B — Append-only integrity</b></td><td>The signature guard: every edit/delete against a seal, movement event, usage-with-history, or load-calc is <b>refused</b> with a specific ValueError</td><td>ede.update / ede.delete, <span class="mono">remove.seal</span></td><td>§03</td></tr>
+            <tr><td><b>C — Load calc + 3D</b></td><td>Run the deterministic three-check load engine (audit row), then open the equipment-type 3D viewer client action</td><td><span class="mono">calculate.load</span>, <span class="mono">equipment.3d_viewer</span></td><td>§04</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Forwarder <b>Acme Forwarding — Mumbai</b> runs its own fleet on the INMUM→SGSIN lane; custodian is <span class="mono">base.default_organization</span>. Seven equipment rows ship — <span class="mono">MSKU4200001/02</span> (40ft dry), <span class="mono">MSKU4250001</span> (40ft reefer), <span class="mono">MSKU2200001</span> (20ft, In-Use), <span class="mono">GJ01-AB-1234</span> (tractor), <span class="mono">CHAS-40-001</span> (chassis), <span class="mono">TCLU5500001</span> (carrier-supplied). Operations: <span class="mono">USG-DEMO-0001</span> (Active), <span class="mono">USG-DEMO-0002</span> (Reserved), seal <span class="mono">BOLT-DEMO-778812</span>, GATE_OUT/GATE_IN events, and a single-unit-fit load-calc. All CECS taxonomy is referenced from the <span class="mono">logistics.masters</span> seed, never recreated.</div>
+
+    <div class="footer"><span>Equipment Operations (CECS) — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A</div>
+    <h2><span class="num">02</span>Register a unit &amp; bind it to the export leg</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> take a mode-agnostic equipment row from registration → usage allocation on the INMUM→SGSIN leg → seal → completion, confirming each hook fires. <b>Role:</b> CECS dispatcher. <b>Start state:</b> the seeded Acme fleet + CECS masters are loaded; pick an <b>Available</b> 40ft dry unit.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:24%">Action</th><th style="width:38%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Create a <span class="mono">logistics.equipment</span> row with a valid <span class="mono">equipment_type_id</span> and identifier <span class="mono">MSKU4200099</span>.</td><td>Pre-create hook validates the identifier against the type's identifier-type <span class="mono">pattern</span> (BR-EQ-01), <b>denormalises</b> <span class="mono">equipment_category_id</span> + <span class="mono">transport_mode_id</span> from the type, and defaults <span class="mono">current_status_id</span> to the first <span class="mono">is_available_state=true</span> row.</td><td class="chk">Row saved; category &amp; mode auto-filled; status = <b>Available</b>.</td><td>BR-EQ-01<br>BR-CECS-01</td></tr>
+            <tr><td class="stepno">2</td><td>Retry step 1 with a malformed identifier (e.g. <span class="mono">not-a-box</span>) against a type whose identifier-type carries a pattern.</td><td>Rejected: <span class="mono">equipment_identifier '…' does not match the format required by identifier-type '…' (pattern: …) — BR-EQ-01</span>.</td><td class="chk">Bad identifier blocked.</td><td>BR-EQ-01</td></tr>
+            <tr><td class="stepno">3</td><td>Run <span class="mono">equipment-operations.allocate.usage</span> binding that equipment to a window on the export leg (origin/dest facilities, <span class="mono">planned_start_at</span>/<span class="mono">planned_end_at</span>).</td><td>Usage created; <span class="mono">usage_code</span> stamped from the <span class="mono">USG</span> sequence; <span class="mono">status_id</span> defaults to <b>Reserved</b>; the equipment's status is snapshotted into <span class="mono">previous_equipment_status_id</span>.</td><td class="chk"><span class="mono">USG-…</span> code present; status Reserved.</td><td>BR-USG-05<br>BR-CECS-25</td></tr>
+            <tr><td class="stepno">4</td><td>Re-read the parent <span class="mono">logistics.equipment</span> row.</td><td>Post-create hook flipped <span class="mono">current_status_id</span> → <b>Reserved</b> and emitted <span class="mono">equipment.usage.allocated</span>.</td><td class="chk">Equipment now Reserved; event fired.</td><td>BR-USG-05</td></tr>
+            <tr><td class="stepno">5</td><td>Run <span class="mono">equipment-operations.apply.seal</span> — an initial bolt seal, <span class="mono">seal_slot=primary</span>, no change reason (initial application is exempt).</td><td>Seal row appended on the usage; <span class="mono">organization_id</span> denormalised from the usage; <span class="mono">equipment.seal.applied</span> emitted.</td><td class="chk">Seal on usage; initial needs no reason.</td><td>BR-SEAL-04<br>BR-CECS-30</td></tr>
+            <tr><td class="stepno">6</td><td>Run <span class="mono">equipment-operations.log.movement.event</span> for a <span class="mono">loaded</span> then a <span class="mono">delivered</span> event-type.</td><td>Usage status is <b>derived</b> from the stream: loaded → <b>active</b> (stamps <span class="mono">actual_start_at</span>), delivered → <b>completed</b> (stamps <span class="mono">actual_end_at</span>); on delivered the equipment returns to <b>Available</b>; <span class="mono">equipment.usage.completed</span> emitted.</td><td class="chk">Status walked to completed; not hand-typed.</td><td>BR-EVT-06<br>BR-CECS-43</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>A single physical unit moved registry → Reserved → Active → Completed with the seal and both actual timestamps written entirely by hooks. Usage status was never set by hand — it fell out of the event stream (BR-CECS-04/24/43).</div>
+
+    <div class="callout warn"><span class="ct">⚠ Overlap &amp; idempotency gotchas</span>Allocating a <b>second</b> usage on the same equipment with an overlapping window is refused — <span class="mono">window overlap with existing usage '…' (…); overbook disabled (BR-USG-02..04)</span> — unless it is within <span class="mono">EQUIPMENT_USAGE_OVERLAP_GRACE_MINUTES</span> (30) or <span class="mono">equipment.allow_overbook=true</span> for a Reserved-vs-Reserved case. Re-logging the same event within <span class="mono">equipment.event.idempotency_window_seconds</span> (60) is <b>silently dropped</b> and returns the existing event id (BR-EVT-03).</div>
+
+    <div class="footer"><span>Equipment Operations (CECS) — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO B (append-only negatives) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario B — the append-only deep-dive</div>
+    <h2><span class="num">03</span>Append-only integrity — every edit &amp; delete must be refused</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>This is the module's signature guard.</b> Seal applications, movement events and load-calc rows are <b>immutable audit anchors</b> — history is preserved forever (BR-CECS-03/04/33/71). A usage that carries any history cannot be hard-deleted; it is cancelled. Each row below trips a specific <span class="mono">ValueError</span> from a pre-hook — quote the message verbatim in your test evidence.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action (record op / command)</th><th style="width:44%">Expected refusal — real message</th><th style="width:8%">✔</th><th style="width:14%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Edit any non-removal field (e.g. <span class="mono">seal_number</span>) on an existing <span class="mono">equipment.seal.application</span>.</td><td>“seal applications are append-only — fields […] cannot be edited; only removal-event fields […] may be set (BR-SEAL-02)”.</td><td class="chk">✗</td><td>BR-SEAL-02</td></tr>
+            <tr><td class="stepno">2</td><td>Hard-<b>delete</b> a seal application.</td><td>“seal applications are append-only and cannot be deleted; record a removal event with <span class="mono">equipment-operations.remove.seal</span> instead (BR-SEAL-02)”.</td><td class="chk">✗</td><td>BR-SEAL-02</td></tr>
+            <tr><td class="stepno">3</td><td>Call <span class="mono">remove.seal</span> without <span class="mono">removed_reason_id</span>.</td><td>“remove.seal requires removed_reason_id”. (With a reason it succeeds, writing only the removal fields.)</td><td class="chk">✗</td><td>BR-SEAL-02</td></tr>
+            <tr><td class="stepno">4</td><td>Call <span class="mono">remove.seal</span> again on a seal that already has <span class="mono">removed_at</span> set.</td><td>“seal already closed; re-opening is not allowed — apply a new seal row instead (BR-SEAL-03)”.</td><td class="chk">✗</td><td>BR-SEAL-03</td></tr>
+            <tr><td class="stepno">5</td><td>Edit a field on an existing <span class="mono">equipment.movement.event</span>.</td><td>“movement events are append-only — record a compensating event instead of editing (BR-EVT-02)”.</td><td class="chk">✗</td><td>BR-EVT-02</td></tr>
+            <tr><td class="stepno">6</td><td>Hard-<b>delete</b> a movement event.</td><td>“movement events are append-only and cannot be deleted (BR-EVT-02)”.</td><td class="chk">✗</td><td>BR-EVT-02</td></tr>
+            <tr><td class="stepno">7</td><td>Append a movement event to a <b>cancelled</b> usage.</td><td>“cannot append movement events to a cancelled usage (BR-EVT-01 / BR-EVT-09)”.</td><td class="chk">✗</td><td>BR-EVT-01</td></tr>
+            <tr><td class="stepno">8</td><td>Manually write <span class="mono">status_id</span> on a usage that already has ≥1 movement event.</td><td>“manual status writes rejected — at least one movement event exists on this usage; status is derived from the event stream (BR-USG-06)”.</td><td class="chk">✗</td><td>BR-USG-06</td></tr>
+            <tr><td class="stepno">9</td><td>Directly write <span class="mono">responsibility_party_id</span> on a usage via <span class="mono">ede.update</span>.</td><td>“responsibility_party_id is read-only outside the custody_transfer event flow (BR-USG-09)”.</td><td class="chk">✗</td><td>BR-USG-09</td></tr>
+            <tr><td class="stepno">10</td><td>Hard-<b>delete</b> a usage that carries seal or event history.</td><td>“usage '…' carries logistics.equipment.… history and cannot be hard-deleted; cancel it instead (BR-USG-07)”.</td><td class="chk">✗</td><td>BR-USG-07</td></tr>
+            <tr><td class="stepno">11</td><td>Edit — then delete — a <span class="mono">logistics.load.calculation</span> row.</td><td>Edit: “load-calc rows are immutable audit anchors; create a new calculation instead of editing (BR-CALC-08)”. Delete: “load-calc rows are immutable audit anchors and cannot be deleted”.</td><td class="chk">✗</td><td>BR-CALC-08</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ The one field you <i>may</i> toggle</span>Soft-archive via the <span class="mono">active</span> boolean is the <b>only</b> permitted write on these logs — the update hooks whitelist <span class="mono">active</span> so an admin can hide a mistaken row without rewriting the stream. Seal removal additionally permits the five removal-event fields (<span class="mono">removed_at</span>, <span class="mono">removed_by_*</span>, <span class="mono">removed_reason_id</span>, <span class="mono">removed_notes</span>). Any other key in the payload trips the guard.</div>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>All eleven attempts refused with the exact messages above; the seed rows (seal <span class="mono">BOLT-DEMO-778812</span>, the two GATE events, the demo load-calc) are unchanged afterward. Corrections happen by <b>appending</b> — a removal event + successor seal, a compensating movement event, or a fresh load-calc — never by mutation (BR-CECS-33).</div>
+
+    <div class="footer"><span>Equipment Operations (CECS) — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO C (load calc + 3D) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario C</div>
+    <h2><span class="num">04</span>Load calculation &amp; the equipment-type 3D viewer</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> run the deterministic Phase-1 load engine — turn cargo lines into an equipment-type plan and persist an immutable audit row — then open the 3D viewer to inspect the recommended type to scale. <b>Role:</b> planner. <b>Start:</b> CECS masters + <span class="mono">equipment_render_config</span> seed loaded.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:26%">Action</th><th style="width:38%">Expected result</th><th style="width:20%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>Run <span class="mono">equipment-operations.calculate.load</span> with an <span class="mono">organization_id</span> and a non-empty <span class="mono">cargo_lines</span> list that fits one 40ft.</td><td>Engine runs the three checks (compatibility / volume / weight / floor-area); persists one <span class="mono">logistics.load.calculation</span> audit row; stamps <span class="mono">algorithm_version=phase1.v1</span> and a <span class="mono">LCALC-…</span> code; returns <span class="mono">plan_json</span> + <span class="mono">result_status=single_unit_fit</span>; emits <span class="mono">equipment.load.calculation.completed</span>.</td><td class="chk"><span class="mono">plan_json=[{…,qty:1}]</span>; audit row saved.</td><td>BR-CALC-06<br>BR-CALC-07</td></tr>
+            <tr><td class="stepno">2</td><td>Call it with no <span class="mono">organization_id</span>, then with an empty <span class="mono">cargo_lines</span>.</td><td>Rejected: “calculate.load requires organization_id in payload”; then “calculate.load requires a non-empty <span class="mono">cargo_lines</span> list”.</td><td class="chk">Both guards refuse.</td><td>BR-CALC-06</td></tr>
+            <tr><td class="stepno">3</td><td>Feed cargo whose largest dimension exceeds every candidate type's internal size.</td><td><span class="mono">result_status=no_fit_oversize</span>, empty <span class="mono">plan_json</span>. Over-capacity-but-fits cargo instead returns <span class="mono">multi_unit_fit</span> with a computed <span class="mono">qty</span>; nothing at all returns <span class="mono">no_fit_capacity</span>.</td><td class="chk">Correct no-fit reason returned.</td><td>BR-CALC-03/04</td></tr>
+            <tr><td class="stepno">4</td><td>Confirm the persisted row is immutable (cross-ref §03 row 11).</td><td>Any edit/delete of the audit row is refused — the calc is re-run, never patched.</td><td class="chk">Audit anchor holds.</td><td>BR-CALC-08</td></tr>
+            <tr><td class="stepno">5</td><td>Open an <span class="mono">equipment.type.master</span> row/form and invoke <b>3D View</b>.</td><td>The <span class="mono">equipment.action_3d_viewer</span> client action (<span class="mono">client_component=equipment.3d_viewer</span>, <span class="mono">target=dialog</span>) opens the R3F viewer as a dialog rendering only that type to scale (orbit/zoom only).</td><td class="chk">3D dialog opens for the type.</td><td>Enh 03</td></tr>
+            <tr><td class="stepno">6</td><td>Compare the shape of a dry vs a reefer subtype.</td><td>Shape resolves <span class="mono">subcategory.render_archetype → category.render_archetype → generic</span>: container category → <span class="mono">box</span>; reefer subcategory → <span class="mono">box</span>/<span class="mono">variant=reefer</span>; only <span class="mono">supports_3d_view=true</span> categories are viewable.</td><td class="chk">Archetype/variant resolve as seeded.</td><td>Enh 03</td></tr>
+        </tbody>
+    </table>
+
+    <div class="grid2">
+        <div class="card"><h4>The Phase-1 load engine (deterministic)</h4><ul>
+            <li>Checks: compatibility gate · volume fit · weight fit · floor-area (only when non-stackable present)</li>
+            <li>Single-unit tie-break = <b>smallest usable volume</b> (BR-CALC-03); multi-unit picks smallest total volume</li>
+            <li>hazmat / temperature gates are <b>pass-through</b> in Phase 1 (schema enhancement pending — recorded deviation, BR-CALC-05)</li>
+        </ul></div>
+        <div class="card"><h4>3D render config (extend_model)</h4><ul>
+            <li>Render columns live on <span class="mono">category.master</span> / <span class="mono">subcategory.master</span> via <span class="mono">@api.extend_model</span> — masters stay owned by <span class="mono">logistics.masters</span></li>
+            <li><span class="mono">render_archetype</span>: box · tank · uld · vehicle · wagon · trailer · chassis · generic</li>
+            <li><span class="mono">render_variant</span>: default · dry · reefer · open_top · flat_rack · pallet</li>
+        </ul></div>
+    </div>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: the lifecycle rides hooks end-to-end (A), every append-only edit/delete is refused with its real message (B), and the load engine produces an immutable audited plan whose recommended type renders to scale in the 3D dialog (C). Because this is the physical-truth layer, its <span class="mono">equipment.usage</span> rows are what Booking, Shipments, Consolidation, Documentation, Ops Execution and Tracking bind to — verified in those modules' own guides.</div>
+    <p class="note">Grounded against real code: 7 <span class="mono">@api.on_command</span> handlers + 18 <span class="mono">@api.on_hook</span> across <span class="mono">equipment.py</span>, <span class="mono">usage.py</span>, <span class="mono">seal_application.py</span>, <span class="mono">movement_event.py</span>, <span class="mono">load_calculation.py</span>. Note: the impl doc lists Enhancement 03 (3D viewer) as Not-Started, but the action, render extension and R3F frontend are present in the module — treat §04 rows 5–6 as built.</p>
+
+    <div class="footer"><span>Equipment Operations (CECS) — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+</body>
+</html>

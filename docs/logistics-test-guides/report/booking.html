@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<!-- EDE branded PDF — Logistics Manual Test Guide: Booking. Render:
+     google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+        --print-to-pdf="Booking — Manual Test Guide.pdf" "booking.html" -->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Booking — Manual Test Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.46; }
+        .page { width:210mm; height:297mm; padding:13mm 15mm 12mm 15mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        /* Cover */
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:30px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:35px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14.5px; color:#cdddf6; margin-top:15px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:26px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:34px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h3 .tag { font-weight:700; font-size:8.4px; letter-spacing:.3px; padding:1px 7px; border-radius:9px; vertical-align:2px; margin-left:8px; }
+        h4 { font-size:10.5px; color:var(--ink); margin:12px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.4px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:5px 7px; font-weight:600; font-size:8.9px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 7px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        .stepno { font-weight:800; color:var(--brand); font-size:10px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.2px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:8px 12px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.3px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:8px 11px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; margin-bottom:6px; }
+        .card ul { margin:6px 0 0 0; padding-left:15px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:17px; }
+        ul.tight li { margin:3px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:9px 11px; background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.4px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:8.8px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .arrow-flow { font-family:"Ubuntu Mono",Consolas,monospace; font-size:9.1px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 11px; line-height:1.85; margin:9px 0; }
+
+        .footer { position:absolute; bottom:7mm; left:15mm; right:15mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:8.8px; color:var(--muted); font-style:italic; }
+        .chk { color:var(--accent); font-weight:700; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu · Logistics</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Manual Test Guide · Module 04 of 11</div>
+        <h1>Booking<br>Functional-Flow Test Walkthroughs</h1>
+        <div class="sub">Scenario-driven, hands-on QA guide for <b>logistics.booking</b> — the conditional provider-reservation layer between Handover and Shipments. Centred on the <b>handover Y-fork</b> (in-house vs carrier-sourced), the 6-state booking machine, provider confirmation, feasibility, amendment, and cancellation. Every step traced to its BRS requirement ID.</div>
+        <div class="verdict"><b>How to use:</b> Work the scenarios top to bottom against a tenant loaded with <span class="mono" style="color:#cfe3ff;background:rgba(255,255,255,.12)">--with-demo=all</span>. Each step gives you a precondition, an action, the expected result, and a <b>✔ checkpoint</b> to tick. Green = happy path; amber/red steps deliberately trip a guard to confirm it holds.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Manual QA / UAT</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">Booking BRS (QAB-12/14/17) · logistics/docs/booking.md · demo use-case</div></div>
+        <div><div class="lbl">Demo lane</div><div class="val">Globex INMUM → SGSIN</div></div>
+        <div><div class="lbl">Date</div><div class="val">15 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 — ORIENTATION ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What Booking does &amp; how to read this guide</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">A <b>booking</b> is the short-lived, conditional provider-reservation record that sits between the sales-to-ops <b>handover</b> and the long-lived <b>shipment</b>. It exists <b>only</b> when equipment must be sourced from a carrier. One model, <span class="mono">logistics.booking</span>; <span class="mono">transport_mode_id</span> is a row field, never a per-mode subclass. Charges are frozen at confirmation; amendments are the only legal mutation path past that (<span class="mono">BR-BK-04</span>).</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">17</div><div class="cap">Commands to exercise</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Test scenarios</div></div>
+        <div class="stat"><div class="big">4</div><div class="cap">State machines</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Approval flows</div></div>
+    </div>
+
+    <h3>The signature flow — the handover Y-fork <span class="tag p-build" style="background:var(--build-bg);color:var(--build)">read this first</span></h3>
+    <p>At an <b>accepted</b> handover, operations pick <i>one</i> of two mutually-exclusive paths. The neutral routing slot <span class="mono">crm.handover.fulfillment_target_id</span> is owned by sales-crm and frozen once set (<span class="mono">BR-HO-ROUTE-01</span>) — a booking can never be created from an already-routed handover.</p>
+    <div class="arrow-flow">
+    accepted crm.handover ─┬─ <b>Path A</b> · in-house equipment ──► Create Shipment ──► logistics.shipment &nbsp;(<b>booking skipped</b>)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ <b>Path B</b> · carrier-sourced ─────► Create Booking ──► logistics.booking ──► shipment
+    </div>
+
+    <h3>The four state machines you will observe</h3>
+    <div class="arrow-flow">
+    booking&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: draft → requested → awaiting_confirmation → confirmed → ready_for_execution  |  cancelled<br>
+    provider.rq&nbsp;: draft → requested → awaiting → confirmed  |  rejected  |  amended  |  cancelled<br>
+    feasibility&nbsp;: pending → feasible  |  exception  |  not_feasible<br>
+    amendment&nbsp;&nbsp;&nbsp;: draft → pending_approval / pending_customer_ack → applied  |  rejected  |  withdrawn
+    </div>
+
+    <div class="grid2">
+        <div class="card"><h4>provider_kind — 8 parallel reservations (QAB-14)</h4><ul>
+            <li><span class="mono">shipping_line</span> · <span class="mono">nvocc</span> · <span class="mono">airline</span> · <span class="mono">transporter</span></li>
+            <li><span class="mono">cha</span> · <span class="mono">warehouse</span> · <span class="mono">overseas_agent</span> · <span class="mono">insurance</span></li>
+            <li>Immutable after create (<span class="mono">BR-BK-RQ-01</span>) — switch = reject + new row</li>
+        </ul></div>
+        <div class="card"><h4>feasibility 7 dims / amendment 6 change_types</h4><ul>
+            <li><b>dims:</b> schedule · equipment · cargo · cut_off · route · vendor · compliance</li>
+            <li><b>change_type:</b> cargo_qty · schedule · carrier · route · equipment · charges</li>
+            <li><span class="mono">transport_mode</span> / <span class="mono">source_handover</span> are <b>not</b> amendable (<span class="mono">BR-BK-AMD-06</span>)</li>
+        </ul></div>
+    </div>
+
+    <h3>The scenarios in this guide</h3>
+    <table>
+        <thead><tr><th style="width:17%">Scenario</th><th style="width:43%">What it proves</th><th style="width:22%">Key commands</th><th style="width:18%">Section</th></tr></thead>
+        <tbody>
+            <tr><td><b>A — Y-fork Path B</b></td><td>Handover→booking carry-forward, provider request + confirm, readiness gate, and the Y-fork guards (already-routed freeze, handover-not-accepted)</td><td><span class="mono">create_from_handover</span>, <span class="mono">provider.request.confirm</span>, <span class="mono">mark_ready</span></td><td>§02 · §03</td></tr>
+            <tr><td><b>B — Feasibility + Amendment</b></td><td>7-dimension feasibility commit + escalation; amendment submit / withdraw / apply with commercial-review approval</td><td><span class="mono">feasibility.check.commit</span>, <span class="mono">amendment.submit</span></td><td>§04</td></tr>
+            <tr><td><b>C — Cancellation (guards)</b></td><td>grace-window vs cancel-fee approval, equipment allocate / release, and the negative guards that must refuse</td><td><span class="mono">cancel</span>, <span class="mono">complete_cancellation</span></td><td>§05</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Demo fixtures you start from (loaded by <span class="mono">--with-demo=all</span>)</span>
+    Forwarder <b>Acme Forwarding — Mumbai</b>; customer <b>Globex Inc.</b>; ocean carrier <b>Maersk Demo Line</b>. The seeded booking <span class="mono">demo_booking_globex_001</span> (2×40HC cotton garments, 18 t / 128 CBM, buy 3200 / sell 4250 USD) lands in <b>draft</b> with a pending feasibility row auto-created, plus 2 required provider requests (<span class="mono">shipping_line</span> Maersk, <span class="mono">transporter</span> DHL). Parties are intentionally omitted from the seed — add them on the form before <span class="mono">mark_ready</span>.</div>
+
+    <div class="footer"><span>Booking — Manual Test Guide · MaargSetu Logistics</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 02 — SCENARIO A (happy path) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02 · Scenario A — the Y-fork deep-dive</div>
+    <h2><span class="num">02</span>Path B — handover → booking → ready for execution</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> take an accepted Globex handover down the <b>carrier-sourced</b> fork to a booking that confirms its providers and reaches <b>ready_for_execution</b> with no re-keying. <b>Role:</b> Operations coordinator. <b>Start state:</b> a <span class="mono">crm.handover</span> in <span class="mono">accepted</span>, not yet routed.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:23%">Action</th><th style="width:39%">Expected result</th><th style="width:22%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>On the accepted handover, click <b>Create Booking</b> (<span class="mono">create_from_handover</span>).</td><td>New booking in <b>draft</b>. Parties, route, cargo lines, schedule and <b>frozen charges</b> are copied from the handover + accepted quote version; <span class="mono">transport_mode_id</span> is derived from the service; <span class="mono">booking_ref</span> auto-stamped <span class="mono">BK-YYYY-NNNNNN</span>. The handover is routed (<span class="mono">fulfillment_target_id=booking</span>) and its <span class="mono">booking_id</span> back-set.</td><td class="chk">Booking opens; every field carried, nothing re-typed.</td><td>BR-09<br>BR-11</td></tr>
+            <tr><td class="stepno">2</td><td>Observe the auto-created <b>feasibility</b> row on the booking (side-effect of <span class="mono">booking.created</span>).</td><td>One <span class="mono">logistics.booking.feasibility.check</span> exists in <b>pending</b>. Resolve it to <b>feasible</b> before requesting providers (see §04).</td><td class="chk">Feasibility row present, result=<b>pending</b>.</td><td>QAB-12<br>BR-BK-FEAS-01</td></tr>
+            <tr><td class="stepno">3</td><td>Run <b>Request Provider</b> (<span class="mono">request_provider</span>).</td><td>Booking flips <b>draft → requested</b>, <span class="mono">requested_at</span> stamped. Gated on feasibility ∈ {feasible, exception} (<span class="mono">BR-BK-03</span>).</td><td class="chk">status=<b>requested</b>.</td><td>QAB-12<br>BR-BK-03</td></tr>
+            <tr><td class="stepno">4</td><td>On the Maersk <span class="mono">shipping_line</span> request: <span class="mono">send</span> (draft→requested), then <span class="mono">confirm</span> with <span class="mono">confirmation_ref</span> + <span class="mono">vessel_name</span>, <span class="mono">voyage_number</span>, <span class="mono">etd</span>, <span class="mono">eta</span>, <span class="mono">si_cut_off</span>, <span class="mono">vgm_cut_off</span>.</td><td>Request → <b>confirmed</b>. Strictest cut-offs + primary-provider (vessel/voyage) <b>cascade onto the booking header</b>; <span class="mono">booking.provider.confirmed</span> event fires (<span class="mono">BR-BK-CONF-03</span>).</td><td class="chk">Header shows Maersk + vessel; cut-offs populated.</td><td>QAB-14<br>BR-BK-CONF-02</td></tr>
+            <tr><td class="stepno">5</td><td>Confirm the DHL <span class="mono">transporter</span> request (<span class="mono">vehicle_reference</span>, <span class="mono">etd</span>, <span class="mono">eta</span>, <span class="mono">gate_in_cut_off</span>).</td><td>Both required requests now <b>confirmed</b> — the readiness gate's precondition 3 is satisfied.</td><td class="chk">All <span class="mono">is_required</span> requests confirmed.</td><td>QAB-14</td></tr>
+            <tr><td class="stepno">6</td><td>Advance the booking to <b>confirmed</b> via the status bar (<span class="mono">status</span> is <span class="mono">workflow=True</span>).</td><td>Header walks <b>requested → awaiting_confirmation → confirmed</b>. There is <i>no</i> dedicated confirm command — this is a workflow-driven transition (statusbar / kanban drag).</td><td class="chk">status=<b>confirmed</b>.</td><td>BR-13<br>workflow</td></tr>
+            <tr><td class="stepno">7</td><td>Run <b>Mark Ready</b> (<span class="mono">mark_ready</span>).</td><td>The precondition gate runs (see §03). All pass → <b>ready_for_execution</b>, <span class="mono">ready_at</span> stamped, equipment auto-allocated, and <span class="mono">Booking.ReadyForExecution</span> fires — <b>handing off to Shipments</b>.</td><td class="chk">status=<b>ready_for_execution</b>; event fired.</td><td>QAB-17<br>BR-BK-08</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario A pass criteria</span>The booking reached <b>ready_for_execution</b> entirely from carried-forward handover data plus confirmed providers — and the <span class="mono">Booking.ReadyForExecution</span> event is the boundary that Shipments consumes to spawn the shipment.</div>
+
+    <div class="callout warn"><span class="ct">⚠ Path A contrast — booking is skipped entirely</span>When equipment is <b>in-house</b> (from <span class="mono">logistics.equipment-operations</span>), ops instead clicks <b>Create Shipment</b> on the handover — no <span class="mono">logistics.booking</span> row is ever created. Feasibility (QAB-12) still runs, but on the handover-to-shipment transition, not here. Confirm that a Path-A handover has an empty <span class="mono">booking_id</span>.</div>
+
+    <div class="footer"><span>Booking — Manual Test Guide · MaargSetu Logistics</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — SCENARIO A gate + negatives ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03 · Scenario A</div>
+    <h2><span class="num">03</span>The readiness gate &amp; the Y-fork guards</h2>
+    <div class="section-rule"></div>
+    <p class="lead">Half of testing a commitment layer is confirming it <b>refuses</b> bad input. First the <span class="mono">mark_ready</span> precondition set; then the negative checks that each trip a specific guard with a real message.</p>
+
+    <h3>The <span class="mono">mark_ready</span> precondition set (QAB-17 / BR-BK-08)</h3>
+    <p>All failures accumulate in one pass — the command <b>never short-circuits</b>. On any failure it raises <span class="mono">BookingNotReady: N precondition(s) failed: [...]</span> and the status stays put; fix all listed items and re-run.</p>
+    <table>
+        <thead><tr><th style="width:5%">#</th><th style="width:42%">Condition checked</th><th style="width:53%">Failure reason surfaced if missing</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td>Status is <span class="mono">confirmed</span></td><td>“booking status must be `confirmed` to mark ready; got …”</td></tr>
+            <tr><td>2</td><td>Feasibility ∈ {feasible, exception}</td><td>“no feasibility check linked” / “feasibility result … blocks mark_ready”</td></tr>
+            <tr><td>3</td><td>Every <span class="mono">is_required</span> provider request confirmed</td><td>“provider requests not confirmed: […]” / “no required provider request rows”</td></tr>
+            <tr><td>4</td><td>Per-mode cut-offs present (sea: SI/VGM/gate-in)</td><td>“&lt;cut_off&gt; required for mode 'sea' but is null”</td></tr>
+            <tr><td>5</td><td>Required fields: <span class="mono">pol_id</span>, <span class="mono">pod_id</span>, <span class="mono">incoterm_id</span>, <span class="mono">currency_id</span>; ≥1 line</td><td>“booking is missing required field: POL/POD/Incoterm/Currency”</td></tr>
+            <tr><td>6</td><td>Parties: shipper, consignee, notify present</td><td>“booking is missing party with role `shipper`/`consignee`/`notify`”</td></tr>
+            <tr><td>7</td><td><span class="mono">operational_owner_id</span> assigned</td><td>“operational_owner_id must be assigned”</td></tr>
+            <tr><td>8</td><td>No pending amendments</td><td>“amendment(s) pending — apply or withdraw before mark_ready”</td></tr>
+        </tbody>
+    </table>
+    <div class="callout"><span class="ct">Demo-seed reminder</span>The seeded <span class="mono">demo_booking_globex_001</span> ships with <b>no parties</b> and no POL/POD (route masters aren't seeded). A raw <span class="mono">mark_ready</span> on it will fail preconditions 5 and 6 — that is expected. Add shipper / consignee / notify parties and a POL/POD on the form first.</div>
+
+    <h3>Negative checks — each must be refused</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:34%">Action</th><th style="width:40%">Expected refusal</th><th style="width:10%">✔</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">9</td><td><span class="mono">create_from_handover</span> against a handover that is <b>already routed</b>.</td><td>Rejected: “handover already routed (fulfillment_target_id=…); cannot create_from_handover (BR-HO-ROUTE-01)”.</td><td class="chk">Blocked</td><td>BR-HO-ROUTE-01</td></tr>
+            <tr><td class="stepno">10</td><td><span class="mono">create_from_handover</span> against a handover <b>not</b> in <span class="mono">accepted</span>.</td><td>Rejected: “cannot create booking from handover in status …— handover must be `accepted` first (AC-12 / BR-BK-02)”.</td><td class="chk">Blocked</td><td>BR-09 / BR-BK-02</td></tr>
+            <tr><td class="stepno">11</td><td><span class="mono">request_provider</span> before the feasibility check exists / while it is pending.</td><td>Rejected: “request_provider blocked — feasibility check missing (BR-BK-03 / QAB-12)” or “feasibility result is 'pending' …”.</td><td class="chk">Blocked</td><td>BR-BK-03</td></tr>
+            <tr><td class="stepno">12</td><td><span class="mono">provider.request.confirm</span> with an empty <span class="mono">confirmation_ref</span>.</td><td>Rejected: “confirm requires a non-empty `confirmation_ref`”.</td><td class="chk">Blocked</td><td>BR-BK-CONF-02</td></tr>
+            <tr><td class="stepno">13</td><td><span class="mono">provider.request.confirm</span> a <span class="mono">shipping_line</span> row missing <span class="mono">vessel_name</span>/<span class="mono">voyage_number</span>.</td><td>Rejected: “confirm: missing required fields for provider_kind 'shipping_line': […] (BR-BK-CONF-02)”.</td><td class="chk">Blocked</td><td>BR-BK-CONF-02</td></tr>
+            <tr><td class="stepno">14</td><td>Edit a locked field (e.g. <span class="mono">total_sell_amount</span>) on a <span class="mono">confirmed</span> booking directly.</td><td>Rejected: “booking fields […] are immutable in status 'confirmed'; open an amendment to change them (BR-BK-04)”.</td><td class="chk">Blocked</td><td>BR-BK-04</td></tr>
+        </tbody>
+    </table>
+    <div class="note">The immutability in step 14 is exactly why Scenario B's amendment workflow exists — it is the <i>only</i> legal mutation path past <span class="mono">confirmed</span>, via the <span class="mono">_amendment_apply</span> bypass.</div>
+
+    <div class="footer"><span>Booking — Manual Test Guide · MaargSetu Logistics</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 04 — SCENARIO B (feasibility + amendment) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04 · Scenario B</div>
+    <h2><span class="num">04</span>Feasibility commit &amp; the amendment workflow</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove the two controlled-change surfaces — the 7-dimension feasibility gate that guards provider requests, and the append-only amendment trail that is the only legal way to change a confirmed booking.</p>
+
+    <h3>Part 1 — Feasibility (QAB-12)</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:40%">Expected result</th><th style="width:14%">✔</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td>On the pending check, <span class="mono">update_finding</span> for each of the 7 dimensions with <span class="mono">status</span> ∈ {ok, warn, block}.</td><td>Each finding slot written. A bad dimension or status is refused (“dimension must be one of …”, “finding status must be one of {'ok','warn','block'}”).</td><td class="chk">7 findings set.</td><td>QAB-12</td></tr>
+            <tr><td class="stepno">2</td><td>With all <span class="mono">ok</span>, run <span class="mono">commit</span>.</td><td>result → <b>feasible</b>; <span class="mono">checked_at</span> stamped. If any dimension unset: “commit blocked — all 7 … must have a finding”.</td><td class="chk">result=<b>feasible</b>.</td><td>BR-BK-FEAS-03</td></tr>
+            <tr><td class="stepno">3</td><td>On a fresh check, set one <span class="mono">warn</span> and <span class="mono">commit</span> <b>without</b> a <span class="mono">summary_note</span>.</td><td>Rejected: “commit with `exception` result requires `summary_note`”. Supply the note → result=<b>exception</b> (proceed with annotation).</td><td class="chk">Note enforced for exception.</td><td>BR-BK-FEAS-03</td></tr>
+            <tr><td class="stepno">4</td><td>On a fresh check, set one <span class="mono">block</span>, add a note, and <span class="mono">commit</span>.</td><td>result → <b>not_feasible</b>: opens the <span class="mono">booking.feasibility.escalation</span> approval case (subject = handover) and emits <span class="mono">booking.feasibility.failed</span> — routing control back to sales-crm.</td><td class="chk">Escalation case + event.</td><td>BR-BK-FEAS-04</td></tr>
+            <tr><td class="stepno">5</td><td>Attempt <span class="mono">update_finding</span> again after commit.</td><td>Rejected: “cannot update_finding once result is …(BR-BK-FEAS-01)” — checks are append-only once terminal.</td><td class="chk">Blocked.</td><td>BR-BK-FEAS-01</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Part 2 — Amendment (BR-14)</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:40%">Expected result</th><th style="width:14%">✔</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">6</td><td>On a <b>confirmed</b> booking, create a <span class="mono">logistics.booking.amendment</span> with a <span class="mono">change_type</span> and non-zero <span class="mono">sell_delta_amount</span>.</td><td>Created in <b>draft</b>; <span class="mono">requires_commercial_review</span> computed <b>true</b> from the delta; <span class="mono">customer_notification_required</span> computed from change_type.</td><td class="chk">Review flag=true.</td><td>BR-BK-AMD-02</td></tr>
+            <tr><td class="stepno">7</td><td>Run <span class="mono">amendment.submit</span>.</td><td>With deltas → <b>pending_approval</b> + a <span class="mono">booking.amendment.commercial_review</span> case opened (subject = the amendment row). No deltas/notify → applied immediately.</td><td class="chk">status=<b>pending_approval</b>.</td><td>BR-14 / BR-BK-AMD-02</td></tr>
+            <tr><td class="stepno">8</td><td>On approval, <span class="mono">apply_amendment</span> fires (or a no-gate submit auto-applies).</td><td><span class="mono">after_values</span> written onto the booking via the <span class="mono">_amendment_apply</span> bypass; impacted provider requests flip to <b>amended</b>; <span class="mono">booking.amended</span> emitted; amendment → <b>applied</b>.</td><td class="chk">Booking mutated via bypass.</td><td>BR-BK-AMD-05</td></tr>
+            <tr><td class="stepno">9</td><td>Create + <span class="mono">amendment.withdraw</span> a pending amendment; then try to amend a <b>draft</b> booking.</td><td>Withdraw → <b>withdrawn</b>. Amend on draft rejected: “amendments are only allowed on bookings in status {'confirmed','ready_for_execution'}… (BR-BK-AMD-01)”.</td><td class="chk">Withdraw ok; draft-amend blocked.</td><td>BR-BK-AMD-01</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Scenario B pass criteria</span>Feasibility gates provider requests (feasible/exception pass, not_feasible escalates); and confirmed-booking changes flow only through the amendment trail with commercial-review approval when money moves.</div>
+    <div class="callout warn"><span class="ct">⚠ Non-amendable changes</span><span class="mono">change_type</span> of <span class="mono">transport_mode</span> or <span class="mono">source_handover</span> is refused at create: “… is not amendable — cancel + new booking required (BR-BK-AMD-06)”. Those changes mean a new booking, not an amendment.</div>
+
+    <div class="footer"><span>Booking — Manual Test Guide · MaargSetu Logistics</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 05 — SCENARIO C (cancellation) ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05 · Scenario C</div>
+    <h2><span class="num">05</span>Cancellation — grace window, fee approval &amp; guards</h2>
+    <div class="section-rule"></div>
+    <p class="lead"><b>Goal:</b> prove the grace-aware cancellation path — free inside the window, approval-gated outside it — plus the equipment release cascade and the guards that refuse an illegal cancel. <b>Start:</b> a booking in <span class="mono">requested</span> or <span class="mono">confirmed</span>.</p>
+
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:30%">Action</th><th style="width:40%">Expected result</th><th style="width:14%">✔ Checkpoint</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">1</td><td><span class="mono">cancel</span> a booking <b>within</b> <span class="mono">booking.cancellation_grace_hours</span> (default 24h from <span class="mono">requested_at</span>) with a <span class="mono">cancellation_reason</span>.</td><td>Synchronous cancel, cost = 0. Status → <b>cancelled</b>, open provider requests cascade-cancelled, equipment released, <span class="mono">booking.cancelled</span> emitted.</td><td class="chk">status=<b>cancelled</b>, cost 0.</td><td>BR-15 / BR-BK-CAN-01</td></tr>
+            <tr><td class="stepno">2</td><td><span class="mono">cancel</span> a booking <b>outside</b> the grace window.</td><td>No immediate flip — a <span class="mono">booking.cancel.fee</span> approval case opens, <span class="mono">cancellation_pending=true</span>. Re-calling while pending returns the same case id (idempotent).</td><td class="chk">Pending + approval case id.</td><td>BR-15 / BR-BK-CAN-01</td></tr>
+            <tr><td class="stepno">3</td><td>On the case landing, <span class="mono">complete_cancellation</span> with <span class="mono">decision=approved</span>.</td><td>Runs the apply path: status → <b>cancelled</b>, equipment released, providers cascade-cancelled, <span class="mono">booking.cancelled</span> emitted.</td><td class="chk">Cancelled after approval.</td><td>BR-BK-CAN-01</td></tr>
+            <tr><td class="stepno">4</td><td><span class="mono">complete_cancellation</span> with <span class="mono">decision=rejected</span>.</td><td>Clears <span class="mono">cancellation_pending</span>; booking stays live in its prior status.</td><td class="chk">Pending cleared, not cancelled.</td><td>BR-BK-CAN-01</td></tr>
+            <tr><td class="stepno">5</td><td><span class="mono">allocate_equipment_usage</span> then <span class="mono">release_equipment_usage</span> on the booking.</td><td>Allocation rows created (idempotent — re-run returns existing); release marks all <span class="mono">released_at</span> and cascades in-house usage cancel to equipment-operations. Degrades cleanly if that module isn't loaded.</td><td class="chk">Allocate idempotent; release audited.</td><td>Integration</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Negative checks — each must be refused</h3>
+    <table>
+        <thead><tr><th style="width:4%">#</th><th style="width:38%">Action</th><th style="width:46%">Expected refusal</th><th style="width:12%">Trace</th></tr></thead>
+        <tbody>
+            <tr><td class="stepno">6</td><td><span class="mono">cancel</span> with an empty <span class="mono">cancellation_reason</span>.</td><td>“cancel requires a non-empty cancellation_reason (BR-BK-CAN-05)”.</td><td>BR-BK-CAN-05</td></tr>
+            <tr><td class="stepno">7</td><td><span class="mono">cancel</span> a booking in <span class="mono">ready_for_execution</span>.</td><td>“cannot cancel a booking in `ready_for_execution` — cancellation must go via the downstream shipment cancellation flow (BR-BK-CAN-02)”.</td><td>BR-BK-CAN-02</td></tr>
+            <tr><td class="stepno">8</td><td><span class="mono">complete_cancellation</span> with a decision other than approved/rejected.</td><td>“complete_cancellation requires payload.decision in {'approved','rejected'}; got …”.</td><td>BR-BK-CAN-01</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Config toggles worth flipping during the run</h3>
+    <table>
+        <thead><tr><th style="width:40%">Config key (<span class="mono">ir.config</span>)</th><th style="width:12%">Default</th><th>Effect to verify</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">booking.cancellation_grace_hours</span></td><td>24</td><td>Lower it to force step 1 outside grace → the fee-approval path.</td></tr>
+            <tr><td><span class="mono">booking.feasibility_required</span></td><td>true</td><td>false → <span class="mono">request_provider</span> skips the feasibility gate (§03 step 11).</td></tr>
+            <tr><td><span class="mono">booking.provider.require_role_match</span></td><td>true</td><td>Gates whether a provider partner must hold the role matching its kind.</td></tr>
+            <tr><td><span class="mono">booking.confirm.require_document</span></td><td>false</td><td>true → <span class="mono">confirm</span> demands a <span class="mono">confirmation_document_id</span>.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">✔ Full-module pass criteria</span>All three scenarios green: Y-fork Path B carry-forward + provider confirm + readiness (A), feasibility commit + amendment with commercial review (B), and grace-vs-approval cancellation with equipment release (C) — with every negative guard in §03–§05 confirmed to refuse.</div>
+    <p class="note">Traceability: <span class="mono">BR-*</span> / <span class="mono">QAB-*</span> IDs map to <span class="mono">roadmap/logistics/booking/brs.md</span>; the finer <span class="mono">BR-BK-*</span> codes are the in-code requirement anchors. The <span class="mono">Booking.ReadyForExecution</span> event is the boundary consumed by the Shipments module — verified in that module's own test guide.</p>
+
+    <div class="footer"><span>Booking — Manual Test Guide · MaargSetu Logistics</span><span>6</span></div>
+</section>
+
+</body>
+</html>
