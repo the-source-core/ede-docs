@@ -3,7 +3,7 @@
 
 **Module:** `foundation.messaging` (`src/ede/foundation/messaging/`)
 **Roadmap:** [roadmap/foundation/messaging/](../roadmap/foundation/messaging/README.md)
-**Status:** 🔴 Not Started — drafted 2026-05-26
+**Status:** 🟡 In Progress — Phase 1 ✅ Delivered 2026-07-15. Phases 2–3 planned.
 **Layer:** Foundation engine
 
 > Source of truth is the roadmap. This doc reflects the *current built state* — what is shipped, what is partial, what gaps remain, what configuration it introduces, and how a developer or end user interacts with it. Auto-maintained by the `syncing-roadmap-to-docs` skill.
@@ -74,20 +74,23 @@ Telegram customer  ──webhook──►  TelegramProvider       ──►  mes
 <!-- SYNC-BLOCK: models -->
 | Model Key | Purpose | Source File |
 |---|---|---|
-| `messaging.channel` | One configured channel instance binding an `ir.connector` to an `res.organization` (channel kind Enum, display handle, auto-create-partner policy, webhook secret) | `src/ede/foundation/messaging/models/channel.py` (planned) |
-| `messaging.thread` | One conversation with one external party on one channel; polymorphic `(related_model, related_id)` link to the consumer's record once promoted | `src/ede/foundation/messaging/models/thread.py` (planned) |
-| `messaging.message` | One atomic inbound or outbound message with direction, body, media M2M, delivery status, provenance to chatter | `src/ede/foundation/messaging/models/message.py` (planned) |
-| `messaging.identity` | `(channel_kind, external_id) → res.partner` resolver; auto-created subject to the channel's policy | `src/ede/foundation/messaging/models/identity.py` (planned) |
+| `messaging.channel` | One configured channel instance binding an `ir.connector` to an `res.organization` (channel kind Enum, display handle, auto-create-partner policy, per-channel `outbound_max_attempts`, webhook secret) | `src/ede/foundation/messaging/models/channel.py` |
+| `messaging.thread` | One conversation with one external party on one channel; polymorphic `(related_model, related_id)` link to the consumer's record once promoted | `src/ede/foundation/messaging/models/thread.py` |
+| `messaging.message` | One atomic inbound or outbound message with direction, body, media M2M, delivery status, provenance to chatter | `src/ede/foundation/messaging/models/message.py` |
+| `messaging.identity` | `(channel_kind, external_id) → res.partner` resolver; auto-created subject to the channel's policy | `src/ede/foundation/messaging/models/identity.py` |
 <!-- /SYNC-BLOCK -->
 
 ### Services & key code paths
 <!-- SYNC-BLOCK: services -->
 | Service / Class | Responsibility | Source File |
 |---|---|---|
-| `MessagingProvider` (abstract) | Contract every channel-kind plug-in implements: `verify_webhook`, `parse_inbound`, `send`, `download_media` | `src/ede/foundation/messaging/connectors/base.py` (planned) |
-| `TelegramProvider` | First concrete provider; HMAC via `X-Telegram-Bot-Api-Secret-Token`; `sendMessage` / `sendPhoto` / `sendDocument` | `src/ede/foundation/messaging/connectors/telegram.py` (planned) |
-| `MessagingService` | Orchestrator: `handle_inbound`, `send`, `resolve_partner`, `link_thread_to_record`, `list_threads_for_partner` | `src/ede/foundation/messaging/services/messaging_service.py` (planned) |
-| `IdentityResolver` | `(channel_kind, external_id) → res.partner` lookup + auto-create per channel policy | `src/ede/foundation/messaging/services/identity_resolver.py` (planned) |
+| `MessagingProvider` (abstract) | Contract every channel-kind plug-in implements: `verify_webhook`, `parse_inbound`, `send`, `download_media` | `src/ede/foundation/messaging/connectors/base.py` |
+| `TelegramBotProvider` | First concrete provider; per-channel URL secret; `sendMessage` / `sendPhoto` / `sendDocument`; registered as `telegram_bot` | `src/ede/foundation/messaging/connectors/telegram.py` |
+| `MessagingService` | Orchestrator: `handle_inbound`, `send`, `resolve_partner`, `link_thread_to_record`, `list_threads_for_partner` | `src/ede/foundation/messaging/services/messaging_service.py` |
+| `IdentityResolver` | `(channel_kind, external_id) → res.partner` lookup + auto-create per channel policy | `src/ede/foundation/messaging/services/identity_resolver.py` |
+| `MessagingRouter` | Resolves an `ir.connector` → live `MessagingProvider` (mirrors `EmailRouter`) | `src/ede/foundation/messaging/services/messaging_router.py` |
+| Reverse chatter bridge | Relays a chatter reply on a linked record to the external party (loop-safe) | `src/ede/foundation/messaging/services/chatter_bridge.py` |
+| Outbound retry sweep | `@api.scheduled_job` re-dispatching `pending` outbound messages; per-channel ceiling fails exhausted ones | `src/ede/foundation/messaging/services/retry_worker.py` |
 <!-- /SYNC-BLOCK -->
 
 ### Commands
@@ -103,15 +106,17 @@ Telegram customer  ──webhook──►  TelegramProvider       ──►  mes
 | Event | When fired | Typical subscribers |
 |---|---|---|
 | `messaging.inbound_received` | After an inbound message is parsed, identity-resolved, thread-upserted, and committed | `foundation.converse` (dialog orchestrator); custom routing handlers in consumer modules |
-| `messaging.outbound_failed` | When an outbound message exhausts `MESSAGING_OUTBOUND_MAX_ATTEMPTS` with status still `pending` | Ops alerting; custom escalation handlers |
+| `messaging.outbound_failed` | When an outbound message fails permanently (provider 4xx) or exhausts the channel's `outbound_max_attempts` | Ops alerting; custom escalation handlers |
 <!-- /SYNC-BLOCK -->
 
 ### REST endpoints
 <!-- SYNC-BLOCK: rest -->
 | Method + Path | Purpose | Controller |
 |---|---|---|
-| `POST /api/messaging/webhook/{channel_uuid}/{secret}` | Inbound webhook receiver; HMAC + URL-secret authenticated | `MessagingWebhookController` (planned) |
-| (admin endpoints reuse generic CRUD via the existing `/api/<model>/*` shape for `messaging.channel` / `messaging.thread` / `messaging.message`) | Channel CRUD + thread / message browsing | (planned) |
+| `POST /api/messaging/webhook/{channel_uuid}/{secret}` | Public inbound webhook receiver; per-channel URL-secret + provider signature authenticated | `MessagingWebhookController` |
+| `POST /api/messaging/thread/{thread_id}/send` | Internal user sends an outbound reply on a thread | `MessagingController` |
+| `POST /api/messaging/thread/{thread_id}/link` | Link a thread to a business record | `MessagingController` |
+| `GET /api/messaging/partner/{partner_id}/threads` | List a partner's threads | `MessagingController` |
 <!-- /SYNC-BLOCK -->
 
 ### Lifecycle hooks
@@ -127,7 +132,7 @@ Telegram customer  ──webhook──►  TelegramProvider       ──►  mes
 ```
 pending  →  sent  →  delivered  →  read
    │
-   └────► failed  (after MESSAGING_OUTBOUND_MAX_ATTEMPTS)
+   └────► failed  (provider 4xx, or after the channel's outbound_max_attempts)
 ```
 `messaging.thread.status`: `open` | `closed` (consumer-controlled).
 <!-- /SYNC-BLOCK -->
@@ -145,33 +150,31 @@ pending  →  sent  →  delivered  →  read
 
 ### Foundation-level settings (`FoundationSettings` / env vars)
 <!-- SYNC-BLOCK: foundation-settings -->
-| Setting Key | Type | Default | Env Var | Purpose |
-|---|---|---|---|---|
-| `MESSAGING_ENABLED` | `bool` | `True` | `EDE_MESSAGING_ENABLED` | Hard kill-switch for the entire engine (webhook ingress + outbound dispatch) |
-| `MESSAGING_WEBHOOK_BASE_URL` | `str` | `""` | `EDE_MESSAGING_WEBHOOK_BASE_URL` | Public-facing base URL the platform uses when registering its inbound webhook with a provider; empty in dev |
-| `MESSAGING_OUTBOUND_MAX_ATTEMPTS` | `int` | `5` | `EDE_MESSAGING_OUTBOUND_MAX_ATTEMPTS` | Maximum send attempts before an outbound `messaging.message` is marked permanently failed |
+_None._ The module deliberately adds **no** keys to `settings.py` — only genuine
+deployment infra belongs there, and messaging has none. The webhook URL is
+derived from the controller path (`/api/messaging/webhook/{channel_uuid}/{secret}`)
+plus the request origin and shown for copy-paste on the channel form; every
+operational knob is a per-channel field the admin configures.
 <!-- /SYNC-BLOCK -->
 
 ### Runtime config (`ir.config` keys)
 <!-- SYNC-BLOCK: ir-config -->
-| Config Key | Scope | Type | Default | Purpose |
-|---|---|---|---|---|
-| `messaging.default_auto_create_partner_policy` | org | Enum (`off` / `on` / `prompt_internal`) | `prompt_internal` | Default value for `messaging.channel.auto_create_partner` when an admin creates a new channel |
+_None._ Policy is per-channel, not global: `messaging.channel.auto_create_partner`
+(`off` / `on` / `prompt_internal`, default `on`) and `messaging.channel.outbound_max_attempts`
+(default `5`) are configured on each channel record.
 <!-- /SYNC-BLOCK -->
 
 ### Declarative settings (XML `<settings>` panels)
 <!-- SYNC-BLOCK: xml-settings -->
-| Panel | File | Fields |
-|---|---|---|
-| Settings → Integrations → Messaging | `src/ede/foundation/messaging/data/messaging_settings.xml` (planned) | `messaging.default_auto_create_partner_policy` |
+_None._ Configuration lives on the `messaging.channel` form (Settings → Messaging → Channels).
 <!-- /SYNC-BLOCK -->
 
 ### Seed data shipped
 <!-- SYNC-BLOCK: seed-data -->
 | Data file | What it seeds |
 |---|---|
-| `data/ir.rbac.permission.csv` (planned) | 5 permissions: `messaging.channel.read`, `messaging.channel.manage`, `messaging.thread.read`, `messaging.message.read`, `messaging.send` |
-| `data/messaging_menus.xml` (planned) | Settings → Integrations → Channels menu leaf + Threads ops-debug leaf |
+| `data/ir.rbac.permission.csv` | 7 permissions: `messaging.channel` read/create/update/delete, `messaging.thread.read`, `messaging.message.read`, `messaging.message.execute` (send) |
+| `data/messaging_menus.xml` | Settings → Messaging → Channels leaf + Threads ops-debug leaf |
 <!-- /SYNC-BLOCK -->
 
 ## 4. Developer & User Notes
@@ -180,7 +183,7 @@ pending  →  sent  →  delivered  →  read
 <!-- SYNC-BLOCK: status-snapshot -->
 | Phase | Title | Status | Roadmap |
 |---|---|---|---|
-| Phase 1 | Telegram Bidirectional + Chatter Bridge | 🔴 Not Started | [phase-1-implementation.md](../roadmap/foundation/messaging/phase-1-implementation.md) |
+| Phase 1 | Telegram Bidirectional + Chatter Bridge | ✅ Delivered 2026-07-15 | [phase-1-implementation.md](../roadmap/foundation/messaging/phase-1-implementation.md) |
 | Phase 2 (planned) | WhatsApp Cloud + Templates + Media | 🔴 Not Started | (drafted in README) |
 | Phase 3 (planned) | More Channels + Operator Console | 🔴 Not Started | (drafted in README) |
 <!-- /SYNC-BLOCK -->
@@ -191,7 +194,10 @@ pending  →  sent  →  delivered  →  read
 <!-- SYNC-BLOCK: built -->
 | Feature | Model Keys | Key Files | Roadmap Source |
 |---|---|---|---|
-| _none yet_ | | | |
+| Provider-agnostic engine + Telegram connector | `messaging.channel`, `messaging.thread`, `messaging.message`, `messaging.identity` | `connectors/telegram.py`, `services/messaging_service.py` | [phase-1-implementation.md](../roadmap/foundation/messaging/phase-1-implementation.md) |
+| Inbound webhook → identity → thread → chatter mirror + `messaging.inbound_received` | `messaging.*` | `api/webhook_controller.py`, `services/identity_resolver.py` | phase-1 |
+| Outbound `messaging.send` + per-channel retry ceiling + reverse chatter bridge | `messaging.message` | `services/messaging_service.py`, `services/retry_worker.py`, `services/chatter_bridge.py` | phase-1 |
+| `StubMessagingProvider` for consumer tests | — | `src/tests/foundation/messaging/helpers/stub_provider.py` | phase-1 |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
@@ -200,7 +206,7 @@ pending  →  sent  →  delivered  →  read
 <!-- SYNC-BLOCK: gaps -->
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
-| Entire module is 🔴 Not Started — Phase 1 (Telegram) drafted but not shipped | 🔴 | [phase-1-implementation.md](../roadmap/foundation/messaging/phase-1-implementation.md) |
+| Outbound media egress to the provider deferred (inbound media fully lands as `storage.document`; outbound message rows record media but Phase 1 transmits text) | 🟡 (Phase 1 seam) | [phase-1-implementation.md](../roadmap/foundation/messaging/phase-1-implementation.md) |
 | WhatsApp Cloud + template-message library + 24h-window enforcement | 🔴 (Phase 2) | [README](../roadmap/foundation/messaging/README.md) |
 | Messenger / SMS / Webchat providers | 🔴 (Phase 3) | [README](../roadmap/foundation/messaging/README.md) |
 | Operator-facing live chat console | 🔴 (Phase 3) | [README](../roadmap/foundation/messaging/README.md) |
@@ -221,9 +227,9 @@ pending  →  sent  →  delivered  →  read
 <!-- SYNC-BLOCK: rbac -->
 | Role | Permissions |
 |---|---|
-| `internal_user` | `messaging.thread.read`, `messaging.message.read`, `messaging.send` (chatter composer dispatches this) |
-| `system_admin` | `messaging.channel.manage` |
-| `foundation.converse` system principal (Phase 2 of converse) | `messaging.send` |
+| `internal_user` | `messaging.channel.read`, `messaging.thread.read`, `messaging.message.read`, `messaging.message.execute` (send — chatter composer dispatches this) |
+| `system_admin` | `messaging.channel` create / update / delete |
+| `foundation.converse` system principal (Phase 2 of converse) | `messaging.message.execute` (send) |
 <!-- /SYNC-BLOCK -->
 
 ### Related modules
@@ -238,4 +244,4 @@ pending  →  sent  →  delivered  →  read
 
 ---
 
-*Last sync: 2026-05-26. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
+*Last sync: 2026-07-15. To refresh, invoke the `syncing-roadmap-to-docs` skill.*
