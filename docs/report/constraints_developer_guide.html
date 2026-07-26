@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Constraints & Validation — Developer Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec; --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff; --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4; --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe; --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing: border-box; }
+        @page { size: A4; margin: 0; }
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-size:10.3px; line-height:1.48; }
+        .page { width:210mm; height:297mm; padding:14mm 16mm 12mm 16mm; margin:0 auto; background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        .cover { display:flex; flex-direction:column; background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:34px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:0.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:34px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:15px; color:#cdddf6; margin-top:16px; max-width:150mm; line-height:1.5; }
+        .cover .verdict { margin-top:28px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px; font-size:12.5px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:14px; display:flex; gap:40px; font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-0.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.5px; color:var(--brand-deep); margin:13px 0 5px 0; font-weight:700; }
+        h4 { font-size:11px; color:var(--ink); margin:14px 0 4px 0; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.4px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 10px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:10px 0 6px 0; font-size:9.7px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:6px 8px; font-weight:600; font-size:9.2px; letter-spacing:0.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 8px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.4px; font-weight:700; letter-spacing:0.3px; white-space:nowrap; }
+        .p-have { background:var(--accent-bg); color:var(--accent); }
+        .p-part { background:var(--warn-bg); color:var(--warn); }
+        .p-gap { background:var(--gap-bg); color:var(--gap); }
+        .p-build { background:var(--build-bg); color:var(--build); }
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel); padding:9px 13px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.5px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:9px 12px; background:#fff; }
+        .card h4 { margin-top:0; color:var(--brand-deep); border-bottom:1px solid var(--line-soft); padding-bottom:4px; }
+        .card ul { margin:6px 0 0 0; padding-left:16px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+        ul.tight { margin:6px 0; padding-left:18px; }
+        ul.tight li { margin:4px 0; color:var(--ink-soft); }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:9px; color:var(--brand-deep); background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        .code { font-family:"Ubuntu Mono",Consolas,monospace; font-size:8.7px; color:var(--brand-deep); background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:9px 12px; line-height:1.6; margin:8px 0; white-space:pre; overflow:hidden; }
+        .code .c { color:var(--muted); }
+        .code .k { color:var(--brand); font-weight:700; }
+        .code .s { color:var(--accent); }
+        .code-cap { font-size:8.6px; color:var(--muted); margin:10px 0 -3px 2px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; }
+
+        .flowstack { display:flex; flex-direction:column; gap:7px; margin:11px 0 6px 0; }
+        .flayer { display:flex; align-items:stretch; border:1px solid var(--line); border-radius:5px; overflow:hidden; background:#fff; }
+        .flayer .rail { width:5px; flex:0 0 5px; }
+        .flayer .lhead { width:46mm; flex:0 0 46mm; padding:7px 10px; background:var(--panel); border-right:1px solid var(--line-soft); }
+        .flayer .lnum { font-size:7.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); font-weight:700; }
+        .flayer .ltitle { font-size:11px; font-weight:700; color:var(--brand-deep); margin-top:1px; line-height:1.2; }
+        .flayer .lq { font-size:8.2px; color:var(--muted); font-style:italic; margin-top:3px; line-height:1.35; }
+        .flayer .lbody { flex:1; padding:8px 9px; display:flex; flex-wrap:wrap; align-items:center; gap:3px; }
+        .node { display:inline-block; padding:2px 7px; border:1px solid var(--line); border-radius:4px; background:var(--panel); font-size:8.7px; color:var(--ink); font-weight:600; white-space:nowrap; }
+        .node small { font-weight:500; color:var(--muted); font-size:7.6px; }
+        .sep { color:var(--brand); font-size:9.5px; font-weight:700; margin:0 1px; }
+
+        .footer { position:absolute; bottom:7mm; left:16mm; right:16mm; border-top:1px solid var(--line-soft); padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:9px; color:var(--muted); font-style:italic; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/><rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/><rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/><rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/><rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">EDE Platform</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">EDE Platform · Developer Guide</div>
+        <h1>Constraints &amp; Validation<br>How to Enforce a Rule</h1>
+        <div class="sub">A practical guide to the three tools for enforcing invariants on a business model — the two <span style="color:#cdddf6"><b>constraints.*</b></span> DB declarations, the <b>@api.constrains</b> code decorator, and lifecycle <b>hooks</b> — with copy-paste examples and a decision guide.</div>
+        <div class="verdict"><b>In one line:</b> declare <b>shape</b> on the field, a <b>database-guaranteed</b> invariant with <span style="color:#a9ecca">constraints.Check / constraints.Unique</span>, a <b>business rule</b> with <span style="color:#a9ecca">@api.constrains</span>, and anything <b>op-specific</b> (delete guards, post-write effects) with <span style="color:#a9ecca">@api.on_hook</span>.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">EDE developers</div></div>
+        <div><div class="lbl">Applies to</div><div class="val">Platform Change 15 (constraints) + lifecycle hooks</div></div>
+        <div><div class="lbl">Date</div><div class="val">10 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ SECTION 01 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>Four tools, one decision</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Enforcing a rule on a model is a question of <b>where</b> it should run. Pick the highest, cheapest tool that can express your rule.</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#1e3a8a;"></div>
+            <div class="lhead"><div class="lnum">Tool 1</div><div class="ltitle">Field flags</div><div class="lq">Is the shape valid?</div></div>
+            <div class="lbody"><span class="node">required=True</span><span class="sep">·</span><span class="node">unique=True <small>(single field)</small></span><span class="sep">·</span><span class="node">Char(max_length, regex)</span><span class="sep">·</span><span class="node">Reference(on_delete)</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Tool 2 · DB-driven</div><div class="ltitle">constraints.*</div><div class="lq">A guarantee the database enforces against ANY writer.</div></div>
+            <div class="lbody"><span class="node">constraints.Check("min_qty &lt;= max_qty")</span><span class="sep">·</span><span class="node">constraints.Unique("code","org_id")</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#7c3aed;"></div>
+            <div class="lhead"><div class="lnum">Tool 3 · Code-driven</div><div class="ltitle">@api.constrains</div><div class="lq">A business rule — conditional, cross-field, cross-record.</div></div>
+            <div class="lbody"><span class="node">@api.constrains("stage","partner_id")</span><span class="sep">→</span><span class="node" style="border-color:#c7162b;color:#c7162b;">raise ⇒ veto</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Tool 4 · Lifecycle</div><div class="ltitle">@api.on_hook</div><div class="lq">Op-specific: delete guards, post-write effects, raw cmd access.</div></div>
+            <div class="lbody"><span class="node">@api.on_hook("pre.crm.lead.delete")</span><span class="sep">·</span><span class="node">post.{model}.{op}</span></div>
+        </div>
+    </div>
+
+    <h3>Which one do I reach for?</h3>
+    <table>
+        <thead><tr><th style="width:44%">You need to…</th><th style="width:34%">Use</th><th>Runs</th></tr></thead>
+        <tbody>
+            <tr><td>Require presence, single-field uniqueness, string length/pattern, FK behaviour</td><td><b>Field flags</b> — <span class="mono">fields.X(required=, unique=, …)</span></td><td>DB + load</td></tr>
+            <tr><td>Guarantee a <b>predicate</b> over one row's columns (e.g. <span class="mono">min ≤ max</span>) that must hold against raw SQL too</td><td><span class="mono">constraints.Check</span></td><td>Database</td></tr>
+            <tr><td>Guarantee <b>composite</b> uniqueness across 2+ columns</td><td><span class="mono">constraints.Unique</span></td><td>Database</td></tr>
+            <tr><td>Enforce a <b>business rule</b>: conditional, cross-field, or needing a lookup — with a friendly message</td><td><span class="mono">@api.constrains</span></td><td>App, pre-write</td></tr>
+            <tr><td>Guard a <b>specific operation</b> (block delete), run a <b>post-write</b> side effect, or read the raw <span class="mono">cmd</span></td><td><span class="mono">@api.on_hook</span></td><td>App, around op</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">The rule of thumb</span><b>Field flags</b> for shape → <b>constraints.*</b> when the database itself must guarantee it → <b>@api.constrains</b> for a business rule with a friendly message → <b>@api.on_hook</b> when you need a specific operation, the post phase, or the raw command. The next four sections cover each in turn.</div>
+
+    <div class="footer"><span>Constraints &amp; Validation — Developer Guide</span><span>1</span></div>
+</section>
+
+<!-- ============================ SECTION 02 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02</div>
+    <h2><span class="num">02</span>DB-driven — the <span class="mono" style="font-size:15px">constraints.*</span> namespace</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Import <span class="mono">constraints</span> exactly like <span class="mono">fields</span>, then declare table constraints as class-body attributes beside the fields they govern. The database enforces them against <b>every</b> writer — the ORM, the data loader, raw SQL.</p>
+
+    <div class="code-cap">constraints.Check — a SQL predicate over the row's own columns</div>
+    <div class="code"><span class="k">from</span> ede.core.kernel <span class="k">import</span> fields
+<span class="k">from</span> ede.core.kernel <span class="k">import</span> constraints
+
+<span class="k">@api.model</span>(<span class="s">"logistics.product"</span>)
+<span class="k">class</span> Product(DomainModel):
+    min_qty = fields.Integer(default=0)
+    max_qty = fields.Integer(default=0)
+
+    <span class="c"># the attribute name (qty_bounds) becomes the DB constraint name</span>
+    qty_bounds = constraints.Check(<span class="s">"min_qty &lt;= max_qty"</span>, message=<span class="s">"min_qty must be ≤ max_qty"</span>)</div>
+
+    <div class="code-cap">constraints.Unique — composite uniqueness (use fields.X(unique=True) for a single column)</div>
+    <div class="code">    code   = fields.Char()
+    org_id = fields.Reference(<span class="s">"res.organization"</span>)
+
+    code_per_org = constraints.Unique(<span class="s">"code"</span>, <span class="s">"org_id"</span>, message=<span class="s">"code must be unique per organization"</span>)</div>
+
+    <h3>Yes — this is a composite key: the <i>combination</i> is unique</h3>
+    <p><span class="mono">Unique("code", "org_id")</span> constrains the <b>pair</b> <span class="mono">(code, org_id)</span> as a whole — <b>not</b> each column on its own. The same <span class="mono">code</span> may appear under different organizations, and one organization may hold many codes; only the exact <span class="mono">(code, org_id)</span> combination cannot repeat.</p>
+    <table>
+        <thead><tr><th style="width:8%">#</th><th style="width:24%">code</th><th style="width:24%">org_id</th><th>Result</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td>PROD-A</td><td>Org&nbsp;1</td><td><span class="pill p-have">INSERTED</span> first row</td></tr>
+            <tr><td>2</td><td>PROD-A</td><td>Org&nbsp;2</td><td><span class="pill p-have">ALLOWED</span> same code, different org</td></tr>
+            <tr><td>3</td><td>PROD-B</td><td>Org&nbsp;1</td><td><span class="pill p-have">ALLOWED</span> same org, different code</td></tr>
+            <tr><td>4</td><td>PROD-A</td><td>Org&nbsp;1</td><td><span class="pill p-gap">REJECTED</span> duplicate <span class="mono">(code, org_id)</span> → your <span class="mono">message</span></td></tr>
+        </tbody>
+    </table>
+    <div class="callout warn"><span class="ct">⚠ Not the same as two single-field uniques</span>Marking <span class="mono">code</span> <b>and</b> <span class="mono">org_id</span> each <span class="mono">unique=True</span> would (wrongly) forbid the same code in two orgs and reuse of an org — rows&nbsp;2 and&nbsp;3 above would fail. Composite <span class="mono">Unique(...)</span> is the correct tool for "unique <b>per</b> org" scoping. Column order doesn't change the guarantee (the set of columns is what's unique); it only affects lookups that reuse the index.</div>
+
+    <h3>What you get</h3>
+    <table>
+        <thead><tr><th style="width:26%">Aspect</th><th>Behaviour</th></tr></thead>
+        <tbody>
+            <tr><td><b>Enforcement</b></td><td>Real DB <span class="mono">CHECK</span> / <span class="mono">UNIQUE</span> — holds even if a write bypasses the ORM</td></tr>
+            <tr><td><b>On violation</b></td><td>Raises <span class="mono">ConstraintViolation</span> carrying your <span class="mono">message</span> → surfaces as HTTP <b>422</b> (a clean error, not a 500)</td></tr>
+            <tr><td><b>Naming</b></td><td>The attribute name is the identity → <span class="mono">ck_logistics_product_qty_bounds</span> / <span class="mono">uq_…_code_per_org</span></td></tr>
+            <tr><td><b>Check input</b></td><td>A <b>SQL expression string only</b> — one row's own columns; no Python, no joins/subqueries</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ You must generate a migration</span>After adding a <span class="mono">constraints.*</span> declaration, run <span class="mono">ede migrate generate --app &lt;app&gt;</span> to emit the named constraint. <b>Never hand-author the migration.</b> Names are capped to Postgres' 63-char limit automatically; a <span class="mono">Unique</span> naming a non-existent field fails fast at <b>boot</b>.</div>
+
+    <div class="callout"><span class="ct">When a Check isn't enough</span>A <span class="mono">CHECK</span> can only see the current row's columns. The moment your rule is conditional, spans records, or needs a lookup, it belongs in <span class="mono">@api.constrains</span> (next section) — not a Check.</div>
+
+    <div class="footer"><span>Constraints &amp; Validation — Developer Guide · constraints.*</span><span>2</span></div>
+</section>
+
+<!-- ============================ SECTION 03 — Python → SQL ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03</div>
+    <h2><span class="num">03</span>From your declaration to database DDL</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">When you run <span class="mono">ede migrate generate</span>, each <span class="mono">constraints.*</span> and field declaration compiles to real DDL. Here is exactly what you write and what the database ends up with.</p>
+
+    <div class="code-cap">You write (Python)</div>
+    <div class="code">code    = fields.Char(required=True)
+org_id  = fields.Reference(<span class="s">"res.organization"</span>)
+min_qty = fields.Integer()
+max_qty = fields.Integer()
+
+qty_bounds   = constraints.Check(<span class="s">"min_qty &lt;= max_qty"</span>, message=<span class="s">"min ≤ max"</span>)
+code_per_org = constraints.Unique(<span class="s">"code"</span>, <span class="s">"org_id"</span>, message=<span class="s">"unique per org"</span>)</div>
+
+    <div class="code-cap">Database gets (generated DDL — SQL)</div>
+    <div class="code"><span class="k">CREATE TABLE</span> logistics_product (
+    dbid         INTEGER      <span class="k">NOT NULL PRIMARY KEY</span> AUTOINCREMENT,
+    record_uuid  VARCHAR(36)  <span class="k">NOT NULL</span>,
+    code         VARCHAR(255) <span class="k">NOT NULL</span>,        <span class="c">-- required=True → NOT NULL</span>
+    org_id       VARCHAR(36),                    <span class="c">-- Reference → uuid FK column</span>
+    min_qty      INTEGER,
+    max_qty      INTEGER,
+    <span class="c">-- … auto columns: created_at_utc, updated_at_utc, revision, … …</span>
+
+    <span class="k">CONSTRAINT</span> ck_logistics_product_qty_bounds   <span class="k">CHECK</span> (min_qty &lt;= max_qty),
+    <span class="k">CONSTRAINT</span> uq_logistics_product_code_per_org  <span class="k">UNIQUE</span> (code, org_id),
+    <span class="k">CONSTRAINT</span> fk_logistics_product_org_id_res_organization
+        <span class="k">FOREIGN KEY</span> (org_id) <span class="k">REFERENCES</span> res_organization (record_uuid) <span class="k">ON DELETE RESTRICT</span>
+);</div>
+
+    <h3>How each piece maps</h3>
+    <table>
+        <thead><tr><th style="width:44%">You write</th><th>Becomes in the database</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">constraints.Check("min_qty &lt;= max_qty")</span></td><td><span class="mono">CONSTRAINT ck_&lt;table&gt;_qty_bounds CHECK (min_qty &lt;= max_qty)</span></td></tr>
+            <tr><td><span class="mono">constraints.Unique("code", "org_id")</span></td><td><span class="mono">CONSTRAINT uq_&lt;table&gt;_code_per_org UNIQUE (code, org_id)</span></td></tr>
+            <tr><td>attribute name <span class="mono">qty_bounds</span></td><td>constraint name <span class="mono">ck_&lt;table&gt;_qty_bounds</span> (capped to 63 chars)</td></tr>
+            <tr><td><span class="mono">message="…"</span></td><td><b>nothing</b> — the message is never stored in the DB; it lives in Python and is attached when the DB rejects the write</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Code-driven tools generate NO DDL</span><span class="mono">@api.constrains</span> and <span class="mono">@api.on_hook</span> add <b>nothing</b> to the schema — no column, no constraint, no migration. They live only in Python and run at write time. Only field flags and <span class="mono">constraints.*</span> change the database.</div>
+
+    <div class="callout"><span class="ct">On an existing table</span>Adding a constraint later emits an <span class="mono">ALTER TABLE … ADD CONSTRAINT …</span> instead of the inline form above (on SQLite it runs via a table rebuild). Either way you get the same named constraint — always via <span class="mono">ede migrate generate</span>, never hand-written.</div>
+
+    <div class="footer"><span>Constraints &amp; Validation — Developer Guide · Python → SQL</span><span>3</span></div>
+</section>
+
+<!-- ============================ SECTION 04 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04</div>
+    <h2><span class="num">04</span>Code-driven — <span class="mono" style="font-size:15px">@api.constrains</span></h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">For business rules the database can't express. Decorate a method with the <b>trigger fields</b>; it runs on <b>create and update</b>, receives the record with the incoming payload already merged, and <b>raises to veto</b>. One declaration — no separate create/update hooks, no manual merge.</p>
+
+    <div class="code-cap">Signature — (self, record); record reflects the resulting state</div>
+    <div class="code"><span class="k">@api.constrains</span>(<span class="s">"stage"</span>, <span class="s">"partner_id"</span>)
+<span class="k">def</span> _won_needs_partner(self, record) -> None:
+    <span class="k">if</span> record.stage == <span class="s">"won"</span> <span class="k">and not</span> record.partner_id:
+        <span class="k">raise</span> ValueError(<span class="s">"a lead cannot be marked won without a partner"</span>)</div>
+
+    <div class="code-cap">Cross-record — self.env is injected, so you can look up other models</div>
+    <div class="code"><span class="k">@api.constrains</span>(<span class="s">"code"</span>)
+<span class="k">def</span> _unique_active_code(self, record) -> None:
+    clash = self.env.models[<span class="s">"crm.lead"</span>].search(
+        [(<span class="s">"code"</span>, <span class="s">"="</span>, record.code), (<span class="s">"active"</span>, <span class="s">"="</span>, True), (<span class="s">"id"</span>, <span class="s">"!="</span>, record.id)])
+    <span class="k">if</span> clash:
+        <span class="k">raise</span> ValueError(<span class="s">f"code {record.code} already used by an active lead"</span>)</div>
+
+    <h3>The contract</h3>
+    <table>
+        <thead><tr><th style="width:26%">Aspect</th><th>Behaviour</th></tr></thead>
+        <tbody>
+            <tr><td><b>Runs on</b></td><td><span class="mono">create</span> <b>and</b> <span class="mono">update</span> from one declaration</td></tr>
+            <tr><td><b>Trigger fields</b></td><td>On update the check is <b>skipped</b> unless the payload touches one of them; on create it always runs. They also document what the rule depends on.</td></tr>
+            <tr><td><b>record</b></td><td>Pre-merged: incoming payload value if the field is being written, else the current stored value — so you validate the <i>resulting</i> state, no manual merge</td></tr>
+            <tr><td><b>Veto</b></td><td>Raise any exception → aborts the write inside its transaction; the message reaches the caller (HTTP 422)</td></tr>
+            <tr><td><b>self.env</b></td><td>Injected — read other models with <span class="mono">env.models[...].search(...)</span></td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">Why not just write two hooks?</span><span class="mono">@api.constrains</span> <b>is</b> sugar over a <span class="mono">pre.create</span> + <span class="mono">pre.update</span> hook pair — but it writes the rule once, merges the record for you, and gates on the trigger fields. Reach for raw hooks only when you need the <b>delete</b> op, the <b>post</b> phase, or the raw <span class="mono">cmd</span> (next section).</div>
+
+    <div class="callout warn"><span class="ct">⚠ Pre-write only</span><span class="mono">@api.constrains</span> covers create + update. It does <b>not</b> fire on delete and has no post-write phase — those are <span class="mono">@api.on_hook</span>.</div>
+
+    <div class="footer"><span>Constraints &amp; Validation — Developer Guide · @api.constrains</span><span>4</span></div>
+</section>
+
+<!-- ============================ SECTION 05 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05</div>
+    <h2><span class="num">05</span>Lifecycle hooks — <span class="mono" style="font-size:15px">@api.on_hook</span></h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The general mechanism underneath everything above. A hook fires <b>around a specific command</b> — <span class="mono">pre.{model}.{op}</span> before, <span class="mono">post.{model}.{op}</span> after. Pre-hooks raise to veto; post-hooks run side effects after a successful write. Use them when <span class="mono">@api.constrains</span> is the wrong shape.</p>
+
+    <div class="code-cap">Delete guard — an op @api.constrains can't express</div>
+    <div class="code"><span class="k">@api.on_hook</span>(<span class="s">"pre.crm.lead.delete"</span>)
+<span class="k">def</span> _block_won_delete(self, cmd) -> None:
+    <span class="k">if</span> cmd.record.stage == <span class="s">"won"</span>:
+        <span class="k">raise</span> ValueError(<span class="s">"won leads are retained for audit — archive instead"</span>)</div>
+
+    <div class="code-cap">Post-write side effect — runs only after the write succeeds</div>
+    <div class="code"><span class="k">@api.on_hook</span>(<span class="s">"post.crm.lead.update"</span>)
+<span class="k">def</span> _notify_owner(self, cmd) -> None:
+    self.env.emit(<span class="s">"crm.lead.changed"</span>, {<span class="s">"id"</span>: cmd.record.id})</div>
+
+    <h3>What a hook gives you that a constraint doesn't</h3>
+    <table>
+        <thead><tr><th style="width:26%">Capability</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr><td><b>Any operation</b></td><td><span class="mono">create</span> · <span class="mono">update</span> · <span class="mono">delete</span> · any domain command (<span class="mono">pre.crm.lead.qualify</span>)</td></tr>
+            <tr><td><b>pre and post</b></td><td><span class="mono">pre.*</span> can veto; <span class="mono">post.*</span> runs after success (cache busting, events, audit)</td></tr>
+            <tr><td><b>Raw <span class="mono">cmd</span></b></td><td>Full command: <span class="mono">cmd.record</span> (live record; <span class="mono">__new__</span> on pre-create), <span class="mono">cmd.payload</span>, <span class="mono">self.env</span></td></tr>
+            <tr><td><b>Wildcards</b></td><td><span class="mono">pre.*.delete</span> fires on <b>every</b> model's delete — for cross-cutting concerns</td></tr>
+            <tr><td><b>Reads excluded</b></td><td><span class="mono">search / read_one / count / read_group</span> never fire hooks — validation is write-only</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ On update, validate the resulting state</span>Raw hooks hand you <span class="mono">cmd.record</span> (current values) and <span class="mono">cmd.payload</span> (the changes) <b>separately</b> — merge them before checking, or you'll validate stale data. This merge is exactly the boilerplate <span class="mono">@api.constrains</span> removes; prefer it for plain create/update rules.</div>
+
+    <div class="footer"><span>Constraints &amp; Validation — Developer Guide · @api.on_hook</span><span>5</span></div>
+</section>
+
+<!-- ============================ SECTION 06 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 06</div>
+    <h2><span class="num">06</span>Putting it together &amp; gotchas</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">A single model often uses several tools at once — each layer catching what the one above can't. Here's a model that stacks all four, then the traps to avoid.</p>
+
+    <div class="code-cap">One model, layered defenses</div>
+    <div class="code"><span class="k">@api.model</span>(<span class="s">"logistics.product"</span>)
+<span class="k">class</span> Product(DomainModel):
+    code    = fields.Char(required=True)            <span class="c"># shape (field flag)</span>
+    org_id  = fields.Reference(<span class="s">"res.organization"</span>)
+    min_qty = fields.Integer(default=0)
+    max_qty = fields.Integer(default=0)
+    stage   = fields.Char(default=<span class="s">"draft"</span>)
+
+    qty_bounds   = constraints.Check(<span class="s">"min_qty &lt;= max_qty"</span>, message=<span class="s">"min ≤ max"</span>)      <span class="c"># DB</span>
+    code_per_org = constraints.Unique(<span class="s">"code"</span>, <span class="s">"org_id"</span>, message=<span class="s">"unique per org"</span>)  <span class="c"># DB</span>
+
+    <span class="k">@api.constrains</span>(<span class="s">"stage"</span>, <span class="s">"max_qty"</span>)                                       <span class="c"># business rule</span>
+    <span class="k">def</span> _launch_needs_stock(self, record) -> None:
+        <span class="k">if</span> record.stage == <span class="s">"launched"</span> <span class="k">and</span> (record.max_qty <span class="k">or</span> 0) &lt;= 0:
+            <span class="k">raise</span> ValueError(<span class="s">"a launched product needs a positive max_qty"</span>)
+
+    <span class="k">@api.on_hook</span>(<span class="s">"pre.logistics.product.delete"</span>)                            <span class="c"># op guard</span>
+    <span class="k">def</span> _block_launched_delete(self, cmd) -> None:
+        <span class="k">if</span> cmd.record.stage == <span class="s">"launched"</span>:
+            <span class="k">raise</span> ValueError(<span class="s">"archive a launched product, don't delete it"</span>)</div>
+
+    <div class="grid2">
+        <div class="card">
+            <h4>Do</h4>
+            <ul class="tight">
+                <li>Give every rule a clear <span class="mono">message=</span> — it's what the user sees.</li>
+                <li>Run <span class="mono">ede migrate generate</span> after any <span class="mono">constraints.*</span> change.</li>
+                <li>List real trigger fields on <span class="mono">@api.constrains</span> — they gate + document.</li>
+                <li>Read other models with <span class="mono">env.models[...].search()</span> inside the rule.</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h4>Don't</h4>
+            <ul class="tight">
+                <li>Put Python logic or a join in a <span class="mono">Check</span> — SQL, one row only.</li>
+                <li>Expect <span class="mono">@api.constrains</span> to fire on <b>delete</b> — use a hook.</li>
+                <li>Check only the payload on update — validate the <b>merged</b> state.</li>
+                <li>Hand-author a migration for a constraint — always generate it.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout good"><span class="ct">Errors surface cleanly everywhere</span>All four tools raise a plain exception to reject a write. Field/DB constraints and <span class="mono">ConstraintViolation</span> and any <span class="mono">ValueError</span> you raise map to an HTTP <b>422</b> with your message — the same clean shape whether the rule ran in the database or in Python.</div>
+
+    <div class="callout"><span class="ct">Further reading</span>Design + rationale: <span class="mono">roadmap/platform/15-declarative-constraints.md</span>. Built-state mirror: <span class="mono">docs/platform-15-declarative-constraints.md</span>. Deep-dive on the hook pipeline: the companion <i>Hook-Driven Validation in EDE</i> explainer.</div>
+
+    <div class="footer"><span>Constraints &amp; Validation — Developer Guide · putting it together</span><span>6</span></div>
+</section>
+
+</body>
+</html>
