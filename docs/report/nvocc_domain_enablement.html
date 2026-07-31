@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Logistics Vertical — Three-Domain Structure &amp; NVOCC Enablement</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.47; }
+        .page { width:210mm; height:297mm; padding:14mm 16mm 12mm 16mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:34px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:33px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14px; color:#cdddf6; margin-top:15px; max-width:152mm; line-height:1.5; }
+        .cover .verdict { margin-top:24px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px;
+            font-size:12.4px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover .verdict + .verdict { margin-top:11px; border-left-color:#f0c07a; }
+        .cover .verdict + .verdict b { color:#f7d9ab; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:13px; display:flex; gap:32px;
+            font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.2px; color:var(--brand-deep); margin:12px 0 5px 0; font-weight:700; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 9px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.6px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:6px 8px; font-weight:600;
+            font-size:9.1px; letter-spacing:.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 8px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        table.dense { font-size:9.1px; }
+        table.dense th { padding:5px 7px; font-size:8.8px; }
+        table.dense td { padding:4px 7px; }
+        tr.grp td { background:var(--brand-soft); color:var(--brand-deep); font-weight:700; font-size:8.9px;
+            letter-spacing:.4px; text-transform:uppercase; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.4px; font-weight:700;
+            letter-spacing:.3px; white-space:nowrap; }
+        .p-have{background:var(--accent-bg);color:var(--accent);}
+        .p-part{background:var(--warn-bg);color:var(--warn);}
+        .p-gap{background:var(--gap-bg);color:var(--gap);}
+        .p-build{background:var(--build-bg);color:var(--build);}
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel);
+            padding:9px 13px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout.bad  { border-left-color:var(--gap);  background:var(--gap-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.5px; display:block; margin-bottom:2px; }
+
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:9px 0; }
+        .card { border:1px solid var(--line); border-radius:4px; padding:9px 12px; background:#fff; }
+        .card h4 { margin:0 0 4px 0; font-size:11px; color:var(--brand-deep); font-weight:700;
+            border-bottom:1px solid var(--line-soft); padding-bottom:4px; }
+        .card ul { margin:6px 0 0 0; padding-left:16px; }
+        .card li { margin:3px 0; color:var(--ink-soft); }
+
+        ul.tight { margin:6px 0; padding-left:18px; }
+        ul.tight li { margin:4px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:10px 11px;
+            background:var(--panel); text-align:center; }
+        .stat .big { font-size:22px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.3px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:9px; color:var(--brand-deep);
+            background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        pre { font-family:"Ubuntu Mono",Consolas,monospace; font-size:8.7px; color:var(--brand-deep);
+            background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 10px;
+            margin:7px 0; line-height:1.5; white-space:pre-wrap; }
+
+        .flowstack { display:flex; flex-direction:column; gap:7px; margin:11px 0 6px 0; }
+        .flayer { display:flex; align-items:stretch; border:1px solid var(--line); border-radius:5px;
+            overflow:hidden; background:#fff; }
+        .flayer .rail { width:5px; flex:0 0 5px; }
+        .flayer .lhead { width:42mm; flex:0 0 42mm; padding:7px 10px; background:var(--panel);
+            border-right:1px solid var(--line-soft); }
+        .flayer .lnum { font-size:7.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); font-weight:700; }
+        .flayer .ltitle { font-size:11px; font-weight:700; color:var(--brand-deep); margin-top:1px; line-height:1.2; }
+        .flayer .lq { font-size:8.2px; color:var(--muted); font-style:italic; margin-top:3px; line-height:1.35; }
+        .flayer .lbody { flex:1; padding:8px 9px; display:flex; flex-wrap:wrap; align-items:center; gap:3px; }
+        .node { display:inline-block; padding:2px 7px; border:1px solid var(--line); border-radius:4px;
+            background:var(--panel); font-size:8.7px; color:var(--ink); font-weight:600; white-space:nowrap; }
+        .node small { font-weight:500; color:var(--muted); font-size:7.6px; }
+
+        .footer { position:absolute; bottom:7mm; left:16mm; right:16mm; border-top:1px solid var(--line-soft);
+            padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:9px; color:var(--muted); font-style:italic; }
+    </style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/><rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/><rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/><rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/><rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">EDE Platform · Architecture Approach</div>
+        <h1>Logistics Vertical —<br>Three-Domain Structure</h1>
+        <div class="sub">One shared base domain plus two product domains — freight forwarding and NVOCC — so each product can be sold, activated and released on its own, over one set of shared masters.</div>
+        <div class="verdict"><b>Approach:</b> <span style="font-family:'Ubuntu Mono',monospace">logistics_base</span> holds the common modules; <span style="font-family:'Ubuntu Mono',monospace">logistics_freight_forwarding</span> and <span style="font-family:'Ubuntu Mono',monospace">logistics_nvocc</span> depend on it and never on each other. Verified to work with <b>zero framework change</b>.</div>
+        <div class="verdict"><b>Two things decide the outcome:</b> the module dependency graph — not preference — fixes what can move to the base; and the tier rule needs a <b>boot guard</b>, because the loader accepts peer coupling silently.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">Engineering Lead · Product Owner</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">SOW — BRD N1 · live codebase audit · loader probes</div></div>
+        <div><div class="lbl">Date</div><div class="val">30 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ===================== 01 STRUCTURE ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>The structure</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Three domain packages. Common modules live in the base; each product domain holds only what is genuinely its own. The two products never reference each other — that is the property the whole structure exists to protect.</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#1e3a8a;"></div>
+            <div class="lhead"><div class="lnum">Base domain</div><div class="ltitle">logistics_base</div><div class="lq">What both products need. Depends only on the platform.</div></div>
+            <div class="lbody"><span class="node">masters</span><span class="node">equipment_control</span><span class="node">pricing</span><span class="node">sales_crm</span><span class="node">booking</span><span class="node">shipments</span><span class="node">operations_execution</span><span class="node">profitability</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Product domain</div><div class="ltitle">logistics_freight_forwarding</div><div class="lq">Freight forwarding only.</div></div>
+            <div class="lbody"><span class="node">consolidation</span><span class="node">documentation</span><span class="node">tracking</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#7c3aed;"></div>
+            <div class="lhead"><div class="lnum">Product domain</div><div class="ltitle">logistics_nvocc</div><div class="lq">NVOCC / shipping agency only.</div></div>
+            <div class="lbody"><span class="node">agency <small>(new)</small></span></div>
+        </div>
+    </div>
+    <p class="note">Dependencies point upward only — products read from the base, the base never reads back, and the two products never see each other.</p>
+
+    <h3>Activation is the sales lever</h3>
+    <pre>ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding", "logistics_nvocc"]   # full service
+ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding"]                     # forwarding only
+ACTIVE_DOMAINS = ["logistics_base", "logistics_nvocc"]                                  # NVOCC only</pre>
+
+    <h3>This needs no framework change — verified</h3>
+    <p>App keys derive from folder position, so the packages read exactly as intended: <span class="mono">logistics_base.masters</span>, <span class="mono">logistics_freight_forwarding.tracking</span>, <span class="mono">logistics_nvocc.agency</span>. Probing the loader's dependency validator directly:</p>
+
+    <table>
+        <thead><tr><th style="width:52%">Case</th><th>Result</th></tr></thead>
+        <tbody>
+            <tr><td>Product domain → base domain, base loaded first</td><td><span class="pill p-have">ACCEPTED</span> — the structure works today</td></tr>
+            <tr><td>Same dependency, base <b>not</b> loaded yet (wrong order)</td><td><span class="pill p-have">REJECTED</span> — with a message naming the missing key; ordering is self-enforcing</td></tr>
+            <tr><td>Product domain → <b>peer</b> product domain</td><td><span class="pill p-gap">ACCEPTED</span> — the loader does <b>not</b> block it</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ The third row is the whole risk</span>The structure is a <b>packaging and governance</b> change, not a kernel change — nothing needs building to make it boot. But nothing stops a developer wiring one product to the other later, and that mistake would land in <span class="mono">main</span> with a green build. Section 02 closes it.</div>
+
+    <h3>Naming</h3>
+    <p>Use <b><span class="mono">logistics_base</span></b>, not <span class="mono">logistics_foundation</span> — "foundation" already names the platform layer, and the second name would read as if the domain lived there. The underscore in the app key is correct: the no-underscore rule governs <i>model</i> keys; app keys derive from folder names, which are snake_case.</p>
+
+    <div class="footer"><span>Logistics Vertical — the structure</span><span>2</span></div>
+</section>
+
+<!-- ===================== 02 TIER RULE ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 02</div>
+    <h2><span class="num">02</span>The tier rule, and the guard that enforces it</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The governing rule today states it absolutely: <i>domains never depend on other domains.</i> This structure needs that re-expressed, because a product domain depending on the base is a domain-to-domain edge by the letter of it. <b>The invariant that actually matters is unchanged: peer products must never couple.</b></p>
+
+    <h3>Reformulate around tiers</h3>
+    <table>
+        <thead><tr><th style="width:26%">Tier</th><th>May depend on</th><th style="width:26%">Must never depend on</th></tr></thead>
+        <tbody>
+            <tr><td><b>Base domain</b><br><span class="mono">logistics_base</span></td><td>The platform layer only</td><td>Any product domain</td></tr>
+            <tr><td><b>Product domain</b><br><span class="mono">logistics_freight_forwarding</span>, <span class="mono">logistics_nvocc</span></td><td>The platform layer · any <b>base</b> domain · its own sibling modules</td><td>Another <b>product</b> domain</td></tr>
+        </tbody>
+    </table>
+
+    <p>That keeps the graph acyclic and one-directional, keeps each product independently activatable, and states plainly the one edge that is now legal — a product domain reading from the base.</p>
+
+    <h3>Make it a guard, not a comment</h3>
+    <p>Everything the check needs is already in the registry — each app record carries its domain and its declared dependencies. Declare the tiers, then validate at boot beside the existing validators:</p>
+
+    <pre>ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding", "logistics_nvocc"]
+BASE_DOMAINS   = ["logistics_base"]      # every other active domain is a product domain</pre>
+
+    <table>
+        <thead><tr><th style="width:62%">Case</th><th>Verdict</th></tr></thead>
+        <tbody>
+            <tr><td>Dependency is a platform module</td><td><span class="pill p-have">ALLOW</span></td></tr>
+            <tr><td>Dependency is a sibling module in the same domain</td><td><span class="pill p-have">ALLOW</span></td></tr>
+            <tr><td>Product domain depends on a base domain</td><td><span class="pill p-have">ALLOW</span></td></tr>
+            <tr><td>Base domain depends on a product domain</td><td><span class="pill p-gap">FAIL</span></td></tr>
+            <tr><td>Product domain depends on a different product domain</td><td><span class="pill p-gap">FAIL</span></td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">Cheap, and it follows an established pattern</span>Around 25 lines, sitting alongside the boot validators that already check model extensions, delegation declarations and view components. It turns the tier rule from documentation into something a mistake cannot pass — and it is the single change that makes this structure safe to hand to a team.</div>
+
+    <div class="callout"><span class="ct">Governance change required</span>The naming and placement rules need amending in one change before the first module moves: the tier rule above, the prefix convention in §04, and the placement test rewritten to ask <i>"which tier?"</i> rather than <i>"platform or domain?"</i>. Without it, the very first review reads the new layout as a violation.</div>
+
+    <div class="footer"><span>Logistics Vertical — the tier rule</span><span>3</span></div>
+</section>
+
+<!-- ===================== 03 PARTITION ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 03</div>
+    <h2><span class="num">03</span>What goes where — the graph decides</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The partition is not a matter of preference. Every module's declared dependencies were resolved transitively: <b>putting a module in the base forces its entire dependency closure into the base with it.</b></p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">11</div><div class="cap">Modules today</div></div>
+        <div class="stat"><div class="big">4</div><div class="cap">Reverse-leaves</div></div>
+        <div class="stat"><div class="big">8</div><div class="cap">Move to base</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Stay with freight</div></div>
+    </div>
+
+    <h3>Only four modules can stay behind</h3>
+    <p>A module can remain in a product domain only if nothing in the base depends on it. Exactly four qualify — <span class="mono">documentation</span>, <span class="mono">operations_execution</span>, <span class="mono">profitability</span>, <span class="mono">tracking</span>. Every other module is depended upon by something else.</p>
+
+    <table class="dense">
+        <thead><tr><th style="width:24%">Module</th><th style="width:36%">Depended on by</th><th>Putting it in the base also forces…</th></tr></thead>
+        <tbody>
+            <tr><td><b>masters</b></td><td>all 10 others</td><td>nothing — safe leaf, moves first</td></tr>
+            <tr><td><b>equipment_control</b></td><td>booking, consolidation, documentation, operations_execution, shipments, tracking</td><td>masters</td></tr>
+            <tr><td><b>shipments</b></td><td>consolidation, documentation, operations_execution, profitability, tracking</td><td>booking, equipment_control, masters, pricing, sales_crm</td></tr>
+            <tr><td><b>pricing</b></td><td>booking, profitability, sales_crm</td><td>masters</td></tr>
+            <tr><td><b>sales_crm</b></td><td>booking, profitability, shipments</td><td>masters, pricing</td></tr>
+            <tr><td><b>booking</b></td><td>profitability, shipments</td><td>equipment_control, masters, pricing, sales_crm</td></tr>
+            <tr><td><b>consolidation</b></td><td>documentation, tracking</td><td>booking, equipment_control, masters, pricing, sales_crm, shipments</td></tr>
+            <tr><td>documentation · operations_execution · profitability · tracking</td><td><span class="pill p-have">nothing</span></td><td>the six or seven above, depending on the module</td></tr>
+        </tbody>
+    </table>
+
+    <h3>The resulting cut</h3>
+    <table>
+        <thead><tr><th style="width:32%">Domain</th><th>Modules</th></tr></thead>
+        <tbody>
+            <tr><td><b><span class="mono">logistics_base</span></b> — 8</td><td>masters · equipment_control · pricing · sales_crm · booking · shipments · operations_execution · profitability</td></tr>
+            <tr><td><b><span class="mono">logistics_freight_forwarding</span></b> — 3</td><td>consolidation · documentation · tracking</td></tr>
+            <tr><td><b><span class="mono">logistics_nvocc</span></b> — 1 new</td><td>agency <span class="note">— SOW Phase 2 is base work; see below</span></td></tr>
+        </tbody>
+    </table>
+
+    <p><b>Why those three stay.</b> <span class="mono">documentation</span> and <span class="mono">tracking</span> both depend on <span class="mono">consolidation</span>, whose co-load / consol model is freight-forwarding-specific — so all three move together or not at all. Keeping them out also matches the SOW, where bill-of-lading, manifest and container-tracking execution are separate downstream specifications, not this scope. Verified tier-valid: nothing in the base depends on any of the three.</p>
+
+    <div class="callout warn"><span class="ct">⚠ SOW Phase 2 is base work, not NVOCC work</span>
+        The SOW's Phase 2 is titled <i>"Container &amp; Equipment Control"</i> (D2.1–D2.8), which reads like an NVOCC module — it is not. Every one of those deliverables targets a <b>base-domain</b> model: the container type master, the equipment registry, the status masters, the movement-event types, and the facility and trade-location masters. The freight product already ships equipment tracking today, and ISO check digits, ownership types and CODECO/COARRI codes are container concerns, not agency concerns. <b>NVOCC owns exactly one slice:</b> the principal link on the equipment record, contributed by extension from the agency module — because it references an NVOCC model, and the base can never point at a product domain.</div>
+
+    <div class="callout"><span class="ct">Default to the base when unsure</span>The two mistakes are not symmetric. A module in the base that only one product uses is harmless over-inclusion. A module in a product domain that the <i>other</i> product later needs leaves you blocked — or tempted into exactly the peer dependency the tier rule forbids. If NVOCC later needs shared documentation or tracking, moving all three across is a follow-up of the same shape.</div>
+
+    <div class="footer"><span>Logistics Vertical — the partition</span><span>4</span></div>
+</section>
+
+<!-- ===================== 04 MODEL KEYS ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 04</div>
+    <h2><span class="num">04</span>Model keys stay exactly as they are</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">This is the decision that makes the restructure affordable. <b>Model keys and app keys are independent</b> — the key is declared in the decorator, the app key derives from folder position. Moving a module changes the app key and nothing about model identity.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">42</div><div class="cap">Masters moving</div></div>
+        <div class="stat"><div class="big">284</div><div class="cap">External references</div></div>
+        <div class="stat"><div class="big">72</div><div class="cap">Files touching them</div></div>
+        <div class="stat"><div class="big">0</div><div class="cap">Keys renamed</div></div>
+    </div>
+
+    <p>Keeping the keys preserves all 284 references, all 32 seed files — including the CSVs, whose <b>filenames must exactly match the target model key</b> — every view, every stored report definition, and the on-demand trade-location sync, which resolves its target by key.</p>
+
+    <h3>Prefix convention across the tiers</h3>
+    <table>
+        <thead><tr><th style="width:26%">Prefix</th><th style="width:30%">Owner</th><th>Meaning</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">res.*</span> / <span class="mono">ir.*</span></td><td>Platform</td><td>Universal resources · framework metadata</td></tr>
+            <tr><td><span class="mono">logistics.*</span></td><td><b><span class="mono">logistics_base</span></b></td><td>Shared across the logistics vertical</td></tr>
+            <tr><td><span class="mono">mixin.*</span></td><td><span class="mono">logistics_base</span></td><td>Keyed abstract shapes — see §06</td></tr>
+            <tr><td><span class="mono">logistics_ff.*</span></td><td><span class="mono">logistics_freight_forwarding</span></td><td>Freight-specific — <b>new models only</b></td></tr>
+            <tr><td><span class="mono">nvocc.*</span></td><td><span class="mono">logistics_nvocc</span></td><td>NVOCC / agency-specific</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">Existing keys are grandfathered</span><span class="mono">logistics.shipment</span>, <span class="mono">logistics.booking</span>, <span class="mono">pricing.rate</span> and <span class="mono">crm.lead</span> keep their keys even where they sit in a product domain. Renaming them means a table rename plus foreign-key repointing across roughly ten child models, plus invalidation of every stored reference naming the old key — for zero capability. Models written from here on take the new tier prefix, so the prefix tells you the tier for all future work.</div>
+
+    <h3>What proves a move changed nothing</h3>
+    <p>Every relocation must be verified by running the migration generator against the moved module and confirming the output is <b>empty</b>. That is the only mechanical proof that the move changed layout and not schema. A non-empty diff means something was edited in transit — fix the model and regenerate rather than accepting the revision.</p>
+
+    <div class="callout warn"><span class="ct">⚠ No implicit behaviour change either</span>The record-rule and organization-scope bypass lists are explicit model keys plus framework prefixes — there is no blanket rule keyed on <span class="mono">res.*</span>. So neither keeping the current keys nor renaming them would silently alter row-level filtering. Checked rather than assumed.</div>
+
+    <div class="footer"><span>Logistics Vertical — model keys</span><span>5</span></div>
+</section>
+
+<!-- ===================== 05 WHAT LIFTS ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 05</div>
+    <h2><span class="num">05</span>What moves into the shared masters</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">All 42 masters move wholesale. Each was audited against both businesses, and every one is needed by both — which is itself the confirmation that this module was always the shared layer.</p>
+
+    <table class="dense">
+        <thead><tr><th style="width:18%">Group</th><th style="width:40%">Models</th><th>Needed by NVOCC because</th></tr></thead>
+        <tbody>
+            <tr><td>Trade locations</td><td>unlocode.master</td><td>Ports of load and discharge on every bill of lading and manifest</td></tr>
+            <tr><td>Facilities</td><td>facility.master, facility.zone.master, facility.type.master, facility.zone.type.master, chl.type.master</td><td>Yard, depot, CFS, terminal and inland container depot control</td></tr>
+            <tr><td>Equipment</td><td>transport.mode, shipment.type, load.type, equipment.category / subcategory / identifier.type / type</td><td>Container type classification and ISO mapping</td></tr>
+            <tr><td>Operational states</td><td>equipment.status, equipment.condition, usage.status, movement.event.type</td><td>Container status lifecycle and movement-event mapping</td></tr>
+            <tr><td>Maintenance</td><td>maintenance.type / status, inspection.type / result.status</td><td>Repair yard, under-repair state, equipment interchange inspection</td></tr>
+            <tr><td>Security</td><td>seal.type, seal.change.reason</td><td>Seal control on gate-in and gate-out</td></tr>
+            <tr><td>Documents</td><td>document.type, reference.context.type</td><td>Bill of lading, manifest and delivery-order document typing</td></tr>
+            <tr><td>Products &amp; trade</td><td>incoterm.master, product.master, commodity.master, trade.lane</td><td>Commodity and lane on every booking</td></tr>
+            <tr><td>Cargo</td><td>package.type, haz.class</td><td>Packing and dangerous-goods declaration</td></tr>
+            <tr><td>Parties</td><td>carrier, carrier.agent, provider</td><td>The principal's carrier and agent network</td></tr>
+            <tr><td>Vessels</td><td>vessel, vessel.category</td><td>Vessel call, manifest and voyage reference</td></tr>
+            <tr><td>Rules &amp; misc</td><td>service.mode, volumetric.rule, lane.restriction, sailing.schedule, vendor.service, tag</td><td>Chargeable weight, routing restrictions, schedules, vendor roles</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Also build here — a gap NVOCC surfaced</span>There is <b>no charge-code master anywhere today</b> — only transactional charge lines on rates, bookings, shipments and documents. It belongs in the base, where pricing, booking, shipments and documentation can all use it. Building it inside an NVOCC module instead would make four existing modules depend on NVOCC.</div>
+
+    <div class="callout good"><span class="ct">One container registry, not two</span>Equipment control moves to the base as a <b>shared concrete model</b>, not a copied shape. That keeps container numbers globally unique and lets one register report cover both businesses. A second, parallel container model would split movement history across two tables and break every existing equipment report — recoverable only by migration.</div>
+
+    <div class="footer"><span>Logistics Vertical — shared masters</span><span>6</span></div>
+</section>
+
+<!-- ===================== 06 SHAPES I ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 06</div>
+    <h2><span class="num">06</span>Shared shapes — the mechanism</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Where both products need the same record <i>shape</i> but their own records — package dimensions and weights, charge lines, party lines — declare the shape once in the base as a keyed abstract, and let each product subclass it.</p>
+
+    <h3>What the framework already gives you</h3>
+    <ul class="tight">
+        <li>A declaration-only abstract base — <b>no table, no migration</b>.</li>
+        <li>Field <b>and</b> constraint collection walk the full inheritance chain, so everything on the base flows into every concrete.</li>
+        <li>Methods, commands and lifecycle hooks inherit normally, including calls up to the base.</li>
+        <li>Shipped precedents already used by around 40 models — the chatter and attachment mixins.</li>
+        <li>A model-key parameter for abstracts already exists on the model decorator.</li>
+    </ul>
+
+    <div class="callout bad"><span class="ct">⛔ The keyed path is broken today — fix it first</span>
+        Declaring an abstract <i>with a model key</i> sets the key and returns early without registering it. But the loader's model scan gates <b>only</b> on "does this class have a model key?" — there is no abstract guard anywhere in it — so it calls the concrete registration path, which raises <span class="mono">Abstract model cannot be registered</span>. <b>Verified by probe.</b> The flag has <b>zero usages</b> in the codebase, which is why nobody has hit it: every abstract today is declared without a decorator, so it has no key and never reaches that path.</div>
+
+    <h3>Three small additive fixes</h3>
+    <table>
+        <thead><tr><th style="width:26%">Where</th><th>Change</th></tr></thead>
+        <tbody>
+            <tr><td>Registry</td><td>An abstract-by-key map plus registration and lookup accessors, mirroring the concrete ones.</td></tr>
+            <tr><td>Loader</td><td>Route classes marked abstract to that new path instead of the concrete registration.</td></tr>
+            <tr><td>Boot</td><td>Validate lineage in the same pass as the existing model-extension check.</td></tr>
+        </tbody>
+    </table>
+    <p class="note">Approval-gated as a kernel change, but with no effect on any existing model — nothing uses the flag today. Ship it with tests: the path is entirely uncovered.</p>
+
+    <h3>Derive the lineage; don't declare it</h3>
+    <p>The obvious next step is a parameter naming the parent by key. <b>Don't make that the mechanism.</b> Field collection walks the inheritance chain, so a key-only edge with no real inheritance would carry fields and nothing else — no methods, no commands, no hooks, no calls to the base, and no editor navigation.</p>
+    <p>Since shared <i>behaviour</i> is the entire point, keep real inheritance and <b>derive</b> the keyed lineage from it: at registration, walk the inheritance chain and record the key of every abstract base. The registry can then answer <i>"which models inherit this shape?"</i> for documentation, the admin surface and review — with zero authoring burden and <b>no possibility of drift</b>, because the lineage is read from the truth rather than restated beside it.</p>
+
+    <div class="footer"><span>Logistics Vertical — shared shapes, mechanism</span><span>7</span></div>
+</section>
+
+<!-- ===================== 07 SHAPES II ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 07</div>
+    <h2><span class="num">07</span>Shared shapes — using them</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The model key is for introspection. The inheritance itself is wired by an ordinary import, legal because the product domain declares the base domain as a dependency.</p>
+
+    <pre>@api.model("mixin.package.measure", abstract=True)
+class PackageMeasureMixin(AbstractDomainModel):
+    """Dimensions, weights, volume. No table — contributes columns to each consumer."""
+    length           = fields.Decimal(precision=12, scale=3)
+    gross_weight     = fields.Decimal(precision=14, scale=4)
+    dimension_uom_id = fields.Reference("res.uom", on_delete="set null")
+    def chargeable_weight(self, ratio): ...        # shared behaviour, declared once
+
+# ── consumed from a product domain: the freight-forwarding manifest line ──
+@api.model("consolidation.manifest.line")
+class ManifestLine(PackageMeasureMixin):
+    console_id  = fields.Reference("consolidation.console", on_delete="cascade", required=True)
+    package_qty = fields.Integer()</pre>
+
+    <p class="note">Numerics are Decimal or Monetary — there is no Float field type. Export the mixin from a stable path and import it in the owning module so it registers even when no consumer is active.</p>
+
+    <h3>Composition and collisions — verified</h3>
+    <ul class="tight">
+        <li>Mixin fields merge into the concrete's field set; the concrete's own declaration overrides any mixin's.</li>
+        <li>On a field-name collision between two mixins, <b>the first base in the list wins — silently.</b> Coordinate or prefix names across mixins.</li>
+        <li>Methods inherit normally, including calls up to the base.</li>
+    </ul>
+
+    <h3>"Extending" a shape — three different cases</h3>
+    <table>
+        <thead><tr><th style="width:34%">You want to…</th><th style="width:33%">Do this</th><th>Not this</th></tr></thead>
+        <tbody>
+            <tr><td>Add product-specific fields alongside the shape's</td><td>Declare them on the <b>concrete</b></td><td>—</td></tr>
+            <tr><td>Add a field <b>every</b> consumer needs</td><td>Edit the mixin in the base — you own that module</td><td>The extension SDK — it cannot target an abstract</td></tr>
+            <tr><td>Add a field to a <b>concrete</b> model owned by another module</td><td>The extension SDK, with your own migration</td><td>Editing their model file</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Pick the right flavour — the FK question decides</h3>
+    <table>
+        <thead><tr><th style="width:26%">Flavour</th><th style="width:16%">Tables</th><th style="width:20%">FK to the shared type?</th><th>Behaviour inherited?</th></tr></thead>
+        <tbody>
+            <tr><td>Abstract mixin <span class="pill p-have">default</span></td><td>one per concrete</td><td><span class="pill p-gap">No</span></td><td>Yes — full inheritance</td></tr>
+            <tr><td>Shared concrete</td><td>one, shared</td><td><span class="pill p-have">Yes</span></td><td>n/a — it is the model</td></tr>
+            <tr><td>Delegation</td><td>parent + child</td><td><span class="pill p-have">Yes</span></td><td>Partial — data only, not methods</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Mixin for shapes; shared concrete for registries</span>A mixin <b>copies columns into each consumer's own table</b>. That is right for a repeating shape. It is wrong for a shared registry — two tables means identity is not unique and no single query spans both. Where something must reference "either kind" of a per-product record, an abstract cannot help: a foreign key cannot target one. Use a shared concrete parent with delegation, and pair it with an abstract base for the behaviour.</div>
+
+    <div class="footer"><span>Logistics Vertical — shared shapes, usage</span><span>8</span></div>
+</section>
+
+<!-- ===================== 08 PLAN ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 08</div>
+    <h2><span class="num">08</span>Execution plan</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Nine work streams in four buckets, dependency-ordered. Every relocation is proven by an empty generated migration; every phase is verified against all three activation combinations.</p>
+
+    <table>
+        <thead><tr><th style="width:6%">#</th><th style="width:28%">Work stream</th><th style="width:20%">Bucket</th><th>Gate</th></tr></thead>
+        <tbody>
+            <tr><td><b>1</b></td><td>Domain tier guard</td><td>Platform</td><td>Approval — kernel change. Blocks everything after it.</td></tr>
+            <tr><td><b>2</b></td><td>Keyed abstract registration</td><td>Platform</td><td>Approval — kernel change. Blocks the shared shapes.</td></tr>
+            <tr><td><b>3</b></td><td>Base domain + masters move</td><td>Migration</td><td>Empty generated migration</td></tr>
+            <tr><td><b>4</b></td><td>Core modules move — 5, in dependency order</td><td>Migration</td><td>Empty migration after <b>each</b> module</td></tr>
+            <tr><td><b>5</b></td><td>Engine modules move — 2</td><td>Migration</td><td>Empty migration; tier guard passes</td></tr>
+            <tr><td><b>6</b></td><td>Rename to freight forwarding</td><td>Rename</td><td>Single revertible commit</td></tr>
+            <tr><td><b>7</b></td><td>Shared shapes (mixins)</td><td>Migration</td><td>Empty migration after extraction</td></tr>
+            <tr><td><b>8</b></td><td>NVOCC domain + agency module</td><td>NVOCC</td><td>NVOCC-only tenant boots</td></tr>
+            <tr><td><b>9</b></td><td>Container control — SOW Phase 2</td><td>Migration <span class="note">(base, not NVOCC)</span></td><td>No second container model anywhere</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">Sequencing</span>Approve streams 1 and 2 → build them → move masters → move the five core modules in dependency order → move the two engines → rename the freight domain → extract the shared shapes → extend the base equipment registry for container control, and build the NVOCC agency module.</div>
+
+    <h3>Work that cannot start yet</h3>
+    <table class="dense">
+        <thead><tr><th style="width:30%">Item</th><th style="width:26%">Blocker</th><th>What must land first</th></tr></thead>
+        <tbody>
+            <tr><td><b>Principal-wise data scoping</b></td><td>Approval-gated kernel change</td><td>The platform has a mature scoping mechanism for exactly one dimension — it injects an ownership filter on every read and fails closed. Principal is a second, orthogonal dimension. Generalise that mechanism, or accept a weaker rule-based fallback that still needs an extension point.</td></tr>
+            <tr><td><b>Tax and withholding setup</b></td><td>Localization module not started</td><td>Tax is finance-wide, not logistics-specific — platform-layer work. Sequence it ahead, or move the deliverable out of scope.</td></tr>
+            <tr><td><b>Regional control framework<br>India &amp; UAE packs</b></td><td>Country-scope evaluator not implemented</td><td>The per-field country-scope slot exists on every extension field, but <b>nothing reads it</b>. Hard prerequisite for both country packs.</td></tr>
+            <tr><td><b>Finance-mapping reference</b></td><td>Layer decision open</td><td>Every domain hands off to external accounting, so the mapping is platform-layer. Decide its home against the standing decision that this platform holds no accounting domain.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="footer"><span>Logistics Vertical — execution plan</span><span>9</span></div>
+</section>
+
+<!-- ===================== 09 DO ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 09</div>
+    <h2><span class="num">09</span>What to do</h2>
+    <div class="section-rule"></div>
+
+    <table class="dense">
+        <thead><tr><th style="width:6%">#</th><th style="width:34%">Rule</th><th>Why</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td><b>List the base domain first</b> in the active-domain list</td><td>Dependency validation requires a dependency to be already loaded, and domain load order is settings order.</td></tr>
+            <tr><td>2</td><td>Name it <b><span class="mono">logistics_base</span></b>, not <span class="mono">logistics_foundation</span></td><td>"Foundation" already names the platform layer; the alternative reads as if the domain lived there.</td></tr>
+            <tr><td>3</td><td>Express the rule as <b>tiers</b> and <b>enforce it at boot</b></td><td>The loader accepts peer coupling silently — verified. A guard turns the rule into something a mistake cannot pass.</td></tr>
+            <tr><td>4</td><td><b>Keep model keys unchanged</b> when modules move</td><td>Preserves 284 references, 32 seed files whose CSV names encode keys, every view, every report definition, and the location sync.</td></tr>
+            <tr><td>5</td><td>Let the <b>dependency closure</b> decide the partition</td><td>Putting a module in the base forces its whole closure with it. Only four modules can stay behind.</td></tr>
+            <tr><td>6</td><td><b>Default an ambiguous module to the base</b></td><td>Over-inclusion is harmless; a product module the other product needs leaves you blocked or tempted into peer coupling.</td></tr>
+            <tr><td>7</td><td>Move the masters <b>wholesale</b></td><td>All 42 are needed by both. Push a genuinely single-product master back down later.</td></tr>
+            <tr><td>8</td><td>Keep equipment control as one <b>shared concrete</b></td><td>Globally unique container numbers and one register report across both businesses.</td></tr>
+            <tr><td>9</td><td><b>Mixins for shapes; shared concretes for registries</b></td><td>A mixin copies columns per table — two tables means identity is not unique and no query spans both.</td></tr>
+            <tr><td>10</td><td>Fix the three keyed-abstract gaps <b>before</b> any mixin ships</td><td>The path is declarable but crashes at boot, and has zero test coverage.</td></tr>
+            <tr><td>11</td><td><b>Derive</b> the keyed lineage from real inheritance</td><td>Registry-queryable lineage, full method inheritance, and drift made impossible.</td></tr>
+            <tr><td>12</td><td>Extract shapes <b>from</b> existing models, keeping field sets identical</td><td>Turns a shared-shape change into a no-op migration instead of a schema change.</td></tr>
+            <tr><td>13</td><td>Prove every move with an <b>empty generated migration</b></td><td>The only mechanical proof that a relocation changed layout and not schema.</td></tr>
+            <tr><td>14</td><td>Test <b>three activation combinations</b> every phase</td><td>A tiered split is only real if each product boots on the base alone.</td></tr>
+            <tr><td>15</td><td>Build the shared <b>charge-code master</b> in the base</td><td>It exists nowhere today, and four modules need it.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="footer"><span>Logistics Vertical — what to do</span><span>10</span></div>
+</section>
+
+<!-- ===================== 10 DON'T I ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 10</div>
+    <h2><span class="num">10</span>What not to do — structural</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">These change the dependency graph or the ownership of a model. Each is expensive to unwind once code has been written against it.</p>
+
+    <table class="dense">
+        <thead><tr><th style="width:28%">Don't</th><th style="width:34%">Why it breaks</th><th>Instead</th></tr></thead>
+        <tbody>
+            <tr><td><b>Let the two product domains reference each other</b></td><td>The one edge the tier rule exists to forbid — and the loader accepts it silently, so it lands green.</td><td>Lift the shared concept into the base domain.</td></tr>
+            <tr><td><b>Let the base domain depend on a product domain</b></td><td>Inverts the tier and creates a cycle in everything but name.</td><td>The base depends on the platform layer only.</td></tr>
+            <tr><td><b>Ship the tier rule as documentation only</b></td><td>Nothing enforces it; the first mistake passes review and CI.</td><td>The boot guard, in the very first work stream.</td></tr>
+            <tr><td><b>Put the base domain after a product domain in the active list</b></td><td>Dependency validation fails — the dependency is not loaded yet.</td><td>Base domain first, always.</td></tr>
+            <tr><td><b>Rename model keys because a module changed domain</b></td><td>Keys and app keys are independent. Renaming churns 284 references and 32 seed files for zero gain.</td><td>Keys stay; new models take the new tier prefix.</td></tr>
+            <tr><td><b>Rename existing product model keys</b></td><td>Table rename plus foreign-key repointing across roughly ten child models, plus invalidation of every stored reference naming the old key.</td><td>Grandfather them; apply the new prefix only to new models.</td></tr>
+            <tr><td><b>Fork a second container registry for NVOCC</b></td><td>Container numbers stop being globally unique, movement history splits across two tables, and every existing equipment report breaks.</td><td>One shared concrete in the base; each product extends it.</td></tr>
+            <tr><td><b>Cherry-pick which masters move</b></td><td>Creates two masters modules and a new seam in the place hardest to change later.</td><td>Move wholesale; push anything genuinely single-product back down as a follow-up.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ The first two are the ones to guard hardest</span>Both boot successfully and pass every test. Nothing in the framework will tell you they happened — only the guard from §02, or review. Everything else on these two pages announces itself sooner.</div>
+
+    <div class="footer"><span>Logistics Vertical — what not to do (1 of 2)</span><span>11</span></div>
+</section>
+
+<!-- ===================== 11 DON'T II ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 11</div>
+    <h2><span class="num">11</span>What not to do — modelling &amp; process</h2>
+    <div class="section-rule"></div>
+
+    <table class="dense">
+        <thead><tr><th style="width:28%">Don't</th><th style="width:34%">Why it breaks</th><th>Instead</th></tr></thead>
+        <tbody>
+            <tr><td><b>Give an abstract shape a table or its own migration</b></td><td>It stops being abstract — you get a third table that should not exist.</td><td>Declaration-only: no table, no migration.</td></tr>
+            <tr><td><b>Point a foreign key at an abstract</b></td><td>It cannot resolve — abstracts never enter the registered-model map.</td><td>A shared concrete parent with delegation, or keep the child in the product domain.</td></tr>
+            <tr><td><b>Use the extension SDK on an abstract</b></td><td>Its validator resolves concrete targets only, so it fails at boot.</td><td>Edit the mixin (you own the base), or extend each concrete.</td></tr>
+            <tr><td><b>Overload the extension decorator to mint a new model</b></td><td>Extend-in-place and declare-new-model have opposite migration consequences; the call site becomes unreadable.</td><td>The extension decorator extends; the model decorator declares.</td></tr>
+            <tr><td><b>Make a key-only parameter the inheritance mechanism</b></td><td>Fields would cross but not methods, commands, hooks or calls to the base — and behaviour was the entire point.</td><td>Real inheritance; derive the lineage. An optional key parameter only as a validated assertion.</td></tr>
+            <tr><td><b>Ship a keyed abstract before the kernel fix</b></td><td>Boot fails — the loader has no abstract guard and routes it to concrete registration.</td><td>Land the registry, loader and validation fixes with tests first.</td></tr>
+            <tr><td><b>Abstract a shape before its second consumer exists</b></td><td>A wrong shared base is harder to remove than a duplicate is to merge.</td><td>Extract when the second consumer is actually being written.</td></tr>
+            <tr><td><b>Change the kernel without approval to unblock a domain</b></td><td>A framework-shape change made under delivery pressure, with domain-shaped tests.</td><td>Raise it as a platform change with its own roadmap entry and tests.</td></tr>
+            <tr><td><b>Overload "principal" for the carrier identity</b></td><td>The runtime already uses that word for the authenticated user; access control and carrier identity would read the same slot. The failure is silent and security-relevant.</td><td>Explicitly qualified names, documented at the module boundary.</td></tr>
+            <tr><td><b>Accept a non-empty generated migration after a move</b></td><td>Means the relocation silently changed schema — the one failure this migration must not have.</td><td>Fix the model, regenerate, re-verify.</td></tr>
+            <tr><td><b>Hand-author a migration</b></td><td>Diverges from the model, breaks the next generated revision, and drifts across database engines.</td><td>Fix the model and regenerate; surface generator failures rather than working around them.</td></tr>
+            <tr><td><b>Mark a deliverable done without demo data</b></td><td>It cannot be demonstrated at the phase-exit review, and the next developer has no working example.</td><td>Ship the use-case document and demo records, and smoke-test them.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="footer"><span>Logistics Vertical — what not to do (2 of 2)</span><span>12</span></div>
+</section>
+
+<!-- ===================== 12 DECISIONS ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 12</div>
+    <h2><span class="num">12</span>Decisions to close</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Seven open items. Two gate the critical path; the rest are scope questions the change-management clause exists to handle.</p>
+
+    <table>
+        <thead><tr><th style="width:6%">#</th><th style="width:30%">Decision</th><th>What is being asked</th><th style="width:15%">Owner</th></tr></thead>
+        <tbody>
+            <tr><td><b>1</b></td><td>Governance amendment</td><td>Approve the tier rule and the prefix convention in one change, before the first module moves. <b>Blocks work stream 1.</b></td><td>Eng Lead</td></tr>
+            <tr><td><b>2</b></td><td>Keyed-abstract kernel fix</td><td>Approve the three additive changes that make a keyed abstract usable. <b>Blocks the shared shapes.</b></td><td>Eng Lead</td></tr>
+            <tr><td><b>3</b></td><td>Base domain home</td><td>Confirm the base sits as a domain package alongside the products, with the tier guard as its safety net.</td><td>Eng Lead</td></tr>
+            <tr><td><b>4</b></td><td>Tier calls for four modules</td><td>Booking, shipments, consolidation and how much of documentation is shared. Business semantics, not architecture — the closure analysis constrains but does not decide them.</td><td>Product Owner</td></tr>
+            <tr><td><b>5</b></td><td>Principal scope dimension</td><td>Generalise the existing scope mechanism into a registry of dimensions, or accept the weaker rule-based fallback and record the residual risk.</td><td>Eng Lead</td></tr>
+            <tr><td><b>6</b></td><td>Localization sequencing</td><td>Tax, the regional framework and the two country packs all depend on a platform module that has not started. Sequence it ahead, or descope those four deliverables.</td><td>Product Owner</td></tr>
+            <tr><td><b>7</b></td><td>Finance-mapping layer</td><td>Where the mapping master lives, against the standing decision that this platform holds no accounting domain.</td><td>Eng Lead + PO</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">⚠ Two approvals gate everything</span>Work streams 1 and 2 are kernel changes and need explicit approval before any edit to the framework core. Stream 1 blocks every migration stream; stream 2 blocks the shared shapes. Getting both approved early is the single highest-leverage scheduling action available.</div>
+
+    <div class="callout good"><span class="ct">The bottom line</span>The three-domain structure works today with <b>zero framework change</b> — it is packaging and governance, not engineering. What engineering it does need is small and additive: one boot guard to make the tier rule enforceable, and one fix to a registration path that nothing currently uses. Everything else is relocation, proven safe by empty migrations, and the reuse it unlocks is what lets NVOCC ship over the same masters, pricing, booking and container registry the freight product already runs on.</div>
+
+    <div class="footer"><span>Logistics Vertical — decisions</span><span>13</span></div>
+</section>
+
+</body>
+</html>
