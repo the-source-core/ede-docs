@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Logistics Vertical Restructure — Analysis &amp; Developer Guide</title>
+    <style>
+        :root {
+            --ink:#111111; --ink-soft:#4f4f4f; --muted:#757575;
+            --line:#d9d9d9; --line-soft:#ececec;
+            --bg:#ffffff; --panel:#f3f4f6; --panel-2:#ebedf0;
+            --brand:#0052cc; --brand-hi:#0747a6; --brand-soft:#deebff;
+            --brand-deep:#0b1739; --brand-deep2:#1e3a8a;
+            --accent:#0e8420; --accent-bg:#e4f4e4;
+            --warn:#cc7900; --warn-bg:#fdf2e3;
+            --build:#7c3aed; --build-bg:#f3effe;
+            --gap:#c7162b; --gap-bg:#fae3e4;
+        }
+        * { box-sizing:border-box; }
+        @page { size:A4; margin:0; }
+        html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        body { margin:0; color:var(--ink); background:var(--bg);
+            font-family:"Ubuntu",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-size:10.3px; line-height:1.47; }
+        .page { width:210mm; height:297mm; padding:14mm 16mm 12mm 16mm; margin:0 auto;
+            background:var(--bg); position:relative; overflow:hidden; page-break-after:always; }
+        .page:last-child { page-break-after:auto; }
+
+        .cover { display:flex; flex-direction:column;
+            background:linear-gradient(155deg,#0b1739 0%,#1e3a8a 52%,#0052cc 100%); color:#eaf1fb; }
+        .cover-title { margin-top:auto; margin-bottom:34px; }
+        .cover-logo { display:flex; align-items:center; justify-content:space-between; }
+        .cover-logo .brand-left { display:flex; align-items:center; gap:13px; }
+        .cover-logo svg { display:block; }
+        .logo-full { font-size:10.5px; letter-spacing:3px; text-transform:uppercase; color:#c6d8f2; font-weight:600; }
+        .brand-right { font-size:17px; font-weight:700; letter-spacing:.5px; color:#fff; }
+        .cover .kicker { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:#9bb6e8; font-weight:600; }
+        .cover h1 { font-size:33px; line-height:1.12; margin:14px 0 0 0; font-weight:700; color:#fff; }
+        .cover .sub { font-size:14px; color:#cdddf6; margin-top:15px; max-width:152mm; line-height:1.5; }
+        .cover .verdict { margin-top:22px; border-left:4px solid #7fd4a8; padding:10px 0 10px 16px;
+            font-size:12.3px; color:#eef6f1; max-width:152mm; }
+        .cover .verdict b { color:#a9ecca; }
+        .cover .verdict + .verdict { margin-top:11px; border-left-color:#f0c07a; }
+        .cover .verdict + .verdict b { color:#f7d9ab; }
+        .cover-meta { border-top:1px solid rgba(255,255,255,.25); padding-top:13px; display:flex; gap:30px;
+            font-size:10.5px; color:#cdddf6; }
+        .cover-meta .lbl { color:#93aede; text-transform:uppercase; letter-spacing:1px; font-size:8.5px; }
+        .cover-meta .val { font-size:11px; color:#fff; margin-top:2px; }
+
+        h2 { font-size:18px; color:var(--brand-deep); margin:0 0 4px 0; font-weight:700; letter-spacing:-.2px; }
+        h2 .num { display:inline-block; color:var(--brand); font-size:13px; font-weight:700; margin-right:10px; vertical-align:2px; }
+        h3 { font-size:12.2px; color:var(--brand-deep); margin:12px 0 5px 0; font-weight:700; }
+        p { margin:6px 0; color:var(--ink-soft); }
+        .lead { font-size:11.2px; color:var(--ink); }
+        strong,b { color:var(--ink); }
+        .section-rule { height:3px; width:54px; background:var(--brand); border-radius:2px; margin:7px 0 9px 0; }
+        .eyebrow { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--brand); font-weight:700; }
+
+        table { width:100%; border-collapse:collapse; margin:9px 0 6px 0; font-size:9.6px; }
+        th { background:var(--brand-deep); color:#fff; text-align:left; padding:6px 8px; font-weight:600;
+            font-size:9.1px; letter-spacing:.3px; vertical-align:top; }
+        td { border-bottom:1px solid var(--line-soft); padding:5px 8px; vertical-align:top; color:var(--ink-soft); }
+        tbody tr:nth-child(even) { background:var(--panel); }
+        td b { color:var(--ink); }
+        table.dense { font-size:9.1px; }
+        table.dense th { padding:5px 7px; font-size:8.8px; }
+        table.dense td { padding:4px 7px; }
+
+        .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:8.4px; font-weight:700;
+            letter-spacing:.3px; white-space:nowrap; }
+        .p-have{background:var(--accent-bg);color:var(--accent);}
+        .p-part{background:var(--warn-bg);color:var(--warn);}
+        .p-gap{background:var(--gap-bg);color:var(--gap);}
+        .p-build{background:var(--build-bg);color:var(--build);}
+
+        .callout { border:1px solid var(--line); border-left:4px solid var(--brand); background:var(--panel);
+            padding:9px 13px; border-radius:3px; margin:9px 0; }
+        .callout.good { border-left-color:var(--accent); background:var(--accent-bg); }
+        .callout.warn { border-left-color:var(--warn); background:var(--warn-bg); }
+        .callout.bad  { border-left-color:var(--gap);  background:var(--gap-bg); }
+        .callout .ct { font-weight:700; color:var(--ink); font-size:10.5px; display:block; margin-bottom:2px; }
+
+        ul.tight { margin:6px 0; padding-left:18px; }
+        ul.tight li { margin:4px 0; color:var(--ink-soft); }
+
+        .stat-row { display:flex; gap:10px; margin:13px 0; }
+        .stat { flex:1; border:1px solid var(--line); border-radius:4px; padding:10px 11px;
+            background:var(--panel); text-align:center; }
+        .stat .big { font-size:21px; font-weight:800; color:var(--brand); line-height:1; }
+        .stat .cap { font-size:8.2px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-top:5px; }
+
+        .mono { font-family:"Ubuntu Mono","SF Mono",Consolas,monospace; font-size:9px; color:var(--brand-deep);
+            background:var(--panel-2); padding:0 4px; border-radius:3px; }
+        pre { font-family:"Ubuntu Mono",Consolas,monospace; font-size:8.5px; color:var(--brand-deep);
+            background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:8px 10px;
+            margin:7px 0; line-height:1.5; white-space:pre-wrap; }
+
+        .flowstack { display:flex; flex-direction:column; gap:7px; margin:11px 0 6px 0; }
+        .flayer { display:flex; align-items:stretch; border:1px solid var(--line); border-radius:5px;
+            overflow:hidden; background:#fff; }
+        .flayer .rail { width:5px; flex:0 0 5px; }
+        .flayer .lhead { width:46mm; flex:0 0 46mm; padding:7px 10px; background:var(--panel);
+            border-right:1px solid var(--line-soft); }
+        .flayer .lnum { font-size:7.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); font-weight:700; }
+        .flayer .ltitle { font-size:10.5px; font-weight:700; color:var(--brand-deep); margin-top:1px; line-height:1.2; }
+        .flayer .lq { font-size:8.2px; color:var(--muted); font-style:italic; margin-top:3px; line-height:1.35; }
+        .flayer .lbody { flex:1; padding:8px 9px; display:flex; flex-wrap:wrap; align-items:center; gap:3px; }
+        .node { display:inline-block; padding:2px 7px; border:1px solid var(--line); border-radius:4px;
+            background:var(--panel); font-size:8.6px; color:var(--ink); font-weight:600; white-space:nowrap; }
+
+        .footer { position:absolute; bottom:7mm; left:16mm; right:16mm; border-top:1px solid var(--line-soft);
+            padding-top:5px; font-size:8px; color:var(--muted); display:flex; justify-content:space-between; }
+        .note { font-size:9px; color:var(--muted); font-style:italic; }
+    </style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/><rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/><rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/><rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/><rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">Post-Delivery Analysis &amp; Developer Guide</div>
+        <h1>Logistics Vertical<br>Restructure</h1>
+        <div class="sub">One logistics domain became a tiered vertical — a shared base plus product domains that can be sold, activated and released independently. What changed, what it cost, and what you must do with in-flight work.</div>
+        <div class="verdict"><b>Delivered:</b> 11 modules re-tiered into <b>8 base + 3 product</b>, two kernel defects fixed, two shared shapes extracted. <b>Zero data migration</b> — existing tenants auto-migrate on the normal upgrade path.</div>
+        <div class="verdict"><b>If you have a branch open:</b> read §5. For most branches the answer is "almost nothing" — model keys did not change, so 284 references across 72 files needed no edit at all.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Audience</div><div class="val">Engineering team</div></div>
+        <div><div class="lbl">Branch</div><div class="val">main-multi_domain_restructuring-dharmang</div></div>
+        <div><div class="lbl">Date</div><div class="val">31 July 2026</div></div>
+    </div>
+</section>
+
+<!-- ===================== 01 WHAT CHANGED ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>What changed</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The single <span class="mono">logistics</span> domain is now a <b>tiered vertical</b>: a base domain holding what every logistics product needs, and product domains for each business line. Products depend on the base; they can never depend on each other.</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#1e3a8a;"></div>
+            <div class="lhead"><div class="lnum">Base tier</div><div class="ltitle">logistics_base</div><div class="lq">What both products need. Depends only on the platform.</div></div>
+            <div class="lbody"><span class="node">masters</span><span class="node">equipment_operations</span><span class="node">pricing</span><span class="node">sales_crm</span><span class="node">booking</span><span class="node">shipments</span><span class="node">operations_execution</span><span class="node">profitability</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Product tier</div><div class="ltitle">logistics_freight_forwarding</div><div class="lq">Freight forwarding only.</div></div>
+            <div class="lbody"><span class="node">consolidation</span><span class="node">documentation</span><span class="node">tracking</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#7c3aed;"></div>
+            <div class="lhead"><div class="lnum">Product tier</div><div class="ltitle">logistics_nvocc</div><div class="lq">Not built yet — the next product to land.</div></div>
+            <div class="lbody"><span class="node">(future)</span></div>
+        </div>
+    </div>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">11</div><div class="cap">Modules re-tiered</div></div>
+        <div class="stat"><div class="big">0</div><div class="cap">Model keys renamed</div></div>
+        <div class="stat"><div class="big">0</div><div class="cap">Data migrations</div></div>
+        <div class="stat"><div class="big">2</div><div class="cap">Kernel defects fixed</div></div>
+        <div class="stat"><div class="big">47</div><div class="cap">New tests</div></div>
+    </div>
+
+    <h3>Activation is now the product lever</h3>
+    <pre>ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding"]   # base FIRST
+BASE_DOMAINS   = ["logistics_base"]</pre>
+    <p>A customer buying one product activates the base plus that product. Adding NVOCC later is an additive entry in the same list — no change to the freight product.</p>
+
+    <div class="callout"><span class="ct">Why base-first matters</span>Domain load order <b>is</b> the order of this list, and the loader rejects a dependency that is not yet loaded. Putting a product domain before the base fails the boot with a message naming the missing key — the ordering is self-enforcing.</div>
+
+    <div class="footer"><span>Logistics Restructure — what changed</span><span>2</span></div>
+</section>
+
+<!-- ===================== 02 THE ANALYSIS ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 02</div>
+    <h2><span class="num">02</span>The analysis behind it</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Three findings shaped the work. Each came from measuring the codebase rather than reading the plan — and each changed what got built.</p>
+
+    <h3>1 · The dependency graph decided the split, not preference</h3>
+    <p>Every module's declared dependencies were resolved transitively. <b>Putting a module in the base forces its entire dependency closure into the base with it.</b> Only four modules are reverse-leaves — nothing depends on them — so only those could stay behind:</p>
+    <table class="dense">
+        <thead><tr><th style="width:26%">Module</th><th style="width:38%">Depended on by</th><th>Consequence</th></tr></thead>
+        <tbody>
+            <tr><td><b>masters</b></td><td>all 10 others</td><td>Must be base. Moves first — no dependencies of its own.</td></tr>
+            <tr><td><b>shipments</b></td><td>consolidation, documentation, operations_execution, profitability, tracking</td><td>Not optional — dragging booking, sales_crm, pricing, equipment_operations with it.</td></tr>
+            <tr><td>documentation · operations_execution · profitability · tracking</td><td><span class="pill p-have">nothing</span></td><td>The only free choices.</td></tr>
+        </tbody>
+    </table>
+    <p>Of those four, <span class="mono">documentation</span> and <span class="mono">tracking</span> depend on <span class="mono">consolidation</span>, whose co-load model is freight-specific — so those three travel together and form the product tier.</p>
+
+    <h3>2 · Two kernel defects, both found by probing rather than reading</h3>
+    <table class="dense">
+        <thead><tr><th style="width:30%">Defect</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr><td><b>Peer coupling was accepted</b></td><td>Dependency validation only checks that a dependency is already <i>loaded</i> — it does not care which domain it came from. A product-to-product dependency <b>boots fine</b>, silently ending the one-directional graph. Fixed by a boot guard (§7).</td></tr>
+            <tr><td><b>Keyed abstracts crashed the boot</b></td><td><span class="mono">@api.model(key, abstract=True)</span> is a documented parameter, but the decorator sets a key and returns early without registering, while the loader gates only on "has a key" and hands the class to <span class="mono">register_model</span>, which rejects abstracts. The flag had <b>zero usages</b>, so nothing had ever exercised it.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>3 · Model keys and app keys are independent — and that made it affordable</h3>
+    <p>The model key is declared in the decorator; the app key derives from folder position. Moving a module changes the app key and <b>nothing</b> about model identity. Keeping the keys preserved:</p>
+    <table>
+        <thead><tr><th style="width:22%">Untouched</th><th>Why</th></tr></thead>
+        <tbody>
+            <tr><td><b>284 references</b> across 72 files</td><td>Every <span class="mono">logistics.*</span> model key, domain string, command name and hook key still resolves</td></tr>
+            <tr><td><b>32 seed files</b></td><td>Data CSV <i>filenames</i> encode the model key, not the app key</td></tr>
+            <tr><td>Every XML id and view <span class="mono">&lt;extend ref&gt;</span></td><td>Scoped by the <b>short app name</b>, which a domain move does not change</td></tr>
+            <tr><td>Alembic history</td><td>Revision ids are content identity, not path identity</td></tr>
+        </tbody>
+    </table>
+
+    <div class="footer"><span>Logistics Restructure — the analysis</span><span>3</span></div>
+</section>
+
+<!-- ===================== 03 PRODUCTION ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 03</div>
+    <h2><span class="num">03</span>Production migration</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Audited <b>before</b> a single module moved. An existing tenant upgrades on the normal path with <b>no data migration</b> — every surface that persists app identity either does not change or self-heals.</p>
+
+    <table>
+        <thead><tr><th style="width:26%">Surface</th><th>Behaviour on upgrade</th></tr></thead>
+        <tbody>
+            <tr><td><b>Tables / schema</b></td><td>Unchanged. Model keys unchanged means table names unchanged.</td></tr>
+            <tr><td><b>Alembic history</b></td><td>Revision ids are content identity; version locations are rebuilt from the registry at runtime, and nothing reads the app-key header. Moving a migration file between app folders is transparent.</td></tr>
+            <tr><td><b><span class="mono">ir.model.app_key</span></b></td><td>Stores the <b>short</b> app name, not the full key. The row is upserted by an external id built from <span class="mono">(short_app_name, model_key)</span> — stable across a domain move — so it is <b>updated in place</b> by the registry sync that runs inside <span class="mono">ede migrate upgrade</span>.</td></tr>
+            <tr><td><b><span class="mono">ir.data.reference</span></b> (XML ids)</td><td>Its module column is the short app name → unchanged → menus, actions, views, RBAC rows and demo refs all keep resolving.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout bad"><span class="ct">⛔ The one thing that would break it — renaming a module</span>
+        A rename changes the short app name, which orphans every <span class="mono">&lt;old_module&gt;.*</span> XML id. Orphan cleanup does not merely tidy those references:
+        <pre style="margin:6px 0 4px 0;">no inbound FKs  ->  delete the record</pre>
+        So seeded masters, menus, actions and RBAC permission rows with no inbound foreign keys would be <b>deleted in production</b>. That is data loss, not untidiness.
+        <br><br>For this reason the proposed <span class="mono">equipment_operations</span> → <span class="mono">equipment_control</span> rename was <b>dropped</b>. The module kept its name.</div>
+
+    <div class="callout warn"><span class="ct">⚠ The standing rule this establishes</span>
+        <b>Moving a module between domains is free. Renaming a module is a data migration.</b> Do not rename a module without one — and note the migration generator cannot produce a data migration, so it needs a deliberate, approved plan.</div>
+
+    <h3>How the "no schema change" claim was proven</h3>
+    <p>Not by argument. Each relocation was verified by running the real generator against the configured PostgreSQL tenant:</p>
+    <pre>ede migrate generate --app logistics_base.booking   --config ede.conf  ->  0 app(s),  5 files unchanged
+ede migrate generate --app logistics_base.shipments --config ede.conf  ->  0 app(s),  4 files unchanged
+ede migrate generate --app logistics_base.masters   --config ede.conf  ->  0 app(s), 13 files unchanged</pre>
+    <p class="note">No revision file was written for any app — the tool that would emit a migration emitted nothing.</p>
+
+    <div class="footer"><span>Logistics Restructure — production migration</span><span>4</span></div>
+</section>
+
+<!-- ===================== 04 WHAT SHIPPED ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 04</div>
+    <h2><span class="num">04</span>What shipped, stream by stream</h2>
+    <div class="section-rule"></div>
+
+    <table class="dense">
+        <thead><tr><th style="width:6%">WS</th><th style="width:26%">Change</th><th>Detail</th></tr></thead>
+        <tbody>
+            <tr><td><b>1</b></td><td>Domain tier guard</td><td>Boot validator reading domain and dependency data off registered app records. Base may depend on the platform only; a product may add a base domain and its own siblings; peer products never couple. Collects every violation and raises once. <b>13 tests.</b></td></tr>
+            <tr><td><b>2</b></td><td>Keyed abstract registration</td><td>Registry gained its own abstract map; the loader routes abstracts there instead of to concrete registration; lineage is <b>derived from the inheritance chain</b>, not declared; boot validates it. <b>16 tests.</b></td></tr>
+            <tr><td><b>3</b></td><td>Base domain + masters</td><td>New base domain; 42 masters moved wholesale. All were audited against both businesses and every one is needed by both.</td></tr>
+            <tr><td><b>4</b></td><td>5 core modules</td><td>equipment_operations, pricing, sales_crm, booking, shipments — moved in dependency order.</td></tr>
+            <tr><td><b>5</b></td><td>2 engine modules</td><td>operations_execution, profitability — reverse-leaves, moved last and independently.</td></tr>
+            <tr><td><b>6</b></td><td>Product domain rename</td><td><span class="mono">logistics</span> → <span class="mono">logistics_freight_forwarding</span>. Wide but shallow: no schema, no data, no model-key change.</td></tr>
+            <tr><td><b>7</b></td><td>Shared shapes</td><td><span class="mono">mixin.charge.line</span> (10 fields + margin behaviour) and <span class="mono">mixin.party.line</span> (5 fields), extracted <i>out of</i> shipped models. <b>18 tests.</b></td></tr>
+        </tbody>
+    </table>
+
+    <h3>Two scope corrections made against measured evidence</h3>
+    <table>
+        <thead><tr><th style="width:30%">Planned</th><th>What the code said</th></tr></thead>
+        <tbody>
+            <tr><td><b>An NVOCC container-control module</b></td><td>All eight of the container/equipment deliverables target <b>base-domain</b> models, and the freight product already ships equipment tracking. Container capability is not agency capability — it belongs in the base. The module was dropped.</td></tr>
+            <tr><td><b><span class="mono">mixin.package.measure</span></b></td><td>Its two candidate consumers share field <i>names</i> but <b>not one shared definition</b> — precision/scale, defaults, read-only and delete-behaviour all differ, and volume is even named differently. Extracting it would re-shape a live column. The volumetric rule is already shared as a function with a single consumer, so there was no behaviour to lift either. Not built.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">The rule both corrections express</span>Extract a shared shape only when a real second consumer exists <b>and</b> the definitions actually match. A shared base that neither consumer fits is worse than two honest copies — and if the definitions differ, "sharing" them silently re-shapes somebody's production column.</div>
+
+    <div class="footer"><span>Logistics Restructure — what shipped</span><span>5</span></div>
+</section>
+
+<!-- ===================== 05 REBASE ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 05</div>
+    <h2><span class="num">05</span>If you have work in flight</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">For most branches the answer is <b>almost nothing</b>. Model keys did not change, so anything referencing a model by key still works untouched.</p>
+
+    <h3>Still valid — do not touch</h3>
+    <table>
+        <thead><tr><th style="width:52%">This still works</th><th>Because</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">@api.model("logistics.equipment")</span> and every <span class="mono">logistics.*</span> key</td><td>Keys were deliberately not renamed</td></tr>
+            <tr><td><span class="mono">env.models["logistics.facility.master"]</span></td><td>Same</td></tr>
+            <tr><td><span class="mono">fields.Reference("logistics.unlocode.master")</span></td><td>Same</td></tr>
+            <tr><td>Command names, hook keys <span class="mono">pre.logistics.*.create</span></td><td>Same</td></tr>
+            <tr><td>XML ids, <span class="mono">&lt;extend ref="masters.view_id"&gt;</span></td><td>Scoped by short app name — unchanged</td></tr>
+            <tr><td>Data CSV filenames</td><td>Encode the model key</td></tr>
+        </tbody>
+    </table>
+
+    <h3>What does change — four surfaces</h3>
+    <p>All keyed to the module's new home: <span class="mono">logistics_base</span> for the 8 shared modules, <span class="mono">logistics_freight_forwarding</span> for the 3 product ones.</p>
+    <pre>BASE='masters\|equipment_operations\|pricing\|sales_crm\|booking\|shipments\|operations_execution\|profitability'
+PROD='consolidation\|documentation\|tracking'
+
+# 1. manifest depends        2. python imports        3. path literals in tests
+grep -rl "\"logistics\.\($BASE\)\"" src/ --include=__manifest__.py \
+  | xargs -r sed -i "s/\"logistics\.\($BASE\)\"/\"logistics_base.\1\"/g"
+grep -rl "domains\.logistics\.\($BASE\)" src/ --include=*.py \
+  | xargs -r sed -i "s/domains\.logistics\.\($BASE\)/domains.logistics_base.\1/g"
+grep -rl "src/domains/logistics/\($BASE\)" src/ --include=*.py \
+  | xargs -r sed -i "s#src/domains/logistics/\($BASE\)#src/domains/logistics_base/\1#g"
+# ... repeat the three with $PROD -> logistics_freight_forwarding
+
+# 4. verify — nothing may remain under the retired domain
+grep -rn 'domains\.logistics\.\|src/domains/logistics/' src/ --include=*.py \
+  | grep -v logistics_base | grep -v logistics_freight_forwarding</pre>
+
+    <div class="callout warn"><span class="ct">⚠ The trap that caught us twice</span>
+        <b>Segmented</b> path constructions are invisible to the slash-form replace above:
+        <pre style="margin:6px 0 4px 0;">Path(__file__).resolve().parents[3] / "domains" / "logistics" / "pricing" / ...</pre>
+        Grep them separately — <span class="mono">grep -rn '"domains" */ *"logistics"' src/ --include=*.py</span> — or they will fail only at test time.</div>
+
+    <p>Then run <span class="mono">./run_tests.sh</span>. A boot failure naming a dependency that "is not loaded yet" means a manifest still points at the old app key.</p>
+
+    <div class="footer"><span>Logistics Restructure — rebasing in-flight work</span><span>6</span></div>
+</section>
+
+<!-- ===================== 06 RULES ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 06</div>
+    <h2><span class="num">06</span>Rules for new code</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Seven rules. The first three are enforced at boot; the rest are judgement, with the reasoning attached so you can apply them to cases this document does not cover.</p>
+
+    <table>
+        <thead><tr><th style="width:6%">#</th><th style="width:34%">Rule</th><th>Why</th></tr></thead>
+        <tbody>
+            <tr><td>1</td><td><b>Never make one product domain depend on another</b></td><td>Rejected at boot. If two products need the same thing, it belongs in the base — that is the whole point of the tier.</td></tr>
+            <tr><td>2</td><td><b>Never make the base depend on a product</b></td><td>Rejected at boot. It inverts the tier and creates a cycle in everything but name.</td></tr>
+            <tr><td>3</td><td><b>List the base domain first</b> in the active-domain list</td><td>Load order is list order; a dependency must already be loaded when declared.</td></tr>
+            <tr><td>4</td><td><b>When unsure, put it in the base</b></td><td>The mistakes are not symmetric. A base module only one product uses is harmless over-inclusion. A product module the <i>other</i> product later needs leaves you blocked — or tempted into rule 1.</td></tr>
+            <tr><td>5</td><td><b>Move modules freely; never rename one casually</b></td><td>A rename changes the short app name, orphaning XML ids that orphan cleanup then deletes. See §3.</td></tr>
+            <tr><td>6</td><td><b>Keep <span class="mono">logistics.*</span> keys for base-tier models</b></td><td>Existing keys are grandfathered. New product-specific models take the product prefix, so the prefix tells you the tier for everything written from here on. Do not mass-rename.</td></tr>
+            <tr><td>7</td><td><b>Prove a relocation with an empty generated migration</b></td><td>The only mechanical proof that a move changed layout and not schema. A non-empty diff means something was edited in transit.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Using a shared shape</h3>
+    <p>Declare a keyed abstract in the base and subclass it — fields, constraints <b>and behaviour</b> inherit normally:</p>
+    <pre>from domains.logistics_base.masters.models.abstracts import ChargeLineMixin
+
+@api.model("logistics.booking.charge")
+class BookingCharge(ChargeLineMixin, DomainModel):
+    booking_id = fields.Reference("logistics.booking", on_delete="cascade", required=True)</pre>
+
+    <table class="dense">
+        <thead><tr><th style="width:34%">You want to…</th><th style="width:32%">Do this</th><th>Not this</th></tr></thead>
+        <tbody>
+            <tr><td>Add a field only one consumer needs</td><td>Declare it on the <b>concrete</b></td><td>—</td></tr>
+            <tr><td>Add a field <b>every</b> consumer needs</td><td>Edit the mixin — you own the base</td><td>The extension SDK: it cannot target an abstract</td></tr>
+            <tr><td>Add a field to a concrete owned by another module</td><td>The extension SDK, with your own migration</td><td>Editing their model file</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">Two behaviours worth knowing</span>On a field-name collision between two mixins, <b>the first base in the class's bases list wins — silently</b>. And a foreign key can never target an abstract: if something must reference "either kind" of a per-product record, use a shared concrete parent, not a mixin.</div>
+
+    <div class="footer"><span>Logistics Restructure — rules for new code</span><span>7</span></div>
+</section>
+
+<!-- ===================== 07 GUARDRAILS ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 07</div>
+    <h2><span class="num">07</span>Guardrails &amp; verification</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The structure is not held together by documentation. Three checks fail the build if it drifts.</p>
+
+    <table>
+        <thead><tr><th style="width:30%">Guard</th><th>Rejects</th></tr></thead>
+        <tbody>
+            <tr><td><b>Domain tier validator</b><br><span class="note">at boot</span></td><td>A base domain depending on a product domain; two product domains depending on each other. Names the app, the dependency and the rule broken, and reports every violation at once.</td></tr>
+            <tr><td><b>Abstract lineage validator</b><br><span class="note">at boot</span></td><td>A concrete inheriting a <span class="mono">mixin.*</span> key whose module never loaded — almost always a missing manifest dependency.</td></tr>
+            <tr><td><b>Boot assertion in the test suite</b></td><td>Any app reappearing under the retired <span class="mono">logistics</span> domain. Pins all 8 base apps and all 3 product apps by name.</td></tr>
+            <tr><td><b>Schema-drift guard</b><br><span class="note">shared shapes</span></td><td>Any change to a concrete's field set after the mixin extraction, and any attempt to normalise the deliberately-divergent charge definitions. A future tidy-up fails the build rather than the database.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">5888</div><div class="cap">pytest passing</div></div>
+        <div class="stat"><div class="big">673</div><div class="cap">vitest passing</div></div>
+        <div class="stat"><div class="big">47</div><div class="cap">tests added</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">apps generator-verified</div></div>
+    </div>
+
+    <h3>How each stream was verified</h3>
+    <ul class="tight">
+        <li>Full suite run after <b>every</b> stream — not once at the end.</li>
+        <li>Every failure encountered was a <b>stale test literal</b> (a hardcoded path or app key encoding the old layout), never a behavioural regression. Those were fixed as assertions, since the restructure was the intent.</li>
+        <li>The empty-migration gate was run with the real generator against PostgreSQL, not inferred.</li>
+        <li>Base-tier-only activation is a test: the base boots with no product domain present.</li>
+    </ul>
+
+    <div class="callout warn"><span class="ct">⚠ One thing not proven</span>
+        The migration analysis in §3 was verified by reading the registry sync, the migration runner and the external-id model — and by the generator emitting nothing. It was <b>not</b> proven by upgrading a real tenant seeded on the old structure. If you want that evidence before a production rollout, it is a scratch-tenant test worth adding.</div>
+
+    <div class="footer"><span>Logistics Restructure — guardrails</span><span>8</span></div>
+</section>
+
+<!-- ===================== 08 WHAT'S NEXT ===================== -->
+<section class="page">
+    <div class="eyebrow">Section 08</div>
+    <h2><span class="num">08</span>What is not done</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The restructure is complete and production-safe. The product it was built for is not yet built.</p>
+
+    <table>
+        <thead><tr><th style="width:26%">Item</th><th style="width:16%">State</th><th>Note</th></tr></thead>
+        <tbody>
+            <tr><td><b>NVOCC domain + agency module</b></td><td><span class="pill p-build">NOT STARTED</span></td><td>The second product domain: principal master and its lifecycle, entitlement, agency governance, numbering, partner registry, readiness gate. Unblocked — everything it depends on has landed.</td></tr>
+            <tr><td><b>Container control</b></td><td><span class="pill p-build">NOT STARTED</span></td><td>Now <b>base</b> work, not NVOCC work: ownership-type master, movement-event crosswalk, ISO check digit behind a configuration switch, status guards. Extends the shared equipment registry in place.</td></tr>
+            <tr><td><b>Principal-wise data scoping</b></td><td><span class="pill p-gap">GATED</span></td><td>The remaining hard piece. The platform has a mature scoping mechanism for exactly one dimension — it injects an ownership filter on every read and fails closed. A principal is a second, orthogonal dimension. Generalising that mechanism is an approval-gated kernel change.</td></tr>
+            <tr><td><b>Tax, finance mapping, regional packs</b></td><td><span class="pill p-gap">BLOCKED</span></td><td>All depend on the platform localization module, which has not started. Sequence it ahead or descope.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Reference material</h3>
+    <table>
+        <thead><tr><th style="width:44%">Document</th><th>Purpose</th></tr></thead>
+        <tbody>
+            <tr><td><span class="mono">docs/logistics-restructure-guide.md</span></td><td>Living change log + the rebase recipe. Update it when you move a module.</td></tr>
+            <tr><td><span class="mono">docs/nvocc-domain-enablement.md</span></td><td>The architecture decision and its reasoning.</td></tr>
+            <tr><td>Developer work streams (PDF)</td><td>Per-stream build cards, including the two NVOCC streams still open.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">The shape of the win</span>
+        Adding NVOCC now changes nothing about how freight forwarding works — it activates alongside, over the same masters, pricing, booking, shipments and container registry. And because peer coupling fails at boot rather than in review, the next product after that is the same additive exercise. That property, not the folder layout, is what this restructure bought.</div>
+
+    <div class="footer"><span>Logistics Restructure — what is not done</span><span>9</span></div>
+</section>
+
+</body>
+</html>

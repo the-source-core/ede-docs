@@ -22,7 +22,7 @@ BASE DOMAIN
 PRODUCT DOMAINS            │                      │
 ┌──────────────────────────┴─────────┐  ┌─────────┴──────────────────┐
 │ src/domains/                       │  │ src/domains/               │
-│   logistics_freight_forwarding/    │  │   logistics_nvocc/         │
+│   logistics_freight_forwarding/    │  │   logistics_nvocc_agency/         │
 │ consolidation · documentation ·    │  │ agency                     │
 │ tracking                           │  │                            │
 └────────────────────────────────────┘  └────────────────────────────┘
@@ -35,15 +35,15 @@ App keys are derived from folder position, so they read exactly as intended:
 |---|---|
 | `src/domains/logistics_base/` | `logistics_base.masters`, `logistics_base.equipment_control`, … |
 | `src/domains/logistics_freight_forwarding/` | `logistics_freight_forwarding.shipments`, `logistics_freight_forwarding.consolidation`, … |
-| `src/domains/logistics_nvocc/` | `logistics_nvocc.agency` |
+| `src/domains/logistics_nvocc_agency/` | `logistics_nvocc_agency.agency_masters` |
 
 ### Activation
 
 ```python
 # src/domains/settings.py — base domain MUST come first (see §2)
-ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding", "logistics_nvocc"]   # full-service customer
+ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding", "logistics_nvocc_agency"]   # full-service customer
 ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding"]                      # freight forwarding only
-ACTIVE_DOMAINS = ["logistics_base", "logistics_nvocc"]                                   # NVOCC / agency only
+ACTIVE_DOMAINS = ["logistics_base", "logistics_nvocc_agency"]                                   # NVOCC / agency only
 ```
 
 ### This needs no framework change — verified
@@ -58,9 +58,9 @@ Probed directly against `ModuleLoader._validate_depends`:
 
 | Case | Result |
 |---|---|
-| `logistics_nvocc.agency` → `logistics_base.masters`, base loaded first | ✅ **Accepted** — the structure works today |
+| `logistics_nvocc_agency.agency_masters` → `logistics_base.masters`, base loaded first | ✅ **Accepted** — the structure works today |
 | Same dependency, base **not** loaded yet (wrong `ACTIVE_DOMAINS` order) | ✅ **Rejected**, with a clear message naming the missing key — ordering is self-enforcing |
-| `logistics_nvocc.agency` → `logistics_freight_forwarding.shipments` (peer coupling) | ⚠️ **Accepted** — the loader does **not** block it |
+| `logistics_nvocc_agency.agency_masters` → `logistics_freight_forwarding.shipments` (peer coupling) | ⚠️ **Accepted** — the loader does **not** block it |
 
 So the structure is a **packaging and governance** change, not a kernel change — and the third row is why §2's boot guard is not optional.
 
@@ -81,19 +81,19 @@ CLAUDE.md currently states the rule absolutely: *"Domains never depend on other 
 | Tier | May depend on | Must never depend on |
 |---|---|---|
 | **Base domain** (`logistics_base`) | `foundation.*` only | Any product domain |
-| **Product domain** (`logistics_freight_forwarding`, `logistics_nvocc`) | `foundation.*`, any **base** domain, own siblings | Another **product** domain |
+| **Product domain** (`logistics_freight_forwarding`, `logistics_nvocc_agency`) | `foundation.*`, any **base** domain, own siblings | Another **product** domain |
 
 That keeps the graph acyclic and one-directional, keeps each product domain independently activatable, and states plainly the one edge that is now legal.
 
 ### Make it a guard, not a comment
 
-The loader will happily accept `logistics_freight_forwarding → logistics_nvocc` — it only checks load order. A documented rule that nothing enforces is the risk this structure introduces, so close it at boot. Everything needed is already in the registry: `AppSpec` carries `domain_type` and `depends`.
+The loader will happily accept `logistics_freight_forwarding → logistics_nvocc_agency` — it only checks load order. A documented rule that nothing enforces is the risk this structure introduces, so close it at boot. Everything needed is already in the registry: `AppSpec` carries `domain_type` and `depends`.
 
 Declare the tiers:
 
 ```python
 # src/domains/settings.py
-ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding", "logistics_nvocc"]
+ACTIVE_DOMAINS = ["logistics_base", "logistics_freight_forwarding", "logistics_nvocc_agency"]
 BASE_DOMAINS   = ["logistics_base"]      # tier declaration — everything else is a product domain
 ```
 
@@ -139,7 +139,7 @@ For every loaded domain app, for each declared dependency:
 | `consolidation` | **`logistics_freight_forwarding`** | — | Co-load / consol as modelled today is freight-forwarding-specific. |
 | `documentation` | **`logistics_freight_forwarding`** | needs `consolidation` | Reverse-leaf. Travels with `consolidation`. |
 | `tracking` | **`logistics_freight_forwarding`** | needs `consolidation` | Reverse-leaf. Travels with `consolidation`. |
-| `agency` | **`logistics_nvocc`** | — | The only genuinely NVOCC-owned module: principal, entitlement, agency governance. |
+| `agency` | **`logistics_nvocc_agency`** | — | The only genuinely NVOCC-owned module: principal, entitlement, agency governance. |
 
 Those last three move together or not at all, because `documentation` and `tracking` both depend on `consolidation`. Keeping them out also matches the SOW, where bill-of-lading, manifest and container-tracking *execution* are separate downstream specifications. Verified tier-valid: nothing in the base depends on any of the three.
 
@@ -154,7 +154,7 @@ The SOW's Phase 2 is titled *"Container & Equipment Control"* (D2.1–D2.8), whi
 | D2.4 Status lifecycle · D2.5 Movement crosswalk | equipment status masters, movement events | `logistics_base` |
 | D2.6 Yard / CFS / depot · D2.7 Terminal / ICD / port | `logistics.facility.master`, `logistics.unlocode.master` | `logistics_base.masters` |
 
-The freight product already ships equipment tracking today, and ISO check digits, ownership types and CODECO/COARRI event codes are container concerns, not agency concerns. **NVOCC owns exactly one slice of Phase 2:** `principal_id` on the equipment record, contributed via `@api.extend_model("logistics.equipment")` from `logistics_nvocc.agency` — because it references `nvocc.principal`, and the base can never point at a product domain.
+The freight product already ships equipment tracking today, and ISO check digits, ownership types and CODECO/COARRI event codes are container concerns, not agency concerns. **NVOCC owns exactly one slice of Phase 2:** `principal_id` on the equipment record, contributed via `@api.extend_model("logistics.equipment")` from `logistics_nvocc_agency.agency_masters` — because it references `nvocc.principal`, and the base can never point at a product domain.
 
 Two calls remain genuinely yours, because they are business-semantics questions rather than graph-forced ones: whether **booking** should be one shared model or per-product concretes over a shared shape, and how much of **documentation** NVOCC will eventually need.
 
@@ -184,7 +184,7 @@ Keeping the keys preserves all 284 references, all 32 seed files — including t
 | `logistics.*` | **`logistics_base`** | Shared across the logistics vertical |
 | `mixin.*` | `logistics_base` | Keyed abstract shapes (§6) |
 | `logistics_ff.*` | `logistics_freight_forwarding` | Freight-forwarding-specific, **new models only** |
-| `nvocc.*` | `logistics_nvocc` | NVOCC / agency-specific |
+| `nvocc.*` | `logistics_nvocc_agency` | NVOCC / agency-specific |
 
 **Existing FF model keys are grandfathered.** `logistics.shipment`, `logistics.booking` and friends keep their keys even though they sit in a product domain — renaming them means a table rename plus FK repointing across ~10 child models plus invalidation of every stored reference naming the old key, for zero capability. New FF models take `logistics_ff.*`. The prefix then tells you the tier for everything written from here on.
 
@@ -358,7 +358,7 @@ Extract an abstract **only when the second consumer actually exists**. A base pu
 
 ### Phase 1 — Stand up the three domains
 
-- [ ] Create `src/domains/logistics_base/`, `src/domains/logistics_freight_forwarding/`, `src/domains/logistics_nvocc/`, each with `__init__.py` + `settings.py`.
+- [ ] Create `src/domains/logistics_base/`, `src/domains/logistics_freight_forwarding/`, `src/domains/logistics_nvocc_agency/`, each with `__init__.py` + `settings.py`.
 - [ ] Move the common modules into `logistics_base` per §3; move `shipments` / `consolidation` into `logistics_freight_forwarding`.
 - [ ] **Leave every model key unchanged.**
 - [ ] Re-header the affected migrations to their new app keys; update every manifest `depends` to the new fully-qualified keys.
@@ -374,7 +374,7 @@ Extract an abstract **only when the second consumer actually exists**. A base pu
 
 ### Phase 3 — Build NVOCC
 
-- [ ] Add `logistics_nvocc` to `ACTIVE_DOMAINS`; scaffold `agency` per the SOW.
+- [ ] Add `logistics_nvocc_agency` to `ACTIVE_DOMAINS`; scaffold `agency` per the SOW.
 - [ ] SOW Phase 2 (D2.1–D2.8) is built in `logistics_base.equipment_control` + `logistics_base.masters`, **not** in NVOCC. NVOCC contributes only the principal link via `@api.extend_model("logistics.equipment")`.
 - [ ] The principal scope dimension — still the one other approval-gated platform change.
 - **Verify:** full suite · three activation combinations each boot clean (base+ff, base+nvocc, all three) · demo data smoke-tested per module · cross-principal access tests.
@@ -404,7 +404,7 @@ Extract an abstract **only when the second consumer actually exists**. A base pu
 
 | Don't | Why it breaks | Instead |
 |---|---|---|
-| Let `logistics_freight_forwarding` and `logistics_nvocc` reference each other | The one edge the tier rule exists to forbid — and the loader accepts it silently. | Lift the shared concept into `logistics_base`. |
+| Let `logistics_freight_forwarding` and `logistics_nvocc_agency` reference each other | The one edge the tier rule exists to forbid — and the loader accepts it silently. | Lift the shared concept into `logistics_base`. |
 | Let `logistics_base` depend on a product domain | Inverts the tier and creates a cycle in everything but name. | Base depends on `foundation.*` only. |
 | Ship the tier rule as documentation only | Nothing enforces it; the first mistake lands in `main` green. | `validate_domain_tiers` at boot, Phase 1. |
 | Put `logistics_base` after a product domain in `ACTIVE_DOMAINS` | Dependency validation fails — the dep isn't loaded yet. | Base first. |
