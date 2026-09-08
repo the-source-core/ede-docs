@@ -278,7 +278,7 @@ Edge case the adapter explicitly protects against: LangChain 0.3 sometimes auto-
 - [`anthropic.py`](../src/ede/foundation/ai/services/provider/anthropic.py) / [`openai.py`](../src/ede/foundation/ai/services/provider/openai.py) / [`ollama.py`](../src/ede/foundation/ai/services/provider/ollama.py) — Layer 3 thin builders.
 - [`class_registry.py`](../src/ede/foundation/ai/services/provider/class_registry.py) — `name → (ChatModel class, cost fn)` registry. `register_provider`, `resolve_provider`, `registered_names`.
 - [`builder.py`](../src/ede/foundation/ai/services/provider/builder.py) — DB-row → registry lookup → ChatModel construction → `FoundationAIAdapter` wrapping. Org-scoping resolver + kwarg filtering live here.
-- [`provider_config.py`](../src/ede/foundation/ai/models/provider_config.py) — `ai.provider.config` model (operator-tunable knobs only).
+- `provider_config.py` — `ai.provider.config` model (operator-tunable knobs only).
 - [`test_sse_wire_shape.py`](../src/tests/foundation/ai/test_sse_wire_shape.py) — byte-identical SSE event-sequence regression test.
 - [`foundation-ai.md`](./foundation-ai.md) — module overview / status / configuration introduced.
 - [Enhancement 03 roadmap](../roadmap/foundation/ai/enhancements/03-langchain-provider-adapter.md) — the spec this guide is implemented from.

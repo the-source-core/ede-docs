@@ -40,7 +40,8 @@ The existing manifest `data: [...]` channel is for production reference seeds (c
 ```
 ede migrate upgrade -t <tenant> [--with-demo=<scope>]
   ├─ boot_runtime_and_environment        # registers AppSpec + demo_files
-  ├─ alembic upgrade heads                # schema upgrade
+  ├─ before_*.py upgrade scripts          # only for apps whose version moved
+  ├─ SchemaSynchronizer.apply             # compare models vs DB, apply the difference
   ├─ RegistrySync (optional)
   ├─ DataLoader.load_all_apps             # manifest data/*  → ir.data.reference (is_demo=False)
   ├─ DataLoader.load_demo_for_apps        # (only if --with-demo) demo/* → ir.data.reference (is_demo=True)
@@ -157,7 +158,7 @@ _none_
 | `--with-demo=all|<app_keys>` CLI flag on `ede migrate upgrade` | _none (CLI surface)_ | [src/ede/cli/commands/migrate.py](../src/ede/cli/commands/migrate.py) | [roadmap/platform/03-demo-data-loader.md](../roadmap/platform/03-demo-data-loader.md) |
 | `demo: [...]` manifest key + `AppSpec.demo_files` | _none_ | [src/ede/core/loader.py](../src/ede/core/loader.py), [src/ede/core/registry.py](../src/ede/core/registry.py) | [roadmap/platform/03-demo-data-loader.md](../roadmap/platform/03-demo-data-loader.md) |
 | `DataLoader.load_demo_for_apps` (per-app `demo/*.xml` pass, shared ref cache, `is_demo=True` tagging) | _none_ | [src/ede/core/services/data_loader/loader.py](../src/ede/core/services/data_loader/loader.py) | [roadmap/platform/03-demo-data-loader.md](../roadmap/platform/03-demo-data-loader.md) |
-| `ir.data.reference.is_demo` Boolean + index | `ir.data.reference` | [src/ede/foundation/base/models/data_reference.py](../src/ede/foundation/base/models/data_reference.py), [03658b1fa089_add_ir_data_reference_is_demo.py](../src/ede/foundation/base/migrations/versions/03658b1fa089_add_ir_data_reference_is_demo.py) | [roadmap/platform/03-demo-data-loader.md](../roadmap/platform/03-demo-data-loader.md) |
+| `ir.data.reference.is_demo` Boolean + index | `ir.data.reference` | [src/ede/foundation/base/models/data_reference.py](../src/ede/foundation/base/models/data_reference.py), 03658b1fa089_add_ir_data_reference_is_demo.py | [roadmap/platform/03-demo-data-loader.md](../roadmap/platform/03-demo-data-loader.md) |
 | `OrphanCleanup` filters `is_demo=True` rows so flag-less migrates never reclassify demo rows as orphans | `ir.data.reference` | [src/ede/core/services/data_loader/orphan_cleanup.py](../src/ede/core/services/data_loader/orphan_cleanup.py) | [roadmap/platform/03-demo-data-loader.md](../roadmap/platform/03-demo-data-loader.md) |
 <!-- /SYNC-BLOCK -->
 

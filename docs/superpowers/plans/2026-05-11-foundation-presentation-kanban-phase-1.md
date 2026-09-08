@@ -15,7 +15,7 @@
 **Prerequisites verified:**
 - `foundation.workflow` Phase 1 ✅ — `WorkflowEngine.transition_by_command` available.
 - `foundation.workflow` Phase 2 🟡 — `WorkflowController` HTTP routes (`/api/workflow/:model_key/:field/states`, `/available`, `/transition`) exist at [src/ede/foundation/workflow/api/workflow_routes.py](../../../src/ede/foundation/workflow/api/workflow_routes.py). Routes are partially in flight; the kanban consumes them as a soft prerequisite. (Note: there is a known one-line bug at `workflow_routes.py:238` — `env.models.get(...)` should be `env.models[...]`. Fix as part of Task 11 if it surfaces in walkthrough.)
-- `viewRegistry.ts` already reserves a `kanban` slot ([src/frontend/src/workspace/views/viewRegistry.ts](../../../src/frontend/src/workspace/views/viewRegistry.ts)).
+- `viewRegistry.ts` already reserves a `kanban` slot (src/frontend/src/workspace/views/viewRegistry.ts).
 
 ---
 
@@ -543,7 +543,7 @@ Expected: all 11 tests PASS.
 **Files:**
 - Create: `src/frontend/src/workspace/views/kanban/types.ts`
 - Create: `src/frontend/src/workspace/views/kanban/KanbanView.tsx`
-- Modify: [src/frontend/src/workspace/components/action/WorkspaceActionContent.tsx](../../../src/frontend/src/workspace/components/action/WorkspaceActionContent.tsx)
+- Modify: src/frontend/src/workspace/components/action/WorkspaceActionContent.tsx
 
 ### Step 3.1 — Write the types file
 
@@ -659,7 +659,7 @@ export function KanbanView(props: KanbanViewProps) {
 
 ### Step 3.3 — Wire into `WorkspaceActionContent`
 
-Open [src/frontend/src/workspace/components/action/WorkspaceActionContent.tsx](../../../src/frontend/src/workspace/components/action/WorkspaceActionContent.tsx). Find the view-type switch (search for `view_type === "list"`). Add a kanban branch with the same prop-shape pattern; pull props from existing context hooks. Use `// @ts-expect-error temporary until Task 5 lands KanbanBoard` to suppress the deliberate broken import. The exact prop wiring will be tightened in Task 5.
+Open src/frontend/src/workspace/components/action/WorkspaceActionContent.tsx. Find the view-type switch (search for `view_type === "list"`). Add a kanban branch with the same prop-shape pattern; pull props from existing context hooks. Use `// @ts-expect-error temporary until Task 5 lands KanbanBoard` to suppress the deliberate broken import. The exact prop wiring will be tightened in Task 5.
 
 ### Step 3.4 — Verify TypeScript surface for types file
 
@@ -1542,7 +1542,7 @@ Expected: all 4 drag tests pass.
 ## Task 10 — Group-by switcher in control panel
 
 **Files:**
-- Modify: [src/frontend/src/workspace/components/action/WorkspaceActionControlPanel.tsx](../../../src/frontend/src/workspace/components/action/WorkspaceActionControlPanel.tsx)
+- Modify: src/frontend/src/workspace/components/action/WorkspaceActionControlPanel.tsx
 
 ### Step 10.1 — Add the dropdown
 
@@ -1789,8 +1789,8 @@ Expected: 3 tests pass.
 ## Task 14 — First adopter: `pricing.rate` kanban
 
 **Files:**
-- Create: [src/domains/logistics/pricing/views/pricing_rate_kanban.xml](../../../src/domains/logistics/pricing/views/pricing_rate_kanban.xml)
-- Modify: [src/domains/logistics/pricing/__manifest__.py](../../../src/domains/logistics/pricing/__manifest__.py) to register the new view
+- Create: [src/domains/logistics_base/pricing/views/pricing_rate_kanban.xml](../../../src/domains/logistics_base/pricing/views/pricing_rate_kanban.xml)
+- Modify: [src/domains/logistics_base/pricing/__manifest__.py](../../../src/domains/logistics_base/pricing/__manifest__.py) to register the new view
 
 ### Step 14.1 — Write the view XML
 
@@ -1815,7 +1815,7 @@ Expected: 3 tests pass.
 </view>
 ```
 
-Adjust the field names to match the actual `pricing.rate` schema if any of `rate_code`, `customer_id`, `origin_id`, `destination_id`, `net_margin_amount`, `valid_until`, `currency_id` are named differently. Cross-check against [src/domains/logistics/pricing/models/](../../../src/domains/logistics/pricing/) during implementation.
+Adjust the field names to match the actual `pricing.rate` schema if any of `rate_code`, `customer_id`, `origin_id`, `destination_id`, `net_margin_amount`, `valid_until`, `currency_id` are named differently. Cross-check against [src/domains/logistics_base/pricing/](../../../src/domains/logistics_base/pricing/) during implementation.
 
 ### Step 14.2 — Register in manifest
 
@@ -1830,7 +1830,7 @@ Open `__manifest__.py`. Add the path to the `data` list:
 
 ### Step 14.3 — Wire as a view on the `pricing.rate` action
 
-The action XML lives in [src/domains/logistics/pricing/data/](../../../src/domains/logistics/pricing/) — find the `ir.action` row for `pricing.rate` (search `model_key=pricing.rate`) and add `kanban` to its `view_modes` field (CSV).
+The action XML lives in [src/domains/logistics_base/pricing/](../../../src/domains/logistics_base/pricing/) — find the `ir.action` row for `pricing.rate` (search `model_key=pricing.rate`) and add `kanban` to its `view_modes` field (CSV).
 
 ### Step 14.4 — Run pytest
 

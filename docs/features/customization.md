@@ -38,7 +38,7 @@ class Post(DomainModel):
     body = fields.Text()
 ```
 
-Generate and apply an Alembic migration — `ede migrate generate -m "blog.post: enable custom_properties"` adds a `blog_post.properties` JSONB column defaulting to `{}`. The model is now ready to receive tenant-defined properties.
+Run `ede migrate upgrade -t <tenant>` — the schema comparison sees the declared `properties` JSONB column, adds it to `blog_post` defaulting to `{}`, and the model is ready to receive tenant-defined properties. There is no migration to write.
 
 ### Define a property (Settings UI)
 

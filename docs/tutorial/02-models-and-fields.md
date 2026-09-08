@@ -314,11 +314,11 @@ class BlogPost(DomainModel):
 The change to the model has not yet hit the database. Generate a new migration revision and apply it:
 
 ```bash
-ede migrate generate -m "blog.post fields expansion" --app blog.post
+ede migrate check -t system      # see exactly which columns will be added
 ede migrate upgrade -t system
 ```
 
-Open the generated file under `src/domains/blog/post/migrations/versions/`. Alembic has diffed your field declarations against the current schema and emitted `op.add_column(...)` calls for every new field, plus a new index for `title` and the unique index for `slug`.
+The check output lists one `missing_column` finding per new field — the comparison has diffed your field declarations against the current schema and emitted `op.add_column(...)` calls for every new field, plus a new index for `title` and the unique index for `slug`.
 
 The repository auto-stamps `created_at_utc` / `updated_at_utc` / `revision` on each write — you don't write migration code for those.
 
@@ -349,6 +349,6 @@ The response includes every declared field plus the auto-injected ones. `word_co
 -   Tuned the model with `@api.model` options: `record_name`, `display_name_format`, `default_order`, `name_search_fields`.
 -   Added a **computed field** (`word_count`) that derives its value from `body`.
 -   Declared an **`active` Boolean** so the ORM treats archived posts as hidden by default.
--   Generated a follow-up Alembic revision and applied it — the schema now matches the expanded model.
+-   Applied the change with `ede migrate upgrade` — the schema now matches the expanded model, with no file written.
 
 [:octicons-arrow-right-24: **Next — Views & the Web Client**](03-views-and-web-client.md)

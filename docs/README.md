@@ -22,7 +22,7 @@ implementation details, and developer guides.
 | 09 | [Tenancy](09-tenancy.md) | Per-tenant databases, Env cloning, tenant resolution, thread context |
 | 10 | [Presentation DSL](10-presentation-dsl.md) | View XML format, DslParser, ViewRegistry, RenderPlan |
 | 11 | [Foundation Apps](11-foundation-apps.md) | base, auth, presentation — built-in models, routes, conventions |
-| 12 | [Migrations](12-migrations.md) | Alembic per-app version locations, multi-tenant upgrade |
+| 12 | [Schema Upgrades](runtime-schema-upgrades.md) | Models as the source of truth; version-keyed upgrade scripts |
 | 13 | [Developer Guide](13-dev-guide.md) | Step-by-step: adding domains, apps, models, commands, routes |
 | 14 | [Lifecycle Hooks](14-lifecycle-hooks.md) | `pre.*` / `post.*` hooks, hook key derivation, `cmd.record` semantics, field tracking hooks, examples |
 | 15 | [Command & Event Usage Guide](15-command-event-guide.md) | When to use `on_command`, `on_event`, `on_event(track_fields)`, and `web.client.*` push events |
@@ -82,8 +82,8 @@ Domain docs co-locate with the domain — they live under `src/domains/<domain>/
 
 | Doc | Module | Roadmap |
 |---|---|---|
-| [Rate Management System (RMS)](../src/domains/logistics/docs/pricing.md) | `pricing.*` (logistics) | [roadmap/logistics/pricing/](../roadmap/logistics/pricing/README.md) |
-| [Sales & CRM](../src/domains/logistics/docs/sales-crm.md) | `crm.*` (logistics, planned) | [roadmap/logistics/sales-crm/](../roadmap/logistics/sales-crm/README.md) |
+| [Rate Management System (RMS)](../src/domains/logistics_freight_forwarding/docs/pricing.md) | `pricing.*` (logistics) | [roadmap/logistics/pricing/](../roadmap/logistics/pricing/README.md) |
+| [Sales & CRM](../src/domains/logistics_freight_forwarding/docs/sales-crm.md) | `crm.*` (logistics, planned) | [roadmap/logistics/sales-crm/](../roadmap/logistics/sales-crm/README.md) |
 | [Servora Integration — External Reference-Data Platform](../src/domains/onemaster/docs/onemaster.md) | `foundation.servora_sync` (the in-house OneMaster hub is **retired**; reference master data — geography, ports, airports, countries, currencies, FX — is now served by **Servora**, a separate self-hosted platform in its own repo. EDE integrates as a **consumer** over HTTPS via `foundation.servora_sync`; all 3 integration phases 🔴 Not Started — geography path unblocked today, financial path waits on Servora's FX connector) | [roadmap/onemaster/](../roadmap/onemaster/README.md) |
 
 > Roadmap is the source of truth. Status, configuration, and built-vs-planned reflected in these docs are mirrored from the roadmap module READMEs and feature files. To refresh, edit the roadmap and invoke the `syncing-roadmap-to-docs` skill.
@@ -104,7 +104,10 @@ Status-bearing platform-wide changes (kernel/ORM/cross-cutting) are mirrored fro
 | [Active-Organization Context + `company_scope` ORM Opt-In](platform-08-active-organization-and-company-scope.md) 🔴 | Kernel-level cross-cutting design for `foundation.security` Phases 1–4: `Env.active_organization_id` + `with_active_organization_id` clone; `@api.model(company_scope="strict\|optional\|multi"\|None)` decorator with auto-injection of `organization_id` (strict/optional) or `organization_ids` M2M (multi); `apply_company_filter` helper alongside `apply_active_filter`; `register_company_scope_hooks` registrar mirroring `register_authorization_hooks`; 5 new `$principal.*` keys (`active_organization_id`, `allowed_organization_ids`, split `org_ids` / `branch_ids` / `department_ids`); audit-log column additions on `ir.rbac.decision.log` + `ir.rbac.binding.change.log`. Delivery sequenced through `foundation.security` W1–W4. | [roadmap/platform/08-active-organization-and-company-scope.md](../roadmap/platform/08-active-organization-and-company-scope.md) |
 | [Monetary Field Type](platform-09-monetary-field-type.md) ✅ | New kernel `fields.Monetary(currency_field=...)` — subclass of `Decimal` keeping `field_type="decimal"` (no amount-column migration). `currency_field` defaults to `currency_id`; absent → plain decimal (explicit-but-missing fails fast at boot). Auto-applies the `monetary` widget via a `default_widget` field-spec hint; bare `<field/>` renders as money, explicit `widget=` still overrides. Output is **currency-driven**: `res.currency` gains `symbol_position` / `decimal_separator` / `thousand_separator` (additive migration; `symbol` + `decimal_precision` reused) and `MonetaryField.tsx` formats per the linked currency row. Spans `ede.core.kernel` + `foundation.base` + `foundation.presentation`. | [roadmap/platform/09-monetary-field-type.md](../roadmap/platform/09-monetary-field-type.md) |
 | [`@api.autovacuum` + Transient Models](platform-11-autovacuum-and-transient-models.md) ✅ | Kernel `@api.autovacuum` cleanup decorator + registry collection + `__ede_transient__` model-kind (auto TTL vacuum via `created_at_utc`), swept daily by a config-defined `ir.autovacuum.gc` `ir.job` — plain target in `foundation.base`, XML job (not `@api.scheduled_job`) because base imports during `ede.core.api`'s mid-load. First consumer: `foundation.base` Enh 10 (admin password-reset wizard). | [roadmap/platform/11-autovacuum-and-transient-models.md](../roadmap/platform/11-autovacuum-and-transient-models.md) |
-| [Declarative Constraints](platform-15-declarative-constraints.md) 🔴 | Two parallel constraint-declaration surfaces (replaces the rejected single `sql=True` mode-flag). **Phase 1 — DB-driven:** new `constraints.*` kernel namespace (imported like `fields`) — `constraints.Check("min_qty <= max_qty", message=...)` + `constraints.Unique("code", "org_id", ...)` class-body descriptors; attribute name = DB constraint identity (rename-safe migration diffing + `IntegrityError`→friendly-`message` translation); scanned by the metadata builder and emitted by `ede migrate generate` (named, ≤63-char, SQLite batch-rebuild). **Phase 2 — code-driven:** `@api.constrains(*fields)` decorator expanding into `pre.create`+`pre.update` hooks with the record pre-merged + trigger-field gating — removes the two-hook + manual-merge boilerplate. Spans `ede.core.kernel` + `ede.core.api` + `ede.core.registry` + sqlalchemy metadata builder + command bus. | [roadmap/platform/15-declarative-constraints.md](../roadmap/platform/15-declarative-constraints.md) |
+| [Postgres-Only Persistence](platform-13-postgres-only-persistence.md) ✅ | PostgreSQL as the sole engine; deterministic ≤63-char identifier names; audit FKs excluded by decision. Partly superseded by Platform Change 18. |
+| [Complete SQLite Removal](platform-14-sqlite-runtime-and-test-removal.md) ✅ | SQLite runtime engine, settings and every dialect branch deleted; the whole test suite on PostgreSQL; CI on `postgres:16`. |
+| [Runtime Schema Upgrades](platform-18-runtime-schema-upgrades.md) ✅ | **Alembic removed.** The models are the schema — `ede migrate upgrade` compares and applies the difference, never dropping. Renames and backfills ship as version-keyed `upgrades/<version>/` scripts. |
+| [Declarative Constraints](platform-15-declarative-constraints.md) 🔴 | Two parallel constraint-declaration surfaces (replaces the rejected single `sql=True` mode-flag). **Phase 1 — DB-driven:** new `constraints.*` kernel namespace (imported like `fields`) — `constraints.Check("min_qty <= max_qty", message=...)` + `constraints.Unique("code", "org_id", ...)` class-body descriptors; attribute name = DB constraint identity (rename-safe migration diffing + `IntegrityError`→friendly-`message` translation); scanned by the metadata builder and emitted by `ede migrate upgrade` (named, ≤63-char). **Phase 2 — code-driven:** `@api.constrains(*fields)` decorator expanding into `pre.create`+`pre.update` hooks with the record pre-merged + trigger-field gating — removes the two-hook + manual-merge boilerplate. Spans `ede.core.kernel` + `ede.core.api` + `ede.core.registry` + sqlalchemy metadata builder + command bus. | [roadmap/platform/15-declarative-constraints.md](../roadmap/platform/15-declarative-constraints.md) |
 
 ### Platform-wide rules
 
@@ -133,7 +136,7 @@ Files under [roadmap/platform/](../roadmap/platform/) prefixed `00-` (e.g. [00-e
 7. Events            → @api.on_event("app.past") def handler(event, env): ...
 8. Controller        → @api.route_config(prefix=...) class MyController(RouteController)
 9. Views             → XML files declared in __manifest__ "data" key
-10. Migration        → ede migrate generate -m "description"
+10. Schema           → nothing to write; `ede migrate upgrade` converges it
 11. Apply            → ede migrate upgrade -t <tenant>
 ```
 
@@ -184,7 +187,6 @@ Files under [roadmap/platform/](../roadmap/platform/) prefixed `00-` (e.g. [00-e
 ede serve                          # start server
 ede serve --with-worker            # server + event worker (dev)
 ede worker                         # standalone event worker
-ede migrate generate -m "msg"      # generate migrations
 ede migrate upgrade -t <tenant>    # upgrade tenant DB
 ede info                           # show loaded apps
 ```

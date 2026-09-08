@@ -156,7 +156,7 @@ There is **no kanban-specific group-by dropdown** — the kanban honours the sam
 
 Two causes:
 - **Workflow stage doesn't exist.** The kanban shows every `ir.workflow.stage` row for the workflow definition; if a stage is missing from your workflow XML, it won't appear as a column. Add the stage to the `<workflow>` DSL and re-seed.
-- **Backend workflow-definition query field name drift.** The column source queries `ir.workflow.definition` by `(model_key, field_name)`. If a refactor renames either column on the definition model, the query falls through to the fallback bucketing (only data-present columns appear). Fix at [`src/frontend/src/workspace/views/kanban/columnSource.ts`](../src/frontend/src/workspace/views/kanban/columnSource.ts).
+- **Backend workflow-definition query field name drift.** The column source queries `ir.workflow.definition` by `(model_key, field_name)`. If a refactor renames either column on the definition model, the query falls through to the fallback bucketing (only data-present columns appear). Fix at `src/frontend/src/workspace/views/kanban/columnSource.ts`.
 
 ### "I get a `(none)` column with one or two records in it"
 

@@ -110,7 +110,7 @@ Example:
 
 `ensure_database_exists(tenant_id, settings)` — connects to `postgres` default DB and
 creates the tenant DB if it doesn't exist. Called by `ede migrate upgrade` before running
-Alembic.
+the schema synchroniser.
 
 ---
 
@@ -175,7 +175,7 @@ table.info = {
     "ede_app_key":   "logistics.shipment",
 }
 ```
-This is used by Alembic to determine which app "owns" a table for per-app migration
+This records which app "owns" a table, for per-app
 version locations.
 
 ---

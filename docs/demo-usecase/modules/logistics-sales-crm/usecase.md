@@ -168,7 +168,7 @@ Within `demo: [...]` list — parents before children, since later files `ref=` 
 ## Recorded e2e tests
 
 The MVP lifecycle is covered end-to-end by Playwright + pytest tests at
-[`src/domains/logistics/sales_crm/tests/e2e/`](../../../../src/domains/logistics/sales_crm/tests/e2e/).
+[`src/domains/logistics_base/sales_crm/tests/e2e/`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/).
 They live alongside the module (per the [`authoring-e2e-tests`](../../../../.claude/skills/authoring-e2e-tests/SKILL.md)
 module-local rule) so the suite is runnable in isolation:
 
@@ -181,13 +181,13 @@ pytest src/domains/logistics/sales_crm/tests/e2e/ -p ede.foundation.qa_automatio
 
 | Test file | Scenario | Markers |
 |---|---|---|
-| [`test_single_record_full_lifecycle.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_single_record_full_lifecycle.py) | **Canonical end-to-end** — a SINGLE inquiry carried through every stage: Inquiry → Lead → Opportunity → Quote → Acceptance → Handover. Verifies the conversion chain (`converted_lead_id` → `converted_opportunity_id` → `opportunity_id` → `quote_id`) stays intact through every workflow transition + the approval round-trip. | `CRM-MVP-SINGLE-RECORD-LIFECYCLE` |
-| [`test_inquiry_to_quote_full_lifecycle.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_inquiry_to_quote_full_lifecycle.py) | Per-step diagnostic walk-through (5 methods, fresh record per method). Each method isolates one stage transition so a regression points at the exact failing step. | `CRM-MVP-FULL-LIFECYCLE` |
-| [`test_inquiry_disqualified.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_inquiry_disqualified.py) | Walk-in prospect requesting hazardous-cargo lane forwarder doesn't serve — Disqualify terminal state. | `CRM-MVP-INQUIRY-DISQUALIFY` |
-| [`test_lead_dropped.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_lead_dropped.py) | Globex went dark after 3 follow-ups — Drop Lead with reason 'No Decision'. | `CRM-MVP-LEAD-DROP` |
-| [`test_opportunity_close_as_lost.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_opportunity_close_as_lost.py) | Stark Singapore-Mumbai pilot — Close Lost with reason 'Lost to Competitor'. Exercises the `opp_lost_has_reason` workflow guard. | `CRM-MVP-OPPORTUNITY-CLOSE-LOST` |
-| [`test_quote_rejected.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_quote_rejected.py) | Globex rejects sent quote on price — `crm.quote.acceptance` row written with `decision_type='rejected'` and `lost_reason_id` set; no handover created. | `CRM-MVP-QUOTE-REJECT` |
-| [`test_multi_leg_quote.py`](../../../../src/domains/logistics/sales_crm/tests/e2e/test_multi_leg_quote.py) | Wayne door-to-door Mumbai → Singapore (T/S) → Sydney FCL. Authors 4 route legs (origin-haulage / main-carriage / transshipment / destination-haulage) on a single quote version + 7-line charge profile (US$ 60,990 sell across 19 transit days). Verifies leg-type ordering, transit-day rollup (19d), version totals (buy US$ 51,250 / sell US$ 60,990), route summary round-trip, full lifecycle through accept, and handover's denormalised `special_instruction_text` embedding the route summary. | `CRM-MVP-MULTI-LEG-QUOTE` |
+| [`test_single_record_full_lifecycle.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_single_record_full_lifecycle.py) | **Canonical end-to-end** — a SINGLE inquiry carried through every stage: Inquiry → Lead → Opportunity → Quote → Acceptance → Handover. Verifies the conversion chain (`converted_lead_id` → `converted_opportunity_id` → `opportunity_id` → `quote_id`) stays intact through every workflow transition + the approval round-trip. | `CRM-MVP-SINGLE-RECORD-LIFECYCLE` |
+| [`test_inquiry_to_quote_full_lifecycle.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_inquiry_to_quote_full_lifecycle.py) | Per-step diagnostic walk-through (5 methods, fresh record per method). Each method isolates one stage transition so a regression points at the exact failing step. | `CRM-MVP-FULL-LIFECYCLE` |
+| [`test_inquiry_disqualified.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_inquiry_disqualified.py) | Walk-in prospect requesting hazardous-cargo lane forwarder doesn't serve — Disqualify terminal state. | `CRM-MVP-INQUIRY-DISQUALIFY` |
+| [`test_lead_dropped.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_lead_dropped.py) | Globex went dark after 3 follow-ups — Drop Lead with reason 'No Decision'. | `CRM-MVP-LEAD-DROP` |
+| [`test_opportunity_close_as_lost.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_opportunity_close_as_lost.py) | Stark Singapore-Mumbai pilot — Close Lost with reason 'Lost to Competitor'. Exercises the `opp_lost_has_reason` workflow guard. | `CRM-MVP-OPPORTUNITY-CLOSE-LOST` |
+| [`test_quote_rejected.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_quote_rejected.py) | Globex rejects sent quote on price — `crm.quote.acceptance` row written with `decision_type='rejected'` and `lost_reason_id` set; no handover created. | `CRM-MVP-QUOTE-REJECT` |
+| [`test_multi_leg_quote.py`](../../../../src/domains/logistics_base/sales_crm/tests/e2e/test_multi_leg_quote.py) | Wayne door-to-door Mumbai → Singapore (T/S) → Sydney FCL. Authors 4 route legs (origin-haulage / main-carriage / transshipment / destination-haulage) on a single quote version + 7-line charge profile (US$ 60,990 sell across 19 transit days). Verifies leg-type ordering, transit-day rollup (19d), version totals (buy US$ 51,250 / sell US$ 60,990), route summary round-trip, full lifecycle through accept, and handover's denormalised `special_instruction_text` embedding the route summary. | `CRM-MVP-MULTI-LEG-QUOTE` |
 
 All tests use the shared `CrmFactory` (in `tests/e2e/conftest.py`) for realistic
 record creation (USD 65k revenue estimates, Net 30 payment terms, 13%

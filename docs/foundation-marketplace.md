@@ -100,7 +100,7 @@ vendor portal submission   ─►   automated scan (manifest valid,
 |---|---|---|
 | `ScopeEvaluator` (generalized) | Shared with `foundation.l10n` — adds `is_in_extension_scope(record, extension_key)` peer to `is_in_country_scope`. | (Phase 1) `src/ede/foundation/l10n/services/scope_evaluator.py` |
 | `ExtensionRegistry` | Tracks extension catalog + per-tenant activation; provides the gating predicate. | (Phase 1) `src/ede/foundation/marketplace/services/extension_registry.py` |
-| `TenantExtensionRunner` | Runs per-tenant Alembic migration for one extension's version_location. | (Phase 2) `src/ede/foundation/marketplace/services/tenant_runner.py` |
+| `TenantExtensionRunner` | Converges one tenant's schema against the models an extension registers. | (Phase 2) `src/ede/foundation/marketplace/services/tenant_runner.py` |
 | `VendorPortalController` | Vendor-side REST endpoints — submission, draft management, version history. | (Phase 3) `src/ede/foundation/marketplace/controllers/vendor_portal.py` |
 | `ExtensionDeployPipeline` | Approved-extension push to ops cluster — updates `ACTIVE_EXTENSIONS`, triggers rolling restart. | (Phase 3) `src/ede/foundation/marketplace/services/deploy_pipeline.py` |
 | `MarketplaceCatalogService` | REST API tenants consume to discover extensions; respects platform-version compat. | (Phase 3) `src/ede/foundation/marketplace/services/catalog.py` |

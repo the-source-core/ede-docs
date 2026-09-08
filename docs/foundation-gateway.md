@@ -64,11 +64,11 @@ admin UI / API ──> gateway.tenant row (status=pending)
 | Service / Class | Responsibility | Source File |
 |---|---|---|
 | `GatewaySaasWorker` | Background thread polling `gateway.tenant` rows with `status=pending` and driving provisioning. | [services/saas_worker.py](../src/ede/foundation/gateway/services/saas_worker.py) |
-| `DbProvisioner` | Creates per-tenant PostgreSQL database and runs Alembic upgrade via `MigrationRunner`. | [services/db_provisioner.py](../src/ede/foundation/gateway/services/db_provisioner.py) |
+| `DbProvisioner` | Creates the per-tenant PostgreSQL database and converges its schema against the models via `MigrationRunner`. | [services/db_provisioner.py](../src/ede/foundation/gateway/services/db_provisioner.py) |
 | `DockerProvisioner` | Launches dedicated-tier per-tenant Docker containers on the configured Docker network. | [services/docker_provisioner.py](../src/ede/foundation/gateway/services/docker_provisioner.py) |
 | `TraefikRoutePublisher` | Pushes per-tenant routes to Traefik via the Redis provider under `traefik/http/routers/tenant-{key}/**`. | [services/traefik_publisher.py](../src/ede/foundation/gateway/services/traefik_publisher.py) |
 | `TraefikApi` | Read-only client for Traefik REST API — health checks + dashboard probes. | [services/traefik_api.py](../src/ede/foundation/gateway/services/traefik_api.py) |
-| `MigrationRunner` (kernel; **shared primitive**) | Programmatic Alembic upgrade with thread-safe lock. Reused outside gateway too. | [src/ede/core/services/migration/runner.py](../src/ede/core/services/migration/runner.py) |
+| `MigrationRunner` (kernel; **shared primitive**) | Programmatic schema convergence — compares the models against one tenant DB and applies the difference. Holds an in-process lock; the synchroniser it calls takes a PostgreSQL advisory lock that serialises across processes. Reused outside gateway too. | [src/ede/core/services/migration/runner.py](../src/ede/core/services/migration/runner.py) |
 <!-- /SYNC-BLOCK -->
 
 ### Commands
@@ -189,10 +189,10 @@ pending ─> provisioning ─> active ─> suspended ─> pending (reactivate)
 | Shared-pool admission for shared-tier tenants | `gateway.shared_pool` | [models/shared_pool.py](../src/ede/foundation/gateway/models/shared_pool.py) | [roadmap README](../roadmap/foundation/gateway/README.md) |
 | Background provisioning worker (polls `pending` → drives DB + container + route) | `gateway.tenant` | [services/saas_worker.py](../src/ede/foundation/gateway/services/saas_worker.py), [services/db_provisioner.py](../src/ede/foundation/gateway/services/db_provisioner.py), [services/docker_provisioner.py](../src/ede/foundation/gateway/services/docker_provisioner.py) | [roadmap README](../roadmap/foundation/gateway/README.md) |
 | Traefik route publishing via Redis (push, real-time) | — | [services/traefik_publisher.py](../src/ede/foundation/gateway/services/traefik_publisher.py), [services/traefik_api.py](../src/ede/foundation/gateway/services/traefik_api.py) | [roadmap README](../roadmap/foundation/gateway/README.md) |
-| Per-tenant migration runner (programmatic Alembic, thread-safe) | — | [src/ede/core/services/migration/runner.py](../src/ede/core/services/migration/runner.py) | [roadmap README](../roadmap/foundation/gateway/README.md) |
+| Per-tenant schema convergence (programmatic, thread-safe) | — | [src/ede/core/services/migration/runner.py](../src/ede/core/services/migration/runner.py) | [roadmap README](../roadmap/foundation/gateway/README.md) |
 | Dual-port server CLI (`ede serve gateway`) | — | `server.py` (CLI group) | [roadmap README](../roadmap/foundation/gateway/README.md) |
 | Admin HTTP API surface (`/api/gateway/tenants`, `/pools`, `/traefik`, `/public`) | `gateway.tenant`, `gateway.shared_pool` | [api/](../src/ede/foundation/gateway/api/) | [roadmap README](../roadmap/foundation/gateway/README.md) |
-| Dedicated React SaaS-manager UI build variant | — | [src/frontend/src/gateway/](../src/frontend/src/gateway/); `bun run build:gateway`; `docker-compose.gateway.yml` | [roadmap README](../roadmap/foundation/gateway/README.md) |
+| Dedicated React SaaS-manager UI build variant | — | src/frontend/src/gateway/; `bun run build:gateway`; `docker-compose.gateway.yml` | [roadmap README](../roadmap/foundation/gateway/README.md) |
 <!-- /SYNC-BLOCK -->
 
 ### Known Gaps
@@ -219,8 +219,8 @@ pending ─> provisioning ─> active ─> suspended ─> pending (reactivate)
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
-- Baseline tables (`gateway.tenant`, `gateway.shared_pool`) ship in the module's initial Alembic migration; no backfills required.
-- Tenant provisioning per row runs Alembic upgrade against the new per-tenant DB via `MigrationRunner` — head computation respects the multi-app version-locations setup.
+- Baseline tables (`gateway.tenant`, `gateway.shared_pool`) are created by the schema comparison from the module's models; no backfills required.
+- Tenant provisioning per row converges the new per-tenant DB against the models via `MigrationRunner`. A brand-new tenant has no history to replay, so the whole schema is built directly, in its final shape — see [Platform Change 18](platform-18-runtime-schema-upgrades.md).
 <!-- /SYNC-BLOCK -->
 
 ### Permissions / RBAC
@@ -237,7 +237,7 @@ pending ─> provisioning ─> active ─> suspended ─> pending (reactivate)
 - [foundation.auth](foundation-auth.md) — gateway depends on it for admin authentication.
 - [Platform execution rules](../roadmap/platform/00-execution-rules.md)
 - `docker-compose.gateway.yml` (repo root) — compose stack including gateway, app, Traefik, Redis.
-- [src/frontend/src/gateway/](../src/frontend/src/gateway/) — SaaS-manager SPA source (gateway build variant).
+- src/frontend/src/gateway/ — SaaS-manager SPA source (gateway build variant).
 <!-- /SYNC-BLOCK -->
 
 ---

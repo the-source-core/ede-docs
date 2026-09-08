@@ -108,7 +108,7 @@ def list_shipments(self): ...
 | Component        | Technology                          |
 |------------------|-------------------------------------|
 | HTTP server      | FastAPI + Uvicorn                   |
-| ORM / Migrations | SQLAlchemy 2.x Core + Alembic       |
+| ORM / Schema     | SQLAlchemy 2.x Core; schema converged from the models |
 | Databases        | SQLite (dev) / PostgreSQL (prod)    |
 | Message broker   | In-memory (dev) / Kafka (prod)      |
 | Auth             | PyJWT (HS256)                       |
@@ -125,7 +125,6 @@ def list_shipments(self): ...
 ede serve                         # start FastAPI HTTP server
 ede serve --with-worker           # dev mode: server + in-memory worker thread
 ede worker                        # standalone event worker process
-ede migrate generate -m "msg"     # generate Alembic migration for all apps
 ede migrate upgrade -t acme       # upgrade tenant DB to latest heads
 ede info                          # list loaded apps and registered models
 ```
@@ -193,5 +192,5 @@ can emit audit events. Every field change can be tracked and reacted to.
 - [09 — Tenancy](09-tenancy.md)
 - [10 — Presentation DSL (Views)](10-presentation-dsl.md)
 - [11 — Foundation Apps](11-foundation-apps.md)
-- [12 — Migrations](12-migrations.md)
+- [12 — Schema Upgrades](runtime-schema-upgrades.md)
 - [13 — Developer Guide (How to Add an App)](13-dev-guide.md)

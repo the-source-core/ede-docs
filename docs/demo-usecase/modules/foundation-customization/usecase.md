@@ -39,7 +39,7 @@ The *value* of `vendor_code` on the demo rate is set in `logistics.pricing/demo/
 
 ## Dependencies
 
-- `ir_application_view` migration applied (`ede migrate generate --app base` → `ede migrate upgrade`).
+- `ir_application_view` present (created by `ede migrate upgrade` from the declared models).
 - Registry-sync + view-sync phases (both run automatically inside `ede migrate upgrade`, before the data/demo passes — so `pricing.model_pricing_rate` and `pricing.view_pricing_rate_form_view` resolve).
 - `logistics.pricing` demo (the rate that carries the property value).
 

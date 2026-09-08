@@ -254,7 +254,7 @@ If you have an existing workflow expressed as `<ede><data><record model="ir.work
 
 Once it parses, delete the old `<record>` files. The data loader routes by root element — `<workflow>` files go to the workflow loader; everything else continues to use the record DSL.
 
-For a worked example, compare [pricing_rate_workflow.xml](../src/domains/logistics/pricing/data/pricing_rate_workflow.xml) (current) against the prior `<ede><data><record>` form in git history before commit `c8a4f2d9e7b1`.
+For a worked example, compare [pricing_rate_workflow.xml](../src/domains/logistics_base/pricing/data/pricing_rate_workflow.xml) (current) against the prior `<ede><data><record>` form in git history before commit `c8a4f2d9e7b1`.
 
 ---
 

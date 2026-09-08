@@ -86,7 +86,7 @@ presentations.load_action  ──► views.search.has_active = cls.__ede_has_act
 | `RecordSet._get_one2many` / `_get_many2many` | Relational reads; inject active filter on the target model so archived children are hidden from parents. | [src/ede/core/orm/recordset.py](../src/ede/core/orm/recordset.py) |
 | `_ede_handle_search` / `_ede_handle_count` / `_ede_handle_read_group` | Kernel CRUD command-bus handlers; inject active filter before repo call. | [src/ede/core/kernel/model.py](../src/ede/core/kernel/model.py) |
 | `presentations.load_action` | Stamps `has_active` on the search-view payload from `__ede_has_active__`. | [src/ede/foundation/presentation/models/presentations.py](../src/ede/foundation/presentation/models/presentations.py) |
-| `ControlPanelSearchView` (React) | Renders synthetic "Archived" filter chip when `searchView.has_active === true`. | [src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx](../src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx) |
+| `ControlPanelSearchView` (React) | Renders synthetic "Archived" filter chip when `searchView.has_active === true`. | src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx |
 <!-- /SYNC-BLOCK -->
 
 ### Commands
@@ -182,7 +182,7 @@ _none_ — boolean toggle on a per-row field; not a multi-state lifecycle.
 | `Env.with_active_test(bool)` per-scope opt-out | n/a | [core/env.py](../src/ede/core/env.py) | same |
 | 8-callsite injection (ModelProxy x3, RecordSet x2, kernel CRUD x3) | n/a | model_proxy.py, recordset.py, kernel/model.py | same |
 | Backend `has_active` payload on `SearchViewDef` | n/a | [foundation/presentation/models/presentations.py](../src/ede/foundation/presentation/models/presentations.py) | same |
-| Frontend "Archived" toggle in search panel | n/a | [frontend/.../ControlPanelSearchView.tsx](../src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx) | same |
+| Frontend "Archived" toggle in search panel | n/a | frontend/.../ControlPanelSearchView.tsx | same |
 | 18 integration tests | n/a | [src/tests/orm/test_active_filter.py](../src/tests/orm/test_active_filter.py) | same |
 <!-- /SYNC-BLOCK -->
 

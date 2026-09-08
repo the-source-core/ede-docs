@@ -1077,7 +1077,7 @@
 
     And the Phased Delivery table Phase 1 row:
     ```
-    | [Phase 1](./phase-1-implementation.md) | ... | ~3 weeks | 🟡 In Progress (Slice 1+2+3 ✅; Slice 4 remains) |
+    | Phase 1 | ... | ~3 weeks | 🟡 In Progress (Slice 1+2+3 ✅; Slice 4 remains) |
     ```
 
     **(b) `roadmap/foundation/jobs/phase-1-implementation.md`** — top Status header:

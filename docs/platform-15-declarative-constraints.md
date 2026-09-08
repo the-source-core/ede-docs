@@ -16,7 +16,7 @@
 <!-- SYNC-BLOCK: what -->
 Two parallel, first-class ways for a `DomainModel` to declare an invariant, replacing the rejected single `@api.constraints(..., sql=True)` mode-flag:
 
-- **`constraints.*`** — a new kernel namespace (imported exactly like `fields`) of class-body descriptors for **database-enforced** constraints: `constraints.Check("min_qty <= max_qty", message=...)` and `constraints.Unique("code", "org_id", ...)`. Declared beside the fields they constrain, scanned by the metadata builder, emitted into a generated migration, enforced by the database against *any* writer.
+- **`constraints.*`** — a new kernel namespace (imported exactly like `fields`) of class-body descriptors for **database-enforced** constraints: `constraints.Check("min_qty <= max_qty", message=...)` and `constraints.Unique("code", "org_id", ...)`. Declared beside the fields they constrain, scanned by the metadata builder, applied by the schema comparison on `ede migrate upgrade`, enforced by the database against *any* writer.
 - **`@api.constrains(*fields)`** — a decorator for **code-enforced** business rules (conditional, cross-field, cross-record), sugar over the existing `pre.{model}.{op}` hook machinery.
 <!-- /SYNC-BLOCK -->
 
@@ -27,7 +27,7 @@ Today EDE has only single-field flags (`required=` / `unique=` / `regex=`) and h
 
 ### How a user / consumer interacts with it
 <!-- SYNC-BLOCK: how -->
-- **Model author (DB constraint):** `from ede.core.kernel import constraints`, then `qty_bounds = constraints.Check("min_qty <= max_qty", message="min_qty must be ≤ max_qty")` in the class body. Run `ede migrate generate` to emit the named constraint; a violation surfaces the declared `message`, not a raw driver error.
+- **Model author (DB constraint):** `from ede.core.kernel import constraints`, then `qty_bounds = constraints.Check("min_qty <= max_qty", message="min_qty must be ≤ max_qty")` in the class body. Run `ede migrate upgrade` to apply the named constraint; a violation surfaces the declared `message`, not a raw driver error.
 - **Model author (code rule):** decorate a method with `@api.constrains("stage", "partner_id")`; it runs on create and update with the record pre-merged, `self.env` injected, raise to veto.
 - **Downstream module:** a named constraint is addressable by attribute name, symmetric with how `@api.extend_model` addresses fields (override / reference by name).
 <!-- /SYNC-BLOCK -->
@@ -43,7 +43,7 @@ DB-driven (Phase 1):
   constraints.Check / .Unique  (class body)
     -> ConstraintSpec (name = attribute name)
       -> metadata builder scan (alongside FieldSpec)
-        -> ede migrate generate  -> named CHECK / unique index
+        -> ede migrate upgrade   -> named CHECK / unique index
           -> IntegrityError (constraint name) -> ConstraintSpec.message -> ValidationError
 
 Code-driven (Phase 2):
@@ -171,7 +171,7 @@ _none_
 |---|---|---|
 | `constraints.Check` (table-level SQL CHECK) — not yet built. | 🔴 Not Started | [Phase 1](../roadmap/platform/15-declarative-constraints.md) |
 | `constraints.Unique` (composite uniqueness) — not yet built. | 🔴 Not Started | [Phase 1](../roadmap/platform/15-declarative-constraints.md) |
-| Metadata-builder scan + `ede migrate generate` emission (named, ≤63-char, SQLite batch-rebuild) — not yet built. | 🔴 Not Started | [Phase 1](../roadmap/platform/15-declarative-constraints.md) |
+| Metadata-builder scan + schema-comparison emission (named, ≤63-char) — not yet built. | 🔴 Not Started | [Phase 1](../roadmap/platform/15-declarative-constraints.md) |
 | `IntegrityError` → friendly-`message` translation — not yet built. | 🔴 Not Started | [Phase 1](../roadmap/platform/15-declarative-constraints.md) |
 | `@api.constrains(*fields)` decorator + pre-hook expansion (merged record, trigger-field gate) — not yet built. | 🔴 Not Started | [Phase 2](../roadmap/platform/15-declarative-constraints.md) |
 <!-- /SYNC-BLOCK -->
@@ -184,8 +184,8 @@ _none_
 <!-- SYNC-BLOCK: migration -->
 - **Existing models:** no migration until a model adopts a constraint. Adding a `constraints.Check`/`Unique` generates one additive migration for that app (the named object); no field-column change.
 - **`@api.constrains`:** pure code — no schema, no migration.
-- **SQLite:** CHECK/unique adds on an existing table go through Alembic batch mode (table rebuild) per the `writing-alembic-migrations` skill; the constraint is always real on PostgreSQL.
-- All migrations are **generated** via `ede migrate generate` — never hand-authored.
+- **PostgreSQL only** — the platform's single engine, so a CHECK or unique add on an existing table is a plain `ALTER TABLE`. No table rebuild, no dialect branch.
+- Nothing is hand-authored: the schema comparison applies the constraint on the next `ede migrate upgrade`. There are no migration files ([Platform Change 18](platform-18-runtime-schema-upgrades.md)).
 <!-- /SYNC-BLOCK -->
 
 ### Permissions / RBAC
@@ -199,7 +199,7 @@ _none_
 <!-- SYNC-BLOCK: related -->
 - Hook-driven validation (`@api.on_hook`) — the mechanism `@api.constrains` is sugar over.
 - `fields.*` — the sibling namespace for column/relation declarations (single-field `required=`/`unique=`).
-- `writing-alembic-migrations` skill — governs cross-dialect FK/index/constraint object declaration.
+- [`docs/runtime-schema-upgrades.md`](runtime-schema-upgrades.md) — how schema changes reach a tenant, and where a rename or backfill goes.
 <!-- /SYNC-BLOCK -->
 
 ---

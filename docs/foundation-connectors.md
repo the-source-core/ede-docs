@@ -81,7 +81,7 @@ Every integration needs a place to store credentials + runtime params and a life
 | `ir.connector.activate` | Admin clicks "Activate" | Sets `is_enabled=True` (requires `status=connected`) |
 | `ir.connector.deactivate` | Admin clicks "Deactivate" | Sets `is_enabled=False` |
 | `ir.connector.import_config` | Admin pastes / uploads provider JSON | Flattens JSON via provider's `normalize_import_json` (if any) → `flatten_json` → replaces existing `ir.connector.param` rows |
-| `ir.connector.get_config` | Consumer module (e.g. `StorageRouter`) needs runtime config | Reads `ir.connector.param` rows, reads file params via `storage.document`, returns nested dict ready for `provider.from_config()` |
+| `ir.connector.get_config` | Consumer module (e.g. `StorageRouter`) needs runtime config | Reads `ir.connector.param` rows, resolves file params by dispatching `storage.document.read_text` (never importing storage — it depends on this module), returns nested dict ready for `provider.from_config()` |
 | `ede.create` / `ede.update` / `ede.delete` / `ede.search` / `ede.read_one` | Standard CRUD on connector + param | Generic CRUD via `CrudKernel` |
 <!-- /SYNC-BLOCK -->
 
@@ -200,7 +200,7 @@ Status field values: `draft` (default), `connected`, `error`. The `is_enabled` f
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
-- Initial schema + a follow-up migration ship under [migrations/versions/](../src/ede/foundation/connectors/migrations/versions/). Apply via `ede migrate upgrade -t <tenant>`.
+- Initial schema + a follow-up migration ship under migrations/versions/. Apply via `ede migrate upgrade -t <tenant>`.
 - Module is registered explicitly under `ACTIVE_MODULES = [..., "connectors", ...]` in `src/ede/foundation/settings.py`. No auto-discovery.
 <!-- /SYNC-BLOCK -->
 
@@ -216,7 +216,7 @@ Status field values: `draft` (default), `connected`, `error`. The `is_enabled` f
 - [foundation.email](foundation-i18n.md) — registers SMTP / SendGrid / Mailgun / Gmail / Outlook connector kinds. _(roadmap doc TBD)_
 - [Foundation Storage Engine](#) — registers S3 / GCS / Azure Blob / Google Drive connector kinds. _(roadmap doc TBD)_
 - [Foundation Security & Authorization](foundation-security.md) — owns secret rotation / OAuth flow capture / webhook-signature verification (future).
-- [Platform execution rules](platform-00-execution-rules.md)
+- Platform execution rules
 <!-- /SYNC-BLOCK -->
 
 ---

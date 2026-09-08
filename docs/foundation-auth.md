@@ -196,7 +196,7 @@ ir.session lifecycle:
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
-- Baseline `ir.session` schema ships with `foundation.auth`'s own migrations under [src/ede/foundation/auth/migrations/](../src/ede/foundation/auth/migrations/).
+- Baseline `ir.session` schema ships with `foundation.auth`'s own migrations under src/ede/foundation/auth/migrations/.
 - `active_organization_id` column on `ir.session` was added by a later `foundation.security` Phase 1 migration; see the security roadmap for that migration revision.
 - Production must override `JWT_SECRET_KEY` before first deploy. Booting with the default secret is treated as a misconfiguration.
 <!-- /SYNC-BLOCK -->

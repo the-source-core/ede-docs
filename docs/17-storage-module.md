@@ -419,12 +419,10 @@ class GoogleDriveStorageProvider(ConnectorProvider):
 
 ---
 
-## Running Migrations
+## Applying the schema
 
-No migrations are generated automatically. After activation, run:
+Nothing to generate. After activation, the models are the schema — run:
 
 ```bash
-ede migrate generate -m "storage_initial" --app storage --config ede.conf
-ede migrate generate -m "connectors_initial" --app connectors --config ede.conf
-ede migrate upgrade --config ede.conf
+ede migrate upgrade -t <tenant> --config ede.conf
 ```

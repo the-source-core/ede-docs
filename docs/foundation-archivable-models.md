@@ -105,4 +105,4 @@ The auto-filter only triggers on a field named exactly **`active`** with `field_
 | Domain helpers | [src/ede/core/services/persistence/domain_filter.py](../src/ede/core/services/persistence/domain_filter.py) — `domain_mentions_active`, `augment_with_active_filter`, `apply_active_filter` |
 | Env opt-out | [src/ede/core/env.py](../src/ede/core/env.py) — `Env.with_active_test()` |
 | Tests | [src/tests/orm/test_active_filter.py](../src/tests/orm/test_active_filter.py) |
-| Frontend toggle | [src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx](../src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx) |
+| Frontend toggle | src/frontend/src/workspace/components/search/ControlPanelSearchView.tsx |

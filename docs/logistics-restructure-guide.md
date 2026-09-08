@@ -422,12 +422,12 @@ four foreign tables and 15 foreign columns — which falsifies the activation-in
 `agency_integration`'s own manifest, and breaks CLAUDE.md's rule that an extension column ships from
 the module that declares it.
 
-Keeping the revisions as pure renames was correct for *this* commit (splitting them by hand is
-forbidden). The real fix is to regenerate: scope `8fbf2d8f0211` to `agency_masters`' own tables plus
-`logistics_equipment.principal_id`, then
-`ede migrate generate --app logistics_nvocc_agency.agency_network` (and `…_numbering`,
-`…_integration`) against the reference DB. That invalidates existing alembic state, which is exactly
-why it pairs with the re-seed in (a) — and why doing it pre-production is the cheap moment.
+Keeping the revisions as pure renames was correct for *this* commit. It is also now moot:
+[Platform Change 18](platform-18-runtime-schema-upgrades.md) deleted the migration files entirely,
+so there is no revision to rescope and nothing to regenerate. Whichever module declares a table or
+a column is where the schema comparison attributes it, and the attribution follows the model
+declaration automatically — which is precisely what the hand-split revisions were trying to
+achieve.
 
 **Guardrails now enforced at boot:**
 

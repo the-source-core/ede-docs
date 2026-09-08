@@ -166,7 +166,7 @@ In the example: `blog.post.author_id` is `restrict` (an author isn't deletable w
 ## 5. Generate and apply the migration
 
 ```bash
-ede migrate generate -m "blog comment + tag + relations" --app blog.post
+ede migrate check -t system      # new tables + the M2M join table
 ede migrate upgrade -t system
 ```
 

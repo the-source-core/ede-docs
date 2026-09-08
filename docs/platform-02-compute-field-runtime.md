@@ -186,7 +186,7 @@ _none_
 | Compute invoker + write-time `post.{m}.{create,update,delete}` hooks + transitive cascading + idempotency check (Phase 1) | n/a — kernel | [src/ede/core/orm/compute_runtime.py](../src/ede/core/orm/compute_runtime.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
 | `_ede_handle_create` populates `cmd.model_id` post-INSERT (side fix; unblocks post-create hooks across the codebase) | n/a — kernel | [src/ede/core/kernel/model.py](../src/ede/core/kernel/model.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
 | Boot integration via `register_compute_hooks(registry)` (Phase 1) | n/a — kernel | [src/ede/core/bootstrap.py](../src/ede/core/bootstrap.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
-| Pricing.rate retrofit: 3 hook-driven fields → declarative `method=` + `depends_on=`; legacy `_recalculate_margin` + 3 line post-hooks deleted (Phase 2) | `pricing.rate` | [src/domains/logistics/pricing/models/rate.py](../src/domains/logistics/pricing/models/rate.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
+| Pricing.rate retrofit: 3 hook-driven fields → declarative `method=` + `depends_on=`; legacy `_recalculate_margin` + 3 line post-hooks deleted (Phase 2) | `pricing.rate` | [src/domains/logistics_base/pricing/models/rate.py](../src/domains/logistics_base/pricing/models/rate.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
 | M2O dotted paths (`depends_on=["currency_id.symbol"]` triggers on target row update via reverse-search resolver, plus owning record m2o reassignment) (Phase 3) | n/a — kernel | [compute_graph.py](../src/ede/core/orm/compute_graph.py), [compute_runtime.py](../src/ede/core/orm/compute_runtime.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
 | Unstored computes (`store=False`) evaluate on `RecordSet.read()` with no DB column (Phase 3) | n/a — kernel | [src/ede/core/orm/recordset.py](../src/ede/core/orm/recordset.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
 | Test suite — 21 integration tests against a real SQLite tenant covering all 3 phases incl. cycle detection, FK-detach at delete, transitive same-record cascade, M2O reverse-search, unstored-on-read | n/a — tests | [src/tests/orm/test_compute_runtime.py](../src/tests/orm/test_compute_runtime.py) | [02-compute-field-runtime.md](../roadmap/platform/02-compute-field-runtime.md) |
@@ -207,7 +207,7 @@ _(populated as integration learnings emerge after Phase 1 lands)_
 
 ### Migration / upgrade notes
 <!-- SYNC-BLOCK: migration -->
-- When a stored computed field is **added** to an existing model, the migration owner is responsible for recomputing legacy rows. The runtime does NOT scan at boot. Recommended pattern: write a one-off Alembic data migration that iterates rows and triggers the compute.
+- When a stored computed field is **added** to an existing model, the schema comparison creates the column but leaves it empty — the runtime does NOT scan at boot. Recomputing legacy rows is exactly the case a version-keyed upgrade script exists for: ship an `upgrades/<version>/after_*.py` that iterates the rows and triggers the compute.
 - `workflow=True` fields are excluded from compute writes — they remain writable only via `env.workflow.transition()`. Declaring a compute on a workflow field is a usage error and would be flagged at registration in Phase 1.
 <!-- /SYNC-BLOCK -->
 
@@ -220,10 +220,10 @@ _(populated as integration learnings emerge after Phase 1 lands)_
 
 ### Related modules
 <!-- SYNC-BLOCK: related -->
-- [Platform Execution Rules](platform-execution-rules.md) — universal design rules
+- Platform Execution Rules — universal design rules
 - [Foundation Model Naming](foundation-model-naming.md) — `ir.*` vs `res.*` conventions
 - [src/ede/core/kernel/fields.py](../src/ede/core/kernel/fields.py) — current compute-metadata declaration surface
-- [src/domains/logistics/pricing/models/rate.py](../src/domains/logistics/pricing/models/rate.py) — `_recalculate_margin` hook (Phase 2 retrofit target)
+- [src/domains/logistics_base/pricing/models/rate.py](../src/domains/logistics_base/pricing/models/rate.py) — `_recalculate_margin` hook (Phase 2 retrofit target)
 <!-- /SYNC-BLOCK -->
 
 ---

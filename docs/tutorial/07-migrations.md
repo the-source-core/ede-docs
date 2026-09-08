@@ -1,286 +1,202 @@
-# 7. Migrations
+# 7. Schema Upgrades
 
-You generated and applied migrations in earlier chapters without paying much attention. This chapter opens the hood: where the files live, how the framework runs them per-tenant, how to read what Alembic emitted, and when to drop into hand-authored SQL for the cases the autogen can't handle.
+In earlier chapters you added fields to `blog.post` and they simply appeared in the database. This chapter opens the hood: why there was nothing to generate, what actually happens when you run `ede migrate upgrade`, and how to handle the two changes the platform genuinely cannot work out on its own.
 
 ```bash
 # The two commands you'll use every day.
-ede migrate generate -m "blog.post add author_id" --app blog.post
-ede migrate upgrade -t system
+ede migrate check   -t system     # what would change; writes nothing
+ede migrate upgrade -t system     # apply it, then load data
 ```
 
-By the end you'll understand: what `ede migrate generate` actually does, where it writes the file, why every app has its own version chain, how the upgrade runs against every tenant, and what to do when autogen can't infer your change (FKs that need a name, columns that need a backfill, SQLite vs PostgreSQL gotchas).
+By the end you'll understand: why there are no migration files, what the comparison will and will not do to your database, why nothing is ever dropped, and where a rename or a data backfill goes.
 
 ## What you're going to build
 
-Alongside the existing `blog.post` migration, you'll:
+Working from the existing `blog.post` model, you'll:
 
-1.  Inspect the autogen output and identify what it captured automatically.
-2.  Add a hand-authored migration that performs a data backfill — adding a column with a non-null default that requires per-row population.
-3.  Apply it across two tenants and confirm both arrive at the same schema state.
+1.  Add a field and watch `ede migrate check` predict exactly what will change.
+2.  Apply it, and confirm two tenants arrive at the same schema.
+3.  Ship a **data backfill** as a version-keyed upgrade script — the one case a comparison cannot infer.
 
-## 1. Where migrations live
+## 1. There are no migration files
 
-Every app keeps its own version chain under `migrations/versions/` next to the models. The structure for the blog app:
+Most frameworks record a *history*: a numbered chain of files, each describing one change, replayed in order against every database.
 
-```
-src/domains/blog/post/
-├── __init__.py
-├── __manifest__.py
-├── models/
-│   └── post.py
-└── migrations/
-    └── versions/
-        ├── 20260514_120000_initial.py
-        ├── 20260514_150000_fields_expansion.py
-        └── 20260515_090000_add_view_count.py
-```
+EDE does not. The models **are** the schema. On every upgrade the platform reads what your models declare, reads what the database actually has, and applies the difference.
 
-This is **per-app version locations** — every app has its own Alembic revision tree. The framework joins them at runtime into one upgrade plan, but each tree is editable in isolation. Two apps can independently add migrations without merging revision graphs.
+That is the whole mental model, and it has one consequence worth stating plainly:
 
-Top-level configuration:
+!!! tip "Adding a field is a one-step change"
 
--   `alembic.ini` at the repo root — Alembic's bootstrap file.
--   `src/migrations/env.py` — the Alembic env script. Loads every active app, walks each app's `migrations/versions/`, registers them as version locations.
+    Change the model. That's it. Nothing to generate, nothing to commit alongside it, nothing to keep in sync.
 
-You rarely touch either. Adding an app to `ACTIVE_DOMAINS` / `ACTIVE_MODULES` is what registers a new version location.
-
-## 2. `ede migrate generate` — what it actually does
-
-```bash
-ede migrate generate -m "blog.post add author_id" --app blog.post
-```
-
-What happens:
-
-1.  Boots a minimal env against a **reference database** (a clean SQLite file the framework keeps for autogen). This DB carries the current schema after every previously-applied migration.
-2.  Compares the reference DB schema against the **declared field specs** on every model in `--app`'s registry.
-3.  Emits an Alembic revision file with `op.create_table(...)`, `op.add_column(...)`, `op.create_index(...)`, `op.add_constraint(...)` calls that bring the reference DB to the new declared state.
-4.  Writes the file to `src/domains/<domain>/<app>/migrations/versions/<timestamp>_<slug>.py`.
-5.  Updates the reference DB by applying the new revision so the next `generate` starts from the post-this-change state.
-
-The `--app` flag is important: it scopes the diff to **one app's models**. Without it, autogen would look at every active model and emit one giant revision touching tables from multiple apps — which then can't be cleanly rolled back per-app.
-
-The `-m` description becomes the docstring of the generated file. Keep it short and specific.
-
-## 3. Reading a generated migration
-
-Open one of your existing migrations. Its shape:
+Add a field to `blog.post`:
 
 ```python
-"""blog.post fields expansion
-
-Revision ID: 1f3a7b9c4d12
-Revises: a1b2c3d4e5f6
-Create Date: 2026-05-14 15:00:00.123456
-"""
-from alembic import op
-import sqlalchemy as sa
-
-
-revision = "1f3a7b9c4d12"
-down_revision = "a1b2c3d4e5f6"
-branch_labels = None
-depends_on = None
-
-
-def upgrade() -> None:
-    op.add_column(
-        "blog_post",
-        sa.Column("slug", sa.String(length=200), nullable=False),
-    )
-    op.add_column(
-        "blog_post",
-        sa.Column("status", sa.String(length=64), nullable=False),
-    )
-    op.create_index(
-        "ix_blog_post_slug",
-        "blog_post",
-        ["slug"],
-        unique=True,
-    )
-
-
-def downgrade() -> None:
-    op.drop_index("ix_blog_post_slug", table_name="blog_post")
-    op.drop_column("blog_post", "status")
-    op.drop_column("blog_post", "slug")
+subtitle = fields.Char(max_length=200, label="Subtitle")
 ```
 
-Five things to notice:
-
-1.  **`revision` and `down_revision`** wire the file into the linked-list chain. Don't edit these — Alembic generates them.
-2.  **Every `upgrade`** has a corresponding `downgrade` autogen attempt. Test both before pushing to anything multi-developer.
-3.  **Index names** are explicit (`ix_blog_post_slug`). Always preferable to letting the DB auto-name — it makes future drops portable across SQLite and PostgreSQL.
-4.  **`nullable=False` without a default** on `add_column` will fail on any existing table that has rows. The autogen doesn't know your data; you have to add a `server_default` or a backfill (see section 5).
-5.  **Table names** are derived from model keys: `blog.post` → `blog_post`. The dot becomes an underscore. Override with `@api.model("...", table="custom_name")` if you must.
-
-## 4. `ede migrate upgrade` — running migrations per tenant
-
-EDE is multi-tenant. Each tenant has its own database. The upgrade command runs Alembic against one tenant at a time:
+Then ask what would happen:
 
 ```bash
-# Upgrade just the system tenant (your local dev tenant by default).
-ede migrate upgrade -t system
+ede migrate check -t system
+```
 
-# Upgrade a different tenant.
+```
+  Schema check — tenant 'system' (database db_ede_system)
+  355 tables declared by the models, 355 in the database
+
+    BLOCKING      1    WARNING      0    INFO      0
+
+  BLOCKING (1)
+    [blocking] missing_column   blog_post.subtitle   declared as VARCHAR(200), absent from the database
+```
+
+`check` writes nothing. It is safe to run against production, and it is the habit worth forming: look before you upgrade.
+
+## 2. Applying it
+
+```bash
+ede migrate upgrade -t system
+```
+
+```
+schema_upgrade: 0 table(s), 1 column(s), 0 foreign key(s), 0 index(es), 0 relaxation(s), 0 NOT NULL application(s)
+```
+
+Run `ede migrate check` again and it reports nothing. Run the upgrade a second time and it also does nothing — the comparison is idempotent by construction, because it compares state rather than replaying steps.
+
+Now do the same for a second tenant:
+
+```bash
 ede migrate upgrade -t acme
-
-# Upgrade every active tenant (production sweep).
-ede migrate upgrade -t all
 ```
 
-What `upgrade` does for one tenant:
+Both tenants arrive at the same schema, and neither needed to know what the other had already done. There is no per-tenant bookkeeping to drift.
 
-1.  Connects to the tenant's database (URL derived from `DATABASE_URL_<tenant>` env / config).
-2.  Reads the `alembic_version_<app>` table that tracks the current head per app.
-3.  For each app, walks the version chain forward, applying every pending revision in order.
-4.  Runs every app's seed-data loader (CSVs + XMLs from each manifest's `data:` list) after schema migrations complete.
+## 3. Two passes, and why ordering stopped mattering
 
-Re-running is idempotent — Alembic skips revisions whose IDs are already in `alembic_version_<app>`.
+Internally the upgrade runs in two passes:
 
-## 5. When autogen can't help — hand-authored migrations
+| Pass | What it does |
+|---|---|
+| **1 — Structure** | Create missing tables, add missing columns |
+| **2 — Connections** | Apply every foreign key, index and NOT NULL |
 
-Autogen handles the easy cases — new columns, dropped columns, new tables, new indexes. It cannot:
+A foreign key cannot be created until the table it points at exists. If each one were applied the moment its column was created, the *order* in which modules were processed would decide whether your upgrade worked — and that order depends on which modules a customer has activated.
 
--   Add a `nullable=False` column to a table that already has rows (no default to use).
--   Backfill values in existing rows before tightening a constraint.
--   Rename a column without losing data (autogen emits add-then-drop).
--   Migrate enum values, restructure JSON payloads, split one table into two.
+Deferring every connection until all structure exists removes the question. By the time any foreign key is applied, every table it could reference is already there. A module pointing at another module's table is no longer an ordering problem; it cannot fail.
 
-For these you write the migration by hand. Use `ede migrate generate -m "<description>" --app <app>` to scaffold an empty revision file with the correct `revision` / `down_revision` already set, then fill in the body.
+## 4. What the comparison will and will not do
 
-Example: add a `view_count` column with `NOT NULL` and a per-row backfill.
+This is fixed in advance, so it is predictable rather than a judgement call:
+
+| What it finds | What it does |
+|---|---|
+| A table your models declare, absent from the DB | **Creates** it |
+| A column your models declare, absent from the DB | **Adds** it, nullable |
+| Your models require a value, the DB allows empty | Fills from the declared default, then applies **NOT NULL** |
+| Your models allow empty, the DB requires a value | **Relaxes** the requirement |
+| A required column no model declares at all | **Relaxes** it. The column and its data stay |
+| A column or table your models no longer declare | **Nothing.** It stays |
+| A column whose type differs | **Nothing.** A type change can lose data |
+
+### Why nothing is ever dropped
+
+Two reasons, and neither is timidity.
+
+**Deactivating a module would otherwise look exactly like deleting it** — and the difference is a customer's data.
+
+**It is what makes going backwards safe.** Deploy an older build against a newer database and it knows nothing about the newer columns, so it sends no value for them. If those columns were still mandatory, every save would fail. Lifting the requirement instead turns a rollback from a recovery procedure into ordinary behaviour: the old build runs the same comparison against its own older models and carries on. The newer data sits where it is, waiting.
+
+The price, stated honestly: retired columns stay in the table forever. That is the trade.
+
+## 5. The two things a comparison cannot infer
+
+A comparison can tell you a column is **missing**. It can never tell you what a value should **become**.
+
+- **A rename.** Comparing sees "one column vanished, another appeared". Applied literally that is silent data loss — the new column is created empty and the old one holds the only copy.
+- **A backfill.** A new column derived from an old one, a row split across two tables. Nothing in the declared shape says where the values come from.
+
+These, and only these, ship as files:
+
+```
+src/domains/blog/
+    __manifest__.py             ← "version": "1.1.0"
+    upgrades/
+        1.1.0/
+            after_backfill_slug.py
+```
 
 ```python
-"""blog.post add view_count with backfill"""
-from alembic import op
-import sqlalchemy as sa
+from sqlalchemy import text
 
 
-revision = "7c8d9e0f1234"
-down_revision = "1f3a7b9c4d12"
-branch_labels = None
-depends_on = None
-
-
-def upgrade() -> None:
-    # Step 1: add the column as nullable.
-    op.add_column(
-        "blog_post",
-        sa.Column("view_count", sa.Integer(), nullable=True),
-    )
-
-    # Step 2: backfill every existing row with 0.
-    op.execute("UPDATE blog_post SET view_count = 0 WHERE view_count IS NULL")
-
-    # Step 3: tighten the constraint.
-    with op.batch_alter_table("blog_post") as batch_op:
-        batch_op.alter_column(
-            "view_count",
-            existing_type=sa.Integer(),
-            nullable=False,
-            server_default="0",
-        )
-
-
-def downgrade() -> None:
-    op.drop_column("blog_post", "view_count")
+def migrate(context):
+    context.connection.execute(text(
+        "UPDATE blog_post SET slug = lower(replace(title, ' ', '-')) "
+        "WHERE slug IS NULL"
+    ))
 ```
 
-Two things this example demonstrates:
+`context` carries `connection`, `app_key`, `from_version`, `to_version`, `logger`, and — for `after` scripts only — `env`, the full ORM environment.
 
--   **The three-step pattern** for tightening a column on a populated table: add nullable → backfill → tighten. Run on PostgreSQL as a single transaction; on SQLite the framework's `op.batch_alter_table` rewrites the table.
--   **`op.batch_alter_table(...)`** is the cross-database way to alter a column. Native `ALTER` is not supported in SQLite, so Alembic emulates it by creating a new table, copying data, and renaming. Always wrap `alter_column` and constraint changes in `batch_alter_table` when the migration needs to run on both engines.
+### before vs after
 
-## 6. Foreign keys and indexes — name them yourself
-
-PostgreSQL has a 63-character identifier limit. Auto-generated names from SQLAlchemy can exceed it for complex tables — the migration fails to apply in production after working fine on SQLite. Always pass explicit names:
-
-```python
-# Good — explicit, short, deterministic.
-op.create_foreign_key(
-    "fk_blog_post_author",
-    source_table="blog_post",
-    referent_table="res_partner",
-    local_cols=["author_id"],
-    remote_cols=["record_uuid"],
-    ondelete="RESTRICT",
-)
-
-op.create_index(
-    "ix_blog_post_author",
-    "blog_post",
-    ["author_id"],
-)
-```
-
-Naming convention used throughout the framework:
-
-| Object | Pattern | Example |
+| | Runs | Gets |
 |---|---|---|
-| Index | `ix_<table>_<column>` | `ix_blog_post_slug` |
-| Unique index | `uq_<table>_<column>` | `uq_blog_post_slug` |
-| Foreign key | `fk_<source_table>_<column>` (drop the `_id` suffix) | `fk_blog_post_author` |
-| Check constraint | `ck_<table>_<descriptive_name>` | `ck_blog_post_rating_range` |
+| `before_*.py` | While the **old** shape is still in place | `connection` only |
+| `after_*.py` | Once the shape and seed data are both in place | `connection` **and** `env` |
 
-Use these and your migrations will apply cleanly on both SQLite and PostgreSQL.
+A rename belongs in `before` — that is the only moment the old column still holds the data. A `before` script deliberately gets no `env`: the ORM at that point is built from your **new** models and would describe a database that does not exist yet.
 
-## 7. Multi-head merges
+### When it runs
 
-Two developers working on the same app in parallel will each generate a revision pointing at the same `down_revision`. When the second one's branch lands, Alembic refuses to upgrade — there are now two "heads" in the version chain.
+When the tenant's recorded version crosses the script's: `recorded < version <= manifest`. So arriving at `1.1.0` runs `1.1.0`'s scripts, and already being there does not.
 
-Resolve by generating a merge revision:
+!!! warning "Bump the manifest version, or nothing runs"
 
-```bash
-ede migrate merge -m "merge feature branches" --app blog.post
+    The script directory is named after a version. If `__manifest__.py` still says `"version": "1.0.0"`, your `1.1.0` script is never found. This is the mistake everyone makes once.
+
+Two more rules worth internalising:
+
+- **A fresh install runs nothing.** An app with no recorded version has no old shape to convert — its tables are created in their final form.
+- **`before` scripts must be idempotent.** They commit in their own transaction. If a later phase fails, the version is not recorded — correctly, so the transition retries — but your `before` script has already committed and will run again. Write `WHERE new_column IS NULL`.
+
+## 6. Where the state lives
+
+One table, `ir.app`, holds a row per activated app: its `app_key`, the `installed_version` this tenant has, and when it arrived. It answers the only question a version-keyed script needs — *has this app moved since this tenant was last upgraded?*
+
+```sql
+SELECT app_key, installed_version FROM ir_app ORDER BY app_key;
 ```
 
-This emits a revision whose `down_revision` is a tuple of both head IDs and whose `upgrade` / `downgrade` are no-ops (just a graph join). Commit and continue.
+The version is written **last**, after the schema converged, the data loaded and the `after` scripts ran. A failure anywhere before that leaves the app at its old version, so the transition retries rather than being silently skipped.
 
-Avoid this by rebasing your branch onto the new `down_revision` before adding fresh migrations, when possible.
-
-## 8. Where the actual SQL goes
-
-Curious what hits the DB? Run with the SQL preview flag:
+## 7. Resetting the dev DB
 
 ```bash
-ede migrate upgrade -t system --sql
+dropdb db_ede_system && ede migrate upgrade -t system
 ```
 
-Alembic prints every statement it *would* run, in order, without executing. Use this in CI to check migrations against a snapshot of production schema before they merge.
+A fresh database is built directly, in its final shape — no history to replay, so this is fast.
 
-## 9. Resetting the dev DB
+## 8. The pre-merge checklist
 
-When iterating heavily on schema, you sometimes want to start over rather than chase a migration chain. Delete the SQLite file and re-run the full chain:
-
-```bash
-rm var/system.db                  # or wherever your tenant DB lives
-ede migrate upgrade -t system
-```
-
-This is **never** acceptable in production. In dev it's faster than authoring four corrective migrations.
-
-## 10. The pre-migration checklist
-
-Before pushing any migration:
-
--   [ ] `ede migrate generate` ran cleanly (no surprising columns / drops).
--   [ ] Every `op.add_column(..., nullable=False)` either has a `server_default` or a backfill block before the tighten.
--   [ ] Every `op.create_foreign_key` / `op.create_index` has an explicit short name.
--   [ ] Cross-database alterations are wrapped in `op.batch_alter_table`.
--   [ ] `ede migrate upgrade -t system` succeeds against a fresh SQLite tenant.
--   [ ] `ede migrate upgrade -t system` succeeds against a fresh PostgreSQL tenant (if you target both).
--   [ ] `downgrade()` runs without errors.
--   [ ] You're committing **both** the new migration file and the corresponding model changes in the same commit.
-
----
+-   [ ] `ede migrate check -t <tenant>` reports no blocking drift.
+-   [ ] If you renamed a column: a `before_*.py` script copies the data, and the manifest version is bumped.
+-   [ ] If you added a column that must be populated from an existing one: an `after_*.py` script does it, and the manifest version is bumped.
+-   [ ] If you retired a column: you have accepted that it stays in the table, keeping its data and losing only its NOT NULL.
+-   [ ] `./run_tests.sh` green.
 
 ## What you just did
 
--   Saw where migrations live (per-app under `migrations/versions/`) and how the framework joins them at upgrade time.
--   Read what `ede migrate generate --app <app>` emits and which kinds of change it can — and can't — infer.
--   Authored a **hand-authored migration** with the add-nullable → backfill → tighten pattern.
--   Learned the FK / index naming conventions that keep migrations portable across SQLite and PostgreSQL.
--   Picked up the pre-merge checklist that catches the common breakages.
+-   Learned why there are no migration files — the models are the schema, and the upgrade applies the difference.
+-   Used `ede migrate check` to see a change before applying it, and confirmed two tenants converge independently.
+-   Understood the two-pass structure that makes cross-module foreign keys an ordering non-problem.
+-   Learned the add-and-adjust-never-delete rule, and why it is what makes deploying an older build safe.
+-   Shipped a **data backfill** as a version-keyed `after` script — one of only two cases that still need a file.
+
+Full reference: [Runtime Schema Upgrades](../runtime-schema-upgrades.md).
 
 [:octicons-arrow-right-24: **Next — Deploying**](08-deploying.md)

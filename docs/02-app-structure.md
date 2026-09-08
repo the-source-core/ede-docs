@@ -97,7 +97,6 @@ src/
 │   └── settings.py                    ← ACTIVE_DOMAINS = ["logistics", ...]
 │
 ├── migrations/
-│   └── env.py                         ← Alembic multi-tenant env.py
 │
 └── tests/
 ```
@@ -120,7 +119,6 @@ Every app — whether foundation or user-domain — follows this layout:
     │   └── controllers.py    ← @api.route_config RouteController subclasses
     ├── services/             ← Optional: pure Python service objects
     ├── migrations/
-    │   └── versions/         ← Alembic migration scripts for this app
     └── views/                ← Optional: XML DSL view files
         └── *.xml
 ```
@@ -259,7 +257,6 @@ registry.get_model("foundation.base")
 registry.resolve_command("shipment.create")      # → CommandTarget
 registry.get_event_handlers("base.ponged")       # → [fn, ...]
 registry.sorted_app_specs()                      # → deterministic order (foundation first)
-registry.list_migration_version_locations()      # → List[Path]  (all Alembic versions dirs)
 ```
 
 ---

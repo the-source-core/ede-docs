@@ -374,7 +374,7 @@ Declare in manifest:
 After adding or changing a model, generate a migration:
 
 ```bash
-ede migrate generate -m "add logistics shipment"
+ede migrate check -t devqa      # see what the models would change
 ```
 
 Review the generated file in `src/domains/logistics/shipment/migrations/versions/`.

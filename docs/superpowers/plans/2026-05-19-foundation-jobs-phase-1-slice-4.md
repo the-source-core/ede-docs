@@ -1071,7 +1071,7 @@
 
     Phased Delivery row:
     ```
-    | [Phase 1](./phase-1-implementation.md) | ... | ~3 weeks | ✅ Delivered 2026-05-19 |
+    | Phase 1 | ... | ~3 weeks | ✅ Delivered 2026-05-19 |
     ```
 
     **(b) `roadmap/foundation/jobs/phase-1-implementation.md`** — top Status header:

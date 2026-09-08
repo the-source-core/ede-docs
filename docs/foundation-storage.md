@@ -86,6 +86,7 @@ Bytes flow through the chosen backend; metadata flows through the three storage 
 | `ede.search` / `ede.read_one` (`storage.folder`) | `GET /api/storage/folders[/{id}]` | List / fetch folders. |
 | `ede.create` (`storage.document`) | `POST /api/storage/documents` (multipart upload) | After the `StorageRouter` writes the bytes, creates a `storage.document` and its first `storage.document_version` row. |
 | `ede.update` (`storage.document`) | `PUT /api/storage/documents/{id}` | Mutates document metadata (name, folder, owner). |
+| `storage.document.read_text` | Any module holding a document reference that needs the bytes — today `foundation.connectors`, assembling a connector config whose credential is a file | Resolves the backend via `StorageRouter` and returns the content decoded as UTF-8. **The capability boundary:** connectors must not import storage, because storage depends on connectors — a storage backend is configured as a connector. Asking by command name keeps the dependency one-directional. |
 | `ede.delete` (`storage.document`) | `DELETE /api/storage/documents/{id}` | Pre-delete hook removes storage objects across all versions before the row is destroyed (see Hooks). |
 | `ede.search` / `ede.read_one` (`storage.document`) | `GET /api/storage/documents[/{id}]` | List / fetch documents. |
 | `ede.create` (`storage.document_version`) | `POST /api/storage/documents/{id}/versions` | Appends a new version (after backend write) and pins it as the document's `current_version`. |

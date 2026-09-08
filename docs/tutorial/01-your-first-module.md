@@ -18,11 +18,9 @@ src/domains/
         ├── models/
         │   ├── __init__.py
         │   └── post.py         ← defines blog.post
-        └── migrations/
-            └── versions/       ← Alembic puts files here
 ```
 
-EDE distinguishes a **domain** (a top-level business area you're modelling — `blog`, `inventory`, `support`, whatever your codebase needs) from the **apps** inside it (each a coherent feature with its own manifest, models, views, and migrations). A trivial domain may have a single app — that's what we're doing here.
+EDE distinguishes a **domain** (a top-level business area you're modelling — `blog`, `inventory`, `support`, whatever your codebase needs) from the **apps** inside it (each a coherent feature with its own manifest, models, and views). A trivial domain may have a single app — that's what we're doing here.
 
 ## 1. Register the new domain
 
@@ -132,18 +130,24 @@ That's the entire model. Note what you **didn't** write:
 
 -   No `dbid`, `record_uuid`, `created_at_utc`, `updated_at_utc`, `revision` — those are injected automatically by `DomainModel`.
 -   No `create() / read() / update() / delete()` — generic CRUD commands (`ede.create`, `ede.read_one`, `ede.update`, `ede.delete`, `ede.search`, `ede.count`, `ede.read_group`) are provided for every model by `CrudKernel`.
--   No table-definition SQL — Alembic generates it from the field declarations.
+-   No table-definition SQL — the schema is derived from the field declarations.
 
-## 5. Generate the migration
+## 5. Create the table
+
+There is nothing to generate. The models **are** the schema — see what the upgrade would do:
 
 ```bash
-ede migrate generate -m "blog.post initial" --app blog.post
+ede migrate check -t system
 ```
 
-Alembic inspects the field specs declared on `BlogPost`, compares them to the current DB schema, and writes a new revision under `src/domains/blog/post/migrations/versions/`. Open the generated file — you'll see `op.create_table("blog_post", ...)` with columns for every field (yours + the auto-injected `dbid`, `record_uuid`, timestamps, revision).
+It reports `blog_post` as a missing table. Applying it creates the table with a column for every field (yours, plus the auto-injected `dbid`, `record_uuid`, timestamps and `revision`):
 
-!!! tip "Naming"
-    The migration filename is auto-generated and timestamp-prefixed. The `-m` flag is the human description that goes into the file's docstring.
+```bash
+ede migrate upgrade -t system
+```
+
+!!! tip "One step, not two"
+    Changing a model is the whole change. There is no file to generate, commit, or keep in sync with the model — [Chapter 7](07-migrations.md) explains how that works and where the two exceptions live.
 
 ## 6. Apply the migration
 

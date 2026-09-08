@@ -59,13 +59,13 @@ Open `ede.conf` and skim the defaults. The shipping defaults work out of the box
 ede migrate upgrade -t system
 ```
 
-This runs Alembic upgrades for every active app against the `system` tenant. On first run it creates the SQLite file under your data directory and seeds:
+This compares every active app's models against the `system` tenant's database and applies the difference. On a first run there is nothing there, so the whole schema is built directly — then it seeds:
 
 -   Foundation `res.*` masters (country, organization, user, currency, …).
 -   Foundation `ir.*` registry rows (menus, actions, view metadata).
 -   Auth scaffolding (sessions table, default admin user).
 
-Re-running this command is safe — Alembic skips revisions that are already applied.
+Re-running this command is safe: it compares state rather than replaying steps, so a database that already matches has nothing done to it.
 
 ## 6. Start the server
 

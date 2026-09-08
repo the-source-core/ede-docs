@@ -121,7 +121,7 @@ Manifest order in `__manifest__.py`:
 ## Recorded e2e tests
 
 ### TestRateExampleTest
-- File: [src/tests/e2e/foundation/base/test_rate-example-test.py](../../../../src/tests/e2e/foundation/base/test_rate-example-test.py)
+- File: src/tests/e2e/foundation/base/test_rate-example-test.py
 - Class: `TestRateExampleTest` · Method: `test_rate_example_test`
 - Module: `foundation.base`
 - Recorded via `ede e2e record` — re-record with `ede e2e record foundation_base/rate-example-test --force`.

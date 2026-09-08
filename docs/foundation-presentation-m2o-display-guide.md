@@ -167,7 +167,7 @@ Precedence (used by both the chip in `renderViewMode` and each dropdown option i
 3. Else use `name`.
 4. Else empty.
 
-The helper is pure and free of React state — see [`src/frontend/src/workspace/views/fields/formatDisplay.ts`](../src/frontend/src/workspace/views/fields/formatDisplay.ts).
+The helper is pure and free of React state — see [`src/frontend/src/core/format/formatDisplay.ts`](../src/frontend/src/core/format/formatDisplay.ts).
 
 ---
 
@@ -235,5 +235,5 @@ When you add a brand-new master with a code/name pair, declare both kwargs from 
 - [Implementation reference](foundation-presentation.md#m2o-templated-display--multi-field-name-search) — full doc with implementation map.
 - [Naming guidance](foundation-model-naming.md#code-bearing-masters--always-declare-name_search_fields--display_name_format) — when to use, when not to use.
 - [Enhancement 02 spec](../roadmap/foundation/presentation/enhancements/02-m2o-display-format-and-multi-field-search.md) — design decisions + rejected alternatives.
-- [`formatDisplay`](../src/frontend/src/workspace/views/fields/formatDisplay.ts) — pure helper used by the frontend.
+- [`formatDisplay`](../src/frontend/src/core/format/formatDisplay.ts) — pure helper used by the frontend.
 - [`render_with_missing`](../src/ede/core/services/presentation/display_format.py) — shared backend helper used by the controller and the kernel.

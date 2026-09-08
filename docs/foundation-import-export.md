@@ -255,7 +255,7 @@ ir.io.run.direction = 'export' (P2):
 | Gap | Severity | Roadmap Reference |
 |---|---|---|
 | Module skeleton + manifest + settings + activation | 🔴 | [phase-1/WS-01](../roadmap/foundation/import_export/phase-1/WS-01-module-skeleton.md) |
-| 5 core models + Alembic | 🔴 | [phase-1/WS-02](../roadmap/foundation/import_export/phase-1/WS-02-core-models.md) |
+| 5 core models | 🔴 | [phase-1/WS-02](../roadmap/foundation/import_export/phase-1/WS-02-core-models.md) |
 | Excel + CSV parsers | 🔴 | [phase-1/WS-03](../roadmap/foundation/import_export/phase-1/WS-03-parsers.md) |
 | 8 built-in validators + registration API | 🔴 | [phase-1/WS-04](../roadmap/foundation/import_export/phase-1/WS-04-validator-registry.md) |
 | `@api.io_template` decorator + XML + admin authoring | 🔴 | [phase-1/WS-05](../roadmap/foundation/import_export/phase-1/WS-05-decorator-and-xml.md) |
@@ -319,7 +319,7 @@ ir.io.run.direction = 'export' (P2):
 - [`foundation.email`](foundation-email.md) — Phase 3 email-attachment imports
 - [`foundation.connectors`](foundation-connectors.md) — Phase 3 SFTP / Drive / S3 / Azure Blob connector kinds
 - [`foundation.communication`](foundation-communication.md) — optional chatter post on import success
-- [`logistics.pricing`](../src/domains/logistics/docs/pricing.md) — first adopter (Phase 1 Feature 05 re-scoped)
+- [`logistics.pricing`](../src/domains/logistics_freight_forwarding/docs/pricing.md) — first adopter (Phase 1 Feature 05 re-scoped)
 - [Foundation Model Naming](foundation-model-naming.md) — `ir.*` engine namespace convention
 <!-- /SYNC-BLOCK -->
 

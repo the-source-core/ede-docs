@@ -136,7 +136,7 @@ ede migrate upgrade -t acme      # upgrade "acme" tenant DB to heads
 ede migrate upgrade -t beta      # upgrade "beta" tenant DB to heads
 ```
 
-The Alembic `env.py` uses the `--tenant` flag to build the correct connection URL.
+`ede migrate upgrade` uses the `--tenant` flag to build the correct connection URL.
 
 ---
 

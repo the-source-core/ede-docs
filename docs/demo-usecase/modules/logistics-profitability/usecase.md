@@ -157,7 +157,7 @@ every `pricing.demo_charge_code_*` product reference is unresolved.
 
 | Test | Covers |
 |---|---|
-| [`tests/e2e/test_proforma_reachability.py`](../../../../src/domains/logistics/profitability/tests/e2e/test_proforma_reachability.py) | WS-3 — both proforma menus reachable under Shipments → Profitability; each action's `document_type` domain keeps the other direction out of its list; invoice form renders the derived-totals block + Lines tab; the grouping command is routable. **5 passed** (2026-07-27, chromium). Its fixture loads the full demo closure — a hand-picked subset breaks the ref chain (the shipments demo shipment refs a booking demo record). |
+| [`tests/e2e/test_proforma_reachability.py`](../../../../src/domains/logistics_base/profitability/tests/e2e/test_proforma_reachability.py) | WS-3 — both proforma menus reachable under Shipments → Profitability; each action's `document_type` domain keeps the other direction out of its list; invoice form renders the derived-totals block + Lines tab; the grouping command is routable. **5 passed** (2026-07-27, chromium). Its fixture loads the full demo closure — a hand-picked subset breaks the ref chain (the shipments demo shipment refs a booking demo record). |
 
 ## Authoring order
 

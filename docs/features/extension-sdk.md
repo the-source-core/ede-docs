@@ -42,7 +42,7 @@ The base model's source file stays universal; the downstream module owns its add
 -   **Soft-FK metadata builder** — `fields.Reference("comodel.key", ...)` declared on an extension class still resolves correctly even if the consumer module is loaded after the target. The metadata builder records the FK as a soft reference and binds it once both ends are present.
 -   **Boot-time validator** — rejects extensions whose target model does not exist, whose FK targets are unresolvable, or whose decorated class declares no fields.
 -   **Scope hookpoint** — `@api.extend_model("...", scope=<callable>)`. The default `scope=None` applies the extension unconditionally. Consumer modules can ship scope factories (per-country, per-tenant, per-organization) that gate where extensions take effect. The SDK stores the callable verbatim and exposes it for consumer engines to read; no built-in factory ships in Phase 1.
--   **Per-app migration story** — extension columns live in Alembic revisions owned by the *contributing* module, not the target. `ede migrate generate --app foundation.assistant` autogens a revision adding `res_organization.default_ai_assistant_provider_id` under the assistant's `version_locations`.
+-   **Per-app schema story** — an extension column is attributed to the *contributing* module because that is where it is declared. Nothing is written or generated: the schema comparison reads the merged metadata and adds `res_organization.default_ai_assistant_provider_id` on the next `ede migrate upgrade`. Ordering is a non-problem — every table is created before any foreign key is applied, so an extension's FK into another module's table cannot land too early.
 
 ## How to use it
 
@@ -70,13 +70,14 @@ At decoration time the registry copies `last_indexed_at` and `seo_score` into th
 
 If the consumer module's import order happens *before* the target model loads, the registry remembers the contribution and merges on the target's eventual registration. The merge is idempotent — re-importing the extension class doesn't double-add fields.
 
-Generate the migration from the extension's owning module:
+Then apply it — the declaration is the whole change:
 
 ```bash
-ede migrate generate --app foundation.analytics -m "blog.post: SEO indexing fields"
+ede migrate check   -t <tenant>    # reports the new blog_post columns
+ede migrate upgrade -t <tenant>    # adds them
 ```
 
-The autogen places the `ALTER TABLE blog_post ADD COLUMN ...` lines under `foundation.analytics`'s `version_locations`, so the target module's revision history stays clean.
+The columns belong to `foundation.analytics` because that is where they are declared. The target module's source is never touched.
 
 ### Patch a view
 

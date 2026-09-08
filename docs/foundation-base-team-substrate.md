@@ -2,7 +2,7 @@
 
 **Status:** ✅ Delivered 2026-05-25
 **Roadmap:** [roadmap/foundation/base/enhancements/06-team-substrate.md](../roadmap/foundation/base/enhancements/06-team-substrate.md)
-**Source:** [src/ede/foundation/base/models/team.py](../src/ede/foundation/base/models/team.py), [src/ede/foundation/base/services/team_role_service.py](../src/ede/foundation/base/services/team_role_service.py), [migration `a2e7f4b3c819`](../src/ede/foundation/base/migrations/versions/a2e7f4b3c819_team_substrate.py)
+**Source:** [src/ede/foundation/base/models/team.py](../src/ede/foundation/base/models/team.py), [src/ede/foundation/base/services/team_role_service.py](../src/ede/foundation/base/services/team_role_service.py), migration `a2e7f4b3c819`
 
 > Generic team primitive distinct from legal org-unit hierarchy. Team-functional roles decoupled from RBAC security roles. Sequence-aware role assignment for primary/backup escalation. Shared `TeamRoleService` consumed by `foundation.approval` and `foundation.workflow` (and any future automation consumer).
 

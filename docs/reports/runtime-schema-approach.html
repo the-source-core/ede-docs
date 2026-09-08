@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<!--
+    EDE branded PDF template — "Ocean Blue".
+    Copy this file, fill the <section> pages, render with headless Chrome:
+        google-chrome --headless --disable-gpu --no-sandbox --no-pdf-header-footer \
+            --print-to-pdf="<Title>.pdf" "<this-file>.html"
+    Theme tokens mirror src/frontend/src/theme/abstracts/_tokens.scss (EDE Ocean Blue).
+    Component vocabulary documented in SKILL.md.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Runtime Schema Upgrade — Approach</title>
+    <style>
+        /* ---- EDE "Ocean Blue" theme tokens (src/frontend/src/theme/abstracts/_tokens.scss) ---- */
+        :root {
+            --ink:        #111111;   /* --text-primary */
+            --ink-soft:   #4f4f4f;   /* --text-secondary */
+            --muted:      #757575;   /* --text-muted */
+            --line:       #d9d9d9;   /* --border-default */
+            --line-soft:  #ececec;   /* --border-subtle */
+            --bg:         #ffffff;   /* --surface-page */
+            --panel:      #f3f4f6;   /* --surface-canvas */
+            --panel-2:    #ebedf0;   /* --surface-sunken */
+            --brand:      #0052cc;   /* --accent-orange (ocean blue) */
+            --brand-hi:   #0747a6;   /* --accent-orange-hover */
+            --brand-soft: #deebff;   /* --accent-orange-soft */
+            --brand-deep: #0b1739;   /* --brand-aubergine (deep indigo) */
+            --brand-deep2:#1e3a8a;   /* --brand-aubergine-2 */
+            --accent:     #0e8420;   /* --positive */
+            --accent-bg:  #e4f4e4;   /* --positive-bg */
+            --warn:       #cc7900;   /* --warning */
+            --warn-bg:    #fdf2e3;   /* --warning-bg */
+            --build:      #7c3aed;   /* --domain-or (violet) */
+            --build-bg:   #f3effe;   /* --domain-or-soft */
+            --gap:        #c7162b;   /* --negative */
+            --gap-bg:     #fae3e4;   /* --negative-bg */
+        }
+
+        * { box-sizing: border-box; }
+
+        /* CRITICAL: margin:0 makes the 210x297mm .page boxes map 1:1 to physical A4 pages. */
+        @page { size: A4; margin: 0; }
+
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--bg);
+            /* Ubuntu IS installed on the render host and matches the EDE UI font. */
+            font-family: "Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 10.3px;
+            line-height: 1.48;
+        }
+
+        /* CRITICAL: fixed height + overflow:hidden => exactly one physical page per section,
+           never a blank spillover page. Cost: content over ~297mm is CLIPPED — always verify
+           by reading the rendered PDF back (see SKILL.md checklist). */
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 14mm 16mm 12mm 16mm;
+            margin: 0 auto;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+        }
+        .page:last-child { page-break-after: auto; }
+
+        /* ---------- Cover ---------- */
+        .cover {
+            display: flex;
+            flex-direction: column;          /* logo top · title bottom-aligned · meta at foot */
+            background: linear-gradient(155deg, #0b1739 0%, #1e3a8a 52%, #0052cc 100%);
+            color: #eaf1fb;
+        }
+        .cover-title { margin-top: auto; margin-bottom: 34px; }
+
+        /* ---- Brand lockup: platform (EDE) mark + wordmark on the LEFT, product wordmark on the RIGHT ---- */
+        .cover-logo { display: flex; align-items: center; justify-content: space-between; }
+        .cover-logo .brand-left { display: flex; align-items: center; gap: 13px; }
+        .cover-logo svg { display: block; }
+        .logo-full { font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: #c6d8f2; font-weight: 600; }   /* platform full name, beside the mark */
+        .brand-right { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; color: #ffffff; }   /* product wordmark, right-aligned */
+        .cover .kicker { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #9bb6e8; font-weight: 600; }
+        .cover h1 { font-size: 36px; line-height: 1.12; margin: 14px 0 0 0; font-weight: 700; color: #ffffff; }
+        .cover .sub { font-size: 15px; color: #cdddf6; margin-top: 16px; max-width: 150mm; line-height: 1.5; }
+        .cover .verdict { margin-top: 30px; border-left: 4px solid #7fd4a8; padding: 10px 0 10px 16px; font-size: 13px; color: #eef6f1; max-width: 150mm; }
+        .cover .verdict b { color: #a9ecca; }
+        .cover-meta { border-top: 1px solid rgba(255,255,255,.25); padding-top: 14px; display: flex; gap: 40px; font-size: 10.5px; color: #cdddf6; }
+        .cover-meta .lbl { color: #93aede; text-transform: uppercase; letter-spacing: 1px; font-size: 8.5px; }
+        .cover-meta .val { font-size: 11px; color: #ffffff; margin-top: 2px; }
+
+        /* ---------- Typography ---------- */
+        h2 { font-size: 18px; color: var(--brand-deep); margin: 0 0 4px 0; font-weight: 700; letter-spacing: -0.2px; }
+        h2 .num { display: inline-block; color: var(--brand); font-size: 13px; font-weight: 700; margin-right: 10px; vertical-align: 2px; }
+        h3 { font-size: 12.5px; color: var(--brand-deep); margin: 13px 0 5px 0; font-weight: 700; }
+        h4 { font-size: 11px; color: var(--ink); margin: 14px 0 4px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        p { margin: 6px 0; color: var(--ink-soft); }
+        .lead { font-size: 11.4px; color: var(--ink); }
+        strong, b { color: var(--ink); }
+        .section-rule { height: 3px; width: 54px; background: var(--brand); border-radius: 2px; margin: 7px 0 10px 0; }
+        .eyebrow { font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--brand); font-weight: 700; }
+
+        /* ---------- Tables ---------- */
+        table { width: 100%; border-collapse: collapse; margin: 10px 0 6px 0; font-size: 9.7px; }
+        th { background: var(--brand-deep); color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; font-size: 9.2px; letter-spacing: 0.3px; vertical-align: top; }
+        td { border-bottom: 1px solid var(--line-soft); padding: 5px 8px; vertical-align: top; color: var(--ink-soft); }
+        tbody tr:nth-child(even) { background: var(--panel); }
+        td b { color: var(--ink); }
+
+        /* ---------- Status pills (semantic) ---------- */
+        .pill { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 8.4px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
+        .p-have  { background: var(--accent-bg); color: var(--accent); }   /* shipped / yes / positive */
+        .p-part  { background: var(--warn-bg);   color: var(--warn); }     /* partial / extend / caution */
+        .p-gap   { background: var(--gap-bg);    color: var(--gap); }      /* missing / new / negative */
+        .p-build { background: var(--build-bg);  color: var(--build); }    /* to-build / domain / neutral-violet */
+
+        /* ---------- Callouts ---------- */
+        .callout { border: 1px solid var(--line); border-left: 4px solid var(--brand); background: var(--panel); padding: 9px 13px; border-radius: 3px; margin: 9px 0; }
+        .callout.good { border-left-color: var(--accent); background: var(--accent-bg); }
+        .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+        .callout .ct { font-weight: 700; color: var(--ink); font-size: 10.5px; display:block; margin-bottom: 2px; }
+
+        /* ---------- Cards ---------- */
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 9px 0; }
+        .card { border: 1px solid var(--line); border-radius: 4px; padding: 9px 12px; background: #fff; }
+        .card h4 { margin-top: 0; color: var(--brand-deep); border-bottom: 1px solid var(--line-soft); padding-bottom: 4px; }
+        .card ul { margin: 6px 0 0 0; padding-left: 16px; }
+        .card li { margin: 3px 0; color: var(--ink-soft); }
+
+        ul.tight { margin: 6px 0; padding-left: 18px; }
+        ul.tight li { margin: 4px 0; color: var(--ink-soft); }
+
+        /* ---------- Stat tiles ---------- */
+        .stat-row { display: flex; gap: 10px; margin: 14px 0; }
+        .stat { flex: 1; border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; background: var(--panel); text-align: center; }
+        .stat .big { font-size: 23px; font-weight: 800; color: var(--brand); line-height: 1; }
+        .stat .cap { font-size: 8.6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 5px; }
+
+        /* ---------- Inline code & arrow-flow ---------- */
+        .mono { font-family: "Ubuntu Mono", "SF Mono", Consolas, monospace; font-size: 9px; color: var(--brand-deep); background: var(--panel-2); padding: 0 4px; border-radius: 3px; }
+        .arrow-flow { font-family: "Ubuntu Mono", Consolas, monospace; font-size: 9.3px; color: var(--brand-deep); background: var(--panel-2); border: 1px solid var(--line); border-radius: 3px; padding: 9px 12px; line-height: 1.9; margin: 10px 0; }
+
+        /* ---------- Layered flow diagram (stacked layer boxes with record chips) ----------
+           Use INSTEAD of .arrow-flow when the structure is layered/grouped, not a single
+           linear sequence — a non-expert reads boxes-with-labels far more reliably than a
+           long arrow line. Give each layer its own rail color from the theme palette. */
+        .flowstack { display: flex; flex-direction: column; gap: 7px; margin: 11px 0 6px 0; }
+        .flayer { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; background: #fff; }
+        .flayer .rail { width: 5px; flex: 0 0 5px; }
+        .flayer .lhead { width: 40mm; flex: 0 0 40mm; padding: 7px 10px; background: var(--panel); border-right: 1px solid var(--line-soft); }
+        .flayer .lnum { font-size: 7.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+        .flayer .ltitle { font-size: 11px; font-weight: 700; color: var(--brand-deep); margin-top: 1px; line-height: 1.2; }
+        .flayer .lq { font-size: 8.2px; color: var(--muted); font-style: italic; margin-top: 3px; line-height: 1.35; }
+        .flayer .lbody { flex: 1; padding: 8px 9px; display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+        .node { display: inline-block; padding: 2px 7px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); font-size: 8.7px; color: var(--ink); font-weight: 600; white-space: nowrap; }
+        .node small { font-weight: 500; color: var(--muted); font-size: 7.6px; }
+        .sep { color: var(--brand); font-size: 9.5px; font-weight: 700; margin: 0 1px; }
+
+        /* ---------- Footer (absolute, pinned per page) ---------- */
+        .footer { position: absolute; bottom: 7mm; left: 16mm; right: 16mm; border-top: 1px solid var(--line-soft); padding-top: 5px; font-size: 8px; color: var(--muted); display: flex; justify-content: space-between; }
+        .note { font-size: 9px; color: var(--muted); font-style: italic; }
+    </style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="page cover">
+    <div class="cover-logo">
+        <div class="brand-left">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EDE">
+                <rect x="0.5" y="0.5" width="47" height="47" rx="10" fill="#0b1430" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+                <g fill="#ffffff">
+                    <rect x="7" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="7" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="7" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <g fill="#ffffff">
+                    <rect x="36.8" y="11" width="4.2" height="26" rx="1.3"/>
+                    <rect x="31.5" y="11" width="9.5" height="4.2" rx="2.1"/>
+                    <rect x="34.5" y="21.9" width="6.5" height="4.2" rx="2.1"/>
+                    <rect x="31.5" y="32.6" width="9.5" height="4.2" rx="2.1"/>
+                </g>
+                <path d="M17 11 H20 A13 13 0 0 1 20 37 H17 Z" fill="#3b82f6"/>
+            </svg>
+            <span class="logo-full">Enterprise Digital Engine</span>
+        </div>
+        <div class="brand-right">MaargSetu</div>
+    </div>
+    <div class="cover-title">
+        <div class="kicker">EDE Platform · Approach Document</div>
+        <h1>Runtime Schema Upgrade<br>Retiring the Migration Files</h1>
+        <div class="sub">A proposal to stop hand-managing 234 numbered database change-files, and instead let the platform work out what the database needs by comparing it against the models — module by module, in dependency order.</div>
+        <div class="verdict"><b>Verdict:</b> Feasible, and cheaper than it sounds — roughly four-fifths of the machinery already exists and runs on every upgrade today. The migration files cover only one step of it. The honest cost is one genuinely new component, one new database table, and the loss of a code-review artefact we would need to replace.</div>
+    </div>
+    <div class="cover-meta">
+        <div><div class="lbl">Prepared for</div><div class="val">EDE Platform Engineering</div></div>
+        <div><div class="lbl">Source inputs</div><div class="val">Measured against the live repository</div></div>
+        <div><div class="lbl">Date</div><div class="val">01 September 2026</div></div>
+    </div>
+</section>
+
+<!-- ============================ 01 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 01</div>
+    <h2><span class="num">01</span>How it works today &mdash; and where it breaks</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Three words do the heavy lifting in this document, so they are worth pinning down before anything else.</p>
+
+    <table>
+        <thead><tr><th style="width:20%">Term</th><th>In plain language</th></tr></thead>
+        <tbody>
+            <tr><td><b>Model</b></td><td>The Python class where a developer declares what a business record looks like &mdash; a Partner has a name, a country, a currency. This is the <b>blueprint</b>.</td></tr>
+            <tr><td><b>Schema</b></td><td>The actual shape of the database: which tables exist, which columns they have, how they link to each other. This is the <b>building</b>.</td></tr>
+            <tr><td><b>Migration file</b></td><td>A small numbered script recording one change to the building &mdash; &ldquo;add this column&rdquo;, &ldquo;create this table&rdquo;. We currently keep <b>234</b> of them.</td></tr>
+        </tbody>
+    </table>
+
+    <p>Today, when a developer changes a model, a tool compares the blueprint to a reference database and writes a new migration file describing the difference. Upgrading a customer database means replaying every file that has not run there yet, in order.</p>
+
+    <h3>Where that goes wrong</h3>
+    <p>The files are stored per module &mdash; 39 separate folders &mdash; but they are replayed from one shared list. Each file records only which file came <i>before it in the same folder</i>. Nothing in that record says <b>&ldquo;the file that creates this table must run before the file that points at it&rdquo;</b>.</p>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">234</div><div class="cap">Migration files</div></div>
+        <div class="stat"><div class="big">39</div><div class="cap">Module folders</div></div>
+        <div class="stat"><div class="big">25</div><div class="cap">Unmerged branch ends</div></div>
+        <div class="stat"><div class="big">51</div><div class="cap">Cross-module links</div></div>
+    </div>
+
+    <p>With 25 loose ends, the replay order is only partly decided. The rest is settled by the order the module folders happen to be listed in &mdash; which changes when a business domain is switched on or off.</p>
+
+    <div class="callout warn"><span class="ct">&#9888; This is not theoretical &mdash; it hit us in production tooling</span>A fresh database failed to build because an approvals table tried to link to <span class="mono">ir_model</span> before the table existed. It had been latent for months, because a database that is upgraded gradually applies each file the day it is written &mdash; so it never tests the ordering at all. Only a brand-new database does.</div>
+
+    <div class="callout"><span class="ct">The root problem in one sentence</span>The order is a by-product of how files were authored, not a statement of what the database actually needs &mdash; so it can be right today and wrong tomorrow without anyone changing a line of code.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>1</span></div>
+</section>
+
+<!-- ============================ 02 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 02</div>
+    <h2><span class="num">02</span>What we already have</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The important discovery in this review: we are not proposing to build a new system. We already run a module-upgrade pipeline on every single upgrade. The migration files are <b>one step inside it</b>.</p>
+
+    <p>When <span class="mono">ede migrate upgrade</span> runs today, it walks the modules in dependency order and performs a series of passes. Only the first uses migration files. Everything after it already works by reading the live code and bringing the database into line &mdash; exactly the style of working this document proposes to extend.</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#c7162b;"></div>
+            <div class="lhead"><div class="lnum">Step 1</div><div class="ltitle">Database shape</div><div class="lq">Does the table exist, with the right columns?</div></div>
+            <div class="lbody"><span class="node">Replay 234 migration files <small>(the only file-driven step)</small></span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Step 2</div><div class="ltitle">Describe the models</div><div class="lq">What models and fields exist right now?</div></div>
+            <div class="lbody"><span class="node">RegistrySync</span><span class="sep">&rarr;</span><span class="node">ir.model</span><span class="sep">&rarr;</span><span class="node">ir.model.field</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Step 3</div><div class="ltitle">Register capabilities</div><div class="lq">What screens, tools and metrics ship?</div></div>
+            <div class="lbody"><span class="node">ViewSync</span><span class="sep">&rarr;</span><span class="node">ToolRegistrySync</span><span class="sep">&rarr;</span><span class="node">KpiRegistrySync</span><span class="sep">&rarr;</span><span class="node">CapabilitySync</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Step 4</div><div class="ltitle">Load reference data</div><div class="lq">Are the seeded records present and current?</div></div>
+            <div class="lbody"><span class="node">DataLoader <small>(XML / CSV)</small></span><span class="sep">&rarr;</span><span class="node">Stable external ids</span><span class="sep">&rarr;</span><span class="node">Orphan cleanup</span></div>
+        </div>
+    </div>
+
+    <p>Steps 2 to 4 are all <b>code-is-truth</b>: they read what the modules declare, compare it with the database, and reconcile the difference. They are re-runnable, they need no numbered files, and they have been running in production for months.</p>
+
+    <div class="callout good"><span class="ct">The proposal is narrower than it first appears</span>We are asking one question: <b>can Step 1 work the same way as Steps 2, 3 and 4 already do?</b> Not &ldquo;can we replace our upgrade system&rdquo; &mdash; that system exists and works.</div>
+
+    <h3>Two assets that make this unusually cheap</h3>
+    <div class="grid2">
+        <div class="card"><h4>A. The blueprint is already a clean data structure <span class="pill p-have" style="float:right">HAVE</span></h4><p style="margin:4px 0;"><span class="mono">ModelSchemaSpec</span> already describes every table we own &mdash; columns, links, indexes, cross-reference tables, constraints &mdash; independent of any database technology. It even records <b>which module contributed each column</b>, which is what makes shared models work.</p></div>
+        <div class="card"><h4>B. Our test suite already builds from the blueprint <span class="pill p-have" style="float:right">PROVEN</span></h4><p style="margin:4px 0;">All <b>6,614</b> automated tests create their database directly from the models &mdash; not from the migration files. Building a correct database from the blueprint alone is therefore not a hypothesis. It is what every test run has been doing all along.</p></div>
+    </div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>2</span></div>
+</section>
+
+<!-- ============================ 03 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 03</div>
+    <h2><span class="num">03</span>The proposed approach, in plain terms</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Replace &ldquo;replay the history of every change we have ever made&rdquo; with &ldquo;look at the building, look at the blueprint, and build what is missing.&rdquo;</p>
+
+    <table>
+        <thead><tr><th style="width:22%">&nbsp;</th><th style="width:39%">Today &mdash; replay the history</th><th>Proposed &mdash; compare and converge</th></tr></thead>
+        <tbody>
+            <tr><td><b>Source of truth</b></td><td>234 files describing past changes</td><td>The models, as they are right now</td></tr>
+            <tr><td><b>What runs</b></td><td>Every unapplied file, in a globally sorted order</td><td>Only the differences, module by module</td></tr>
+            <tr><td><b>Order comes from</b></td><td>Who authored what, and when</td><td>The declared module dependency graph</td></tr>
+            <tr><td><b>Adding a field means</b></td><td>Change the model, run a generator, commit the generated file</td><td>Change the model. Nothing else.</td></tr>
+            <tr><td><b>A fresh database</b></td><td>Replays 234 files, several of which no longer matter</td><td>Built once, directly, in its final shape</td></tr>
+        </tbody>
+    </table>
+
+    <h3>What the upgrade would do, per module</h3>
+    <p>The platform already knows the dependency order &mdash; every module declares what it depends on, and the loader honours it. The new step slots into that same walk:</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#1e3a8a;"></div>
+            <div class="lhead"><div class="lnum">Phase 1</div><div class="ltitle">Before</div><div class="lq">Anything that must happen while the old shape still exists?</div></div>
+            <div class="lbody"><span class="node">Run &ldquo;before&rdquo; scripts <small>(only if the module version moved)</small></span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Phase 2</div><div class="ltitle">Shape</div><div class="lq">What does the blueprint have that the database lacks?</div></div>
+            <div class="lbody"><span class="node">Create missing tables</span><span class="sep">&rarr;</span><span class="node">Add missing columns</span><span class="sep">&rarr;</span><span class="node">Queue links &amp; indexes</span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Phase 3</div><div class="ltitle">Content</div><div class="lq">Are the described models and seeded records current?</div></div>
+            <div class="lbody"><span class="node">Existing sync passes</span><span class="sep">&rarr;</span><span class="node">Existing data loader</span><span class="sep">&nbsp;</span><span class="node"><small>unchanged</small></span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#7c3aed;"></div>
+            <div class="lhead"><div class="lnum">Phase 4</div><div class="ltitle">After</div><div class="lq">Any data to backfill now the new shape exists?</div></div>
+            <div class="lbody"><span class="node">Run &ldquo;after&rdquo; scripts</span><span class="sep">&rarr;</span><span class="node">Record the module's new version</span></div>
+        </div>
+    </div>
+
+    <div class="callout"><span class="ct">Honest naming</span>This is &ldquo;no <b>schema</b> migration files&rdquo;, not &ldquo;no files at all&rdquo;. Phases 1 and 4 keep small, version-stamped scripts for the things a comparison can never work out on its own &mdash; renaming a column without losing its data, or filling in a new column from an old one. Section 07 covers this.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>3</span></div>
+</section>
+
+<!-- ============================ 04 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 04</div>
+    <h2><span class="num">04</span>The mechanic that makes it work</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">One design decision does most of the work, and it is the reason the ordering problem from Section 01 does not simply reappear in a new form.</p>
+
+    <h3>The problem, restated</h3>
+    <p>A <b>link</b> (a foreign key) is a rule saying &ldquo;this column must point at a row in that other table&rdquo;. The database refuses to create the rule if the other table does not exist yet. That single rule is what makes ordering matter at all &mdash; and it is why our approvals module failed against a table owned by a different module.</p>
+
+    <h3>The fix: build the walls first, connect them last</h3>
+    <p>Instead of creating each link the moment its column is created, the synchroniser <b>collects them</b> and applies them only after every module in the pass has had its tables and columns created.</p>
+
+    <div class="flowstack">
+        <div class="flayer">
+            <div class="rail" style="background:#0052cc;"></div>
+            <div class="lhead"><div class="lnum">Pass 1</div><div class="ltitle">Structure</div><div class="lq">Every module, in dependency order</div></div>
+            <div class="lbody"><span class="node">Tables</span><span class="sep">+</span><span class="node">Columns</span><span class="sep">&rarr;</span><span class="node">Links &amp; indexes set aside <small>(not applied)</small></span></div>
+        </div>
+        <div class="flayer">
+            <div class="rail" style="background:#0e8420;"></div>
+            <div class="lhead"><div class="lnum">Pass 2</div><div class="ltitle">Connections</div><div class="lq">Now that every table exists</div></div>
+            <div class="lbody"><span class="node">Apply all links</span><span class="sep">&rarr;</span><span class="node">Apply all indexes</span><span class="sep">&rarr;</span><span class="node">Apply &ldquo;must not be empty&rdquo; rules</span></div>
+        </div>
+    </div>
+
+    <div class="callout good"><span class="ct">Why this matters more than it looks</span>By the time any link is applied, <b>every table in the system exists</b>. A module pointing at a table owned by another module is no longer an ordering question &mdash; it cannot fail. The class of bug described in Section 01 stops being possible rather than being managed.</div>
+
+    <p>The same deferral covers two related cases that also trip up a naive comparison:</p>
+
+    <table>
+        <thead><tr><th style="width:26%">Case</th><th>Why it needs deferring</th><th>How it is handled</th></tr></thead>
+        <tbody>
+            <tr><td><b>&ldquo;Must not be empty&rdquo;</b></td><td>Adding a required column to a table that already has rows fails &mdash; the existing rows have nothing in it.</td><td>Add the column, fill existing rows with the declared default, <i>then</i> apply the rule.</td></tr>
+            <tr><td><b>Indexes</b></td><td>Cheap to apply, but pointless before the columns they cover exist.</td><td>Collected and applied in the same closing pass.</td></tr>
+            <tr><td><b>Cross-reference tables</b></td><td>A many-to-many table links two modules and can precede either.</td><td>Table created in the first pass; both its links deferred to the second.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout"><span class="ct">One rule is deliberately missing from this page</span>What the synchroniser does about things the blueprint <i>no longer</i> contains &mdash; and what happens when older code meets a newer database &mdash; is a decision in its own right, not a mechanic. It is set out in <b>Section 06</b>.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>4</span></div>
+</section>
+
+<!-- ============================ 05 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 05</div>
+    <h2><span class="num">05</span>What our own history says about the risk</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">The standard objection to this approach is that a comparison cannot tell a <b>rename</b> from a <b>delete plus an add</b> &mdash; and getting that wrong destroys data. That objection is correct in principle, so we measured how often it would actually have bitten us.</p>
+
+    <p>Every one of the 234 migration files was scanned for the operations that a comparison-based approach genuinely cannot reconstruct:</p>
+
+    <table>
+        <thead><tr><th style="width:44%">Operation the approach cannot infer</th><th style="width:18%">Occurrences</th><th>What it means for us</th></tr></thead>
+        <tbody>
+            <tr><td>Column renamed</td><td><b>0</b> <span class="pill p-have">NONE</span></td><td>The headline risk has never once materialised in this codebase.</td></tr>
+            <tr><td>Column type changed</td><td><b>0</b> <span class="pill p-have">NONE</span></td><td>No conversion logic to preserve.</td></tr>
+            <tr><td>Table renamed</td><td><b>0</b> <span class="pill p-have">NONE</span></td><td>Already forbidden by our own rules &mdash; renames orphan stored references.</td></tr>
+            <tr><td>Real data change (insert / update / delete)</td><td><b>3</b> <span class="pill p-part">FEW</span></td><td>Three scripts to carry across. Not three hundred.</td></tr>
+            <tr><td>Any raw SQL at all</td><td><b>11</b> <span class="pill p-part">FEW</span></td><td>Reviewed individually; most are housekeeping.</td></tr>
+            <tr><td>Column or table dropped</td><td>119 / 125 <span class="pill p-have">MOOT</span></td><td>Irrelevant going forward: a new database never creates them, and existing databases already dropped them.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="stat-row">
+        <div class="stat"><div class="big">0</div><div class="cap">Renames, ever</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Data scripts to port</div></div>
+        <div class="stat"><div class="big">370</div><div class="cap">Tables to converge</div></div>
+        <div class="stat"><div class="big">6,614</div><div class="cap">Tests already model-built</div></div>
+    </div>
+
+    <div class="callout good"><span class="ct">The measured conclusion</span>The single hardest problem for this approach &mdash; rename detection &mdash; has <b>never occurred here in 234 changes</b>. It will happen eventually, but as a rare event handled by an explicit script, not as routine work the design must absorb.</div>
+
+    <div class="callout warn"><span class="ct">&#9888; Read this honestly</span>&ldquo;It has not happened yet&rdquo; is evidence about likelihood, not a guarantee. The plan must still ship a rename mechanism <b>before</b> the first rename, not after. That is why the &ldquo;before&rdquo; scripts in Section 03 are part of Stage 3 and not deferred to later.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>5</span></div>
+</section>
+
+<!-- ============================ 06 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 06</div>
+    <h2><span class="num">06</span>Two decisions that shape this plan</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Both are directions, not open questions. Each one removes work from the plan &mdash; and each one carries a condition that has to be respected for that saving to be real.</p>
+
+    <h3>Decision 1 &mdash; PostgreSQL only. No second database engine, anywhere.</h3>
+    <p>Half of this is already done. <b>Platform Change 13</b> (delivered 08 July 2026) made PostgreSQL the sole production engine and took SQLite out of migration generation. It deliberately stopped short of the rest, because the SQLite path turned out to be load-bearing for the test suite.</p>
+
+    <table>
+        <thead><tr><th style="width:26%">Piece</th><th style="width:14%">State</th><th>What it covers</th></tr></thead>
+        <tbody>
+            <tr><td><b>Platform Change 13</b></td><td><span class="pill p-have">DELIVERED</span></td><td>PostgreSQL is the sole production engine; SQLite removed from migration generation.</td></tr>
+            <tr><td><b>Platform Change 14</b></td><td><span class="pill p-gap">PLANNED</span></td><td>The remainder: move ~90 test fixture files onto PostgreSQL, then delete the SQLite engine, its settings and every dialect branch left in the codebase.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">&#9888; The sequencing rule &mdash; this is the part that matters</span><b>Change 14 must land before the synchroniser is built, not after.</b> Build the synchroniser first and it needs a SQLite strategy for a database engine we are in the middle of deleting &mdash; work that would be written, tested, reviewed and then thrown away. Build it second and the synchroniser targets one dialect from its first line.</div>
+
+    <p>The cost is real and belongs to Change 14, not to this proposal: it is roughly five times the effort of Change 13, and it changes every contributor's workflow &mdash; running the test suite will require a live PostgreSQL instead of an in-memory database. That trade was already accepted when the change was scoped.</p>
+
+    <div class="callout good"><span class="ct">What we get in return</span>The synchroniser is written against one dialect, with no lowest-common-denominator compromises: native <span class="mono">JSONB</span> containment, GIN indexes, full <span class="mono">date_trunc</span>, and &mdash; decisively &mdash; the ability to alter a table's rules after creation, which SQLite cannot do at all. That single capability is what makes converging an <i>existing</i> database possible rather than merely creating a new one.</div>
+
+    <h3>Decision 2 &mdash; add and adjust, but never delete</h3>
+    <p>The synchroniser may create and it may relax. It may never remove. Every case is fixed in advance, so the behaviour is predictable rather than a judgement call:</p>
+
+    <table>
+        <thead><tr><th style="width:44%">What the comparison finds</th><th style="width:18%">Action</th><th>Reasoning</th></tr></thead>
+        <tbody>
+            <tr><td>Blueprint has a table the database lacks</td><td><span class="pill p-have">CREATE</span></td><td>The ordinary case.</td></tr>
+            <tr><td>Blueprint has a column the database lacks</td><td><span class="pill p-have">ADD</span></td><td>Added, then existing rows filled with the declared default.</td></tr>
+            <tr><td>A column has become required</td><td><span class="pill p-part">ADJUST</span></td><td>Blanks filled first, then the rule applied &mdash; never the other way round.</td></tr>
+            <tr><td>A column is no longer required</td><td><span class="pill p-part">RELAX</span></td><td>The &ldquo;must not be empty&rdquo; rule is lifted.</td></tr>
+            <tr><td>The database has a column the blueprint does not</td><td><span class="pill p-part">RELAX ONLY</span></td><td><b>The data stays.</b> Its &ldquo;must not be empty&rdquo; rule is lifted so the column stops being mandatory. Nothing is dropped.</td></tr>
+            <tr><td>The database has a table the blueprint does not</td><td><span class="pill p-build">LEAVE</span></td><td>Untouched entirely &mdash; it may belong to a module that is simply switched off.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">Why row five is the important one</span>It is what makes <b>going backwards safe</b>. Deploy an older version of the code against a newer database and it will not know about the newer columns &mdash; so when it saves a record it supplies no value for them. If those columns were still marked mandatory, every save would fail. Lifting that rule is precisely what turns a rollback from a special recovery procedure into <b>ordinary behaviour</b>: the old code simply runs the same comparison against its own older blueprint, and carries on. Data written by the newer version stays where it is, waiting.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>6</span></div>
+</section>
+
+<!-- ============================ 08 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 07</div>
+    <h2><span class="num">07</span>Pros &mdash; what we gain</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Ranked by how much each one is worth to us in practice, not by how impressive it sounds.</p>
+
+    <table>
+        <thead><tr><th style="width:5%">#</th><th style="width:30%">Gain</th><th>Why it matters here</th></tr></thead>
+        <tbody>
+            <tr><td><b>1</b></td><td><b>A whole class of bug disappears</b></td><td>Ordering failures between modules stop being possible, rather than being detected and worked around. The fix we shipped this week becomes unnecessary code.</td></tr>
+            <tr><td><b>2</b></td><td><b>Order follows the dependency graph</b></td><td>Upgrade order becomes a statement of what depends on what &mdash; the same graph the module loader and data loader already use &mdash; instead of a by-product of authoring history.</td></tr>
+            <tr><td><b>3</b></td><td><b>Switching domains on or off is safe</b></td><td>Today, activating or deactivating a business domain silently reshuffles the upgrade order. Under the proposal it changes only which modules are considered.</td></tr>
+            <tr><td><b>4</b></td><td><b>One source of truth</b></td><td>Models, tests and customer databases would all derive from the same blueprint. Today the tests use one route and customer databases another &mdash; which is precisely why the tests stayed green while a fresh database was broken.</td></tr>
+            <tr><td><b>5</b></td><td><b>Adding a field is one edit</b></td><td>Change the model. No generator run, no generated file to review, no chance of the file and the model disagreeing.</td></tr>
+            <tr><td><b>6</b></td><td><b>New customers provision faster and cleaner</b></td><td>A new database is built once in its final shape, instead of replaying 234 files including tables that are created and later dropped.</td></tr>
+            <tr><td><b>7</b></td><td><b>Self-healing</b></td><td>A database that has drifted &mdash; a failed upgrade, a manual change &mdash; is repaired on the next run, because the comparison simply notices what is missing.</td></tr>
+            <tr><td><b>8</b></td><td><b>One database dialect</b></td><td>With PostgreSQL as the only target, the synchroniser is written against real capabilities &mdash; altering constraints, native JSONB, GIN indexes &mdash; instead of the narrowest behaviour two engines share.</td></tr>
+            <tr><td><b>9</b></td><td><b>A smaller repository</b></td><td>234 files, 39 folders and their supporting tooling retire. New engineers stop having to learn a revision graph to add a column.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout good"><span class="ct">The strategic one is #4</span>The other eight are conveniences. This one closes the gap that let a broken database ship past a fully green test suite &mdash; and that gap is a property of having two different ways to build a schema, not of any particular bug.</div>
+
+    <div class="callout"><span class="ct">A bonus worth taking regardless of the decision</span>The comparison engine can run in <b>report-only</b> mode. That alone gives us a continuous-integration check that says &ldquo;this branch would produce a broken fresh database&rdquo; &mdash; the check we do not have today, and the reason our fault stayed hidden for months. It is useful even if we never switch the write path on.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>7</span></div>
+</section>
+
+<!-- ============================ 07 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 08</div>
+    <h2><span class="num">08</span>Cons &mdash; what we give up</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Stated at full strength, with what it would take to cover each one. This list is <b>one item shorter than it was</b>: committing to PostgreSQL only (Section 06) removes what had been the largest build item in the plan. One genuine, permanent loss remains.</p>
+
+    <table>
+        <thead><tr><th style="width:5%">#</th><th style="width:26%">Cost or risk</th><th style="width:34%">Why it is a real problem</th><th>How we would cover it</th></tr></thead>
+        <tbody>
+            <tr><td><b>1</b></td><td><b>We lose the reviewable change record</b> <span class="pill p-gap">THE REAL LOSS</span></td><td>Today a schema change appears in a pull request as a file a reviewer can read line by line. Afterwards it is implied by a model edit &mdash; the exact database commands become invisible at review time.</td><td>A command that prints the exact statements the synchroniser would run, published into the pull request automatically. Mitigation, not elimination.</td></tr>
+            <tr><td><b>2</b></td><td><b>Renames need a deliberate escape hatch</b></td><td>A comparison sees a rename as &ldquo;one column vanished, another appeared&rdquo;. Applied literally that is silent data loss.</td><td>Version-stamped &ldquo;before&rdquo; scripts, shipped in Stage 3 &mdash; before the first rename, not after. Zero renames to date (Section 05).</td></tr>
+            <tr><td><b>3</b></td><td><b>Leftover columns accumulate</b></td><td>Because the synchroniser never deletes (Section 06), columns from retired features stay in the table forever, holding their old data.</td><td>Accepted deliberately &mdash; it is the price of safe rollback. An explicit, opt-in cleanup command run by a human, never automatically.</td></tr>
+            <tr><td><b>4</b></td><td><b>Concurrency across customers</b></td><td>Schema changes could be triggered by several processes at once during provisioning. Today a single lock inside one process is enough; that stops being true.</td><td>A database-level advisory lock per customer database, taken around the synchronise step.</td></tr>
+            <tr><td><b>5</b></td><td><b>Rollback changes shape</b></td><td>Each migration file today has a matching step-by-step &ldquo;undo&rdquo;. There is no equivalent here &mdash; going back means running the older code and letting it re-converge.</td><td>Defined, not absent (Section 06): older code relaxes what it does not recognise and leaves the data. Weaker for a precise single-step reversal; stronger for the case we actually hit, which is deploying an older build.</td></tr>
+            <tr><td><b>6</b></td><td><b>A cutover to plan</b></td><td>Existing customer databases were built by the old route and must be recognised as already correct.</td><td>Run the synchroniser in report-only mode against real customer databases first. It must report &ldquo;nothing to do&rdquo; before the write path is enabled anywhere.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">&#9888; If we only take one warning from this page, take #1</span>Everything else on this list is engineering with a known answer, or a cost we have already accepted. Losing the reviewable change record is a permanent trade: we would be exchanging an artefact a human reads for a process a human trusts. That is a reasonable trade &mdash; but it should be made knowingly, and the printed-statements check in Stage 0 is what makes it acceptable.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>8</span></div>
+</section>
+
+<!-- ============================ 09 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 09</div>
+    <h2><span class="num">09</span>The staged plan</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">One prerequisite, then six stages. Each is independently useful, independently shippable, and reversible. Nothing writes to a customer database until Stage 4, and by then the same engine has been reporting against real databases for two stages.</p>
+
+    <table>
+        <thead><tr><th style="width:6%">Stage</th><th style="width:24%">What ships</th><th style="width:38%">What it does</th><th>Risk</th></tr></thead>
+        <tbody>
+            <tr><td><b>Pre</b></td><td><b>Platform Change 14</b><br><span class="pill p-gap">BLOCKER</span></td><td>Finish the SQLite removal: move ~90 test fixture files onto PostgreSQL, delete the SQLite engine and every dialect branch. Already scoped and planned; not yet scheduled.</td><td><span class="pill p-part">MED</span> Large diff, changes local workflow. Cost belongs to Change 14.</td></tr>
+            <tr><td><b>0</b></td><td><b>Report-only checker</b><br><span class="pill p-build">START HERE</span></td><td>Compares blueprint against a live database and reports what is missing. Writes nothing. Runs in continuous integration.</td><td><span class="pill p-have">NONE</span> Cannot change anything.</td></tr>
+            <tr><td><b>1</b></td><td><b>Module state table</b><br><span class="pill p-gap">NEW</span></td><td>Records, per module, which version is installed. The one genuinely new persistent concept &mdash; we have no equivalent today. Ships as one of the last migration files we ever write.</td><td><span class="pill p-have">LOW</span> Additive table.</td></tr>
+            <tr><td><b>2</b></td><td><b>The synchroniser, switched off</b></td><td>The write path, PostgreSQL-only, with the deferral passes from Section 04 and the add-and-adjust rules from Section 06. Runs <i>after</i> the existing route, where it must find nothing to do &mdash; that is the proof of correctness against real databases.</td><td><span class="pill p-have">LOW</span> Behind a setting, off by default.</td></tr>
+            <tr><td><b>3</b></td><td><b>Before / after scripts</b></td><td>Version-stamped scripts for renames and data backfills. The three existing data scripts are ported here.</td><td><span class="pill p-part">MED</span> Must land before the first rename.</td></tr>
+            <tr><td><b>4</b></td><td><b>Cutover</b></td><td>New databases are built by the synchroniser. Existing ones have their module versions recorded from current state. The old route stops running.</td><td><span class="pill p-part">MED</span> The real decision point.</td></tr>
+            <tr><td><b>5</b></td><td><b>Removal</b></td><td>The 234 files, the migration harness and the ordering fix we shipped this week are all deleted, along with the dependency.</td><td><span class="pill p-have">LOW</span> Pure deletion.</td></tr>
+        </tbody>
+    </table>
+
+    <h3>The decision gates</h3>
+    <div class="grid2">
+        <div class="card"><h4>Gate A &mdash; after Stage 0</h4><p style="margin:4px 0;">Does the checker report <b>nothing to do</b> against a real customer database that is fully up to date?</p><ul><li><b>Yes</b> &rarr; the comparison engine understands our schema. Continue.</li><li><b>No</b> &rarr; stop and understand every difference first. This is exactly the information we currently lack.</li></ul></div>
+        <div class="card"><h4>Gate B &mdash; after Stage 2</h4><p style="margin:4px 0;">Running the synchroniser after the existing route, does it make <b>zero changes</b> across every customer database?</p><ul><li><b>Yes</b> &rarr; the two routes agree. Cutover is safe.</li><li><b>No</b> &rarr; the blueprint and the files disagree somewhere. Reconcile before Stage 4.</li></ul></div>
+    </div>
+
+    <div class="callout warn"><span class="ct">&#9888; Only Stage 2 is truly blocked</span>Stages 0 and 1 read and record; they do not care which engine is underneath, so they can run in parallel with Change 14. It is the <b>write path</b> that must not be written twice. Sequence the work so Change 14 completes before Stage 2 begins &mdash; not before the whole project starts.</div>
+
+    <div class="callout"><span class="ct">Why Stage 0 comes first even if we never continue</span>It is the missing safety net, not a preparatory step. It is the check that would have caught this week's fault before it reached anyone, and it is the same engine every later stage needs. If the project is paused after Stage 0, we still end up better off than we are today.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>9</span></div>
+</section>
+
+<!-- ============================ 10 ============================ -->
+<section class="page">
+    <div class="eyebrow">Section 10</div>
+    <h2><span class="num">10</span>Recommendation</h2>
+    <div class="section-rule"></div>
+
+    <p class="lead">Approve Stage 0 now and unconditionally, and schedule Platform Change 14. Decide the rest at Gate A, on evidence we do not currently have.</p>
+
+    <h3>The case for going ahead</h3>
+    <p>This is a smaller change than it appears. Four-fifths of a module-upgrade pipeline already runs on every upgrade, already reads the live code, and already reconciles the database against it. The blueprint is already a clean, technology-independent data structure. Our entire test suite already builds its database from that blueprint. What remains is to extend a proven mechanism from &ldquo;create a new database&rdquo; to &ldquo;bring an existing one into line&rdquo;.</p>
+    <p>The risk that would normally sink this &mdash; losing data to an undetected rename &mdash; has been measured against our own history and has <b>never occurred in 234 changes</b>.</p>
+
+    <h3>The case for caution</h3>
+    <p>One cost is permanent: we would trade a change record a reviewer can read for a process a reviewer must trust &mdash; acceptable only if the printed-statements check from Stage 0 actually lands and is actually wired into review.</p>
+    <p>The other is a scheduling dependency rather than a new cost. Going PostgreSQL-only removes the largest build item from this plan, but only if <b>Platform Change 14</b> is completed before the write path is written. Change 14 is already scoped, already accepted as roughly five times the effort of its predecessor, and currently unscheduled. This proposal does not add that cost &mdash; it makes it urgent.</p>
+
+    <div class="callout good"><span class="ct">Recommendation</span><b>Proceed to Stage 0 immediately</b> &mdash; it is low cost, it is the continuous-integration check we are currently missing, and it is the foundation every later stage builds on. <b>Schedule Platform Change 14 now</b>, in parallel: it is the gate on Stage 2 and it is the long pole. <b>Hold Stages 2&ndash;5 at Gate A</b> until the checker has run against real customer databases and we can see, rather than assume, how closely the blueprint and the live schema already agree.</div>
+
+    <h3>What we would know at Gate A that we do not know now</h3>
+    <table>
+        <thead><tr><th style="width:52%">Question</th><th>Why it decides the project</th></tr></thead>
+        <tbody>
+            <tr><td>Does the blueprint match a real, fully-upgraded customer database?</td><td>If yes, cutover is mostly bookkeeping. If no, every difference is work we have not yet costed.</td></tr>
+            <tr><td>How much drift exists between customers?</td><td>Sets the true size of Stage 4 and tells us whether a single cutover is even possible.</td></tr>
+            <tr><td>Is Platform Change 14 scheduled, and when does it land?</td><td>It gates the write path. Until it has a date, Stage 2 has no start date either.</td></tr>
+        </tbody>
+    </table>
+
+    <div class="callout warn"><span class="ct">&#9888; One thing not to do</span>Do not treat the ordering fix shipped this week as a reason to delay Stage 0. That fix makes the <i>current</i> order correct; it does not give us a way to <i>check</i> that a change is safe before it ships. Those are different problems, and only the second one prevents a repeat.</div>
+
+    <div class="footer"><span>Runtime Schema Upgrade — Approach</span><span>10</span></div>
+</section>
+
+</body>
+</html>

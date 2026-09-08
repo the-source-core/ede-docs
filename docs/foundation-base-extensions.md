@@ -33,14 +33,13 @@ The view side uses XML inheritance:
 
 ```xml
 <!-- foundation.assistant ships its own view file; no edit to res_organization_views.xml -->
-<view id="res_organization_form_ai_section" model="res.organization">
-    <extend ref="res_organization_form_view">
-        <xpath expr=".//section[@string='Status']" position="after">
-            <section string="AI Assistant">
-                <field name="default_ai_assistant_provider_id"/>
-            </section>
-        </xpath>
-    </extend>
+<view id="res_organization_form_ai_section" model="res.organization"
+      parent="foundation.res_organization_form_view">
+    <xpath expr=".//section[@string='Status']" position="after">
+        <section string="AI Assistant">
+            <field name="default_ai_assistant_provider_id"/>
+        </section>
+    </xpath>
 </view>
 ```
 
@@ -82,42 +81,45 @@ The SDK stores an optional `scope` callable that consumers can use to gate when 
 
 The predicate is metadata only in Phase 2. Implementations land alongside the consuming modules.
 
-## Migrations
+## Where the column comes from
 
-The Python class declaration creates fields in the ORM at boot. The actual DB column has to ship in an Alembic migration. **The migration lives in the extending module, not the base module:**
+The Python class declaration creates the field in the ORM at boot. The DB column arrives on the
+next `ede migrate upgrade`: the schema comparison sees a column the models declare and the
+database lacks, and adds it. **There is nothing to write and nothing to commit alongside the
+extension class** — see [Runtime Schema Upgrades](runtime-schema-upgrades.md).
+
+The important property for this SDK is that the column is **attributed to the extending module**
+in exactly the way the declaration is. `foundation.assistant` declares
+`default_ai_assistant_provider_id` on `res.organization`; the comparison reads the merged
+`MetaData`, so the column and its foreign key appear because the *consuming* module declared them.
+`foundation.base` neither knows nor needs to know.
+
+Ordering is a non-problem here, and deliberately so. The comparison creates every table first and
+applies **all** foreign keys afterwards, so an extension's FK into a table another module owns
+cannot be applied before that table exists — regardless of which module is processed first, or
+whether the target module is even active in this deployment.
 
 ```python
-# src/ede/foundation/assistant/migrations/versions/X_org_default_provider.py
-"""
-EDE-App-Key: foundation.assistant
-"""
-from alembic import op
-import sqlalchemy as sa
-
-revision = "X..."
-down_revision = "<previous assistant head>"
-
-def upgrade():
-    with op.batch_alter_table("res_organization", schema=None) as batch_op:
-        batch_op.add_column(sa.Column("default_ai_assistant_provider_id", sa.String(length=36), nullable=True))
-        batch_op.create_foreign_key(
-            op.f("fk_res_organization_default_ai_assistant_provider_id_ai_provider_config"),
-            "ai_provider_config",
-            ["default_ai_assistant_provider_id"],
-            ["record_uuid"],
-            ondelete="set null",
-        )
-
-def downgrade():
-    with op.batch_alter_table("res_organization", schema=None) as batch_op:
-        batch_op.drop_constraint(
-            op.f("fk_res_organization_default_ai_assistant_provider_id_ai_provider_config"),
-            type_="foreignkey",
-        )
-        batch_op.drop_column("default_ai_assistant_provider_id")
+# src/ede/foundation/assistant/models/organization_ext.py
+@api.extend_model("res.organization")
+class OrganizationAssistantExtension:
+    default_ai_assistant_provider_id = fields.Reference(
+        "ai.provider.config", on_delete="set null", label="Default AI Provider",
+    )
 ```
 
-Per the `writing-alembic-migrations` skill: wrap constraint ALTERs in `op.batch_alter_table` for SQLite parity; wrap FK names in `op.f(...)` for cross-dialect deterministic truncation.
+That is the whole change. Check what it will do before applying it:
+
+```bash
+ede migrate check -t <tenant>     # reports res_organization.default_ai_assistant_provider_id missing
+ede migrate upgrade -t <tenant>   # adds the column and its FK
+```
+
+!!! note "Retiring an extension field"
+
+    Deleting the declaration removes the field from the ORM. The **column is not dropped** — the
+    comparison never drops, so a deactivated module is indistinguishable from a deleted one only
+    in the ORM, never in the data. The column keeps its contents and loses its NOT NULL.
 
 ## Soft-FK degradation
 
@@ -127,17 +129,16 @@ This means: writing tests that target the base model **continues to work** even 
 
 ## View inheritance — supported xpath positions
 
-`<extend ref="<prefix>.<parent_view_id>">` can contain one or more `<xpath expr="..." position="...">` patches. **The `ref` MUST be qualified** with a dotted prefix identifying the owning module of the base view — e.g. `foundation.res_organization_form_view` (the `res_organization_form_view` lives in `foundation.base`). The SDK strips the leading prefix and looks up the suffix as a registered view_id. If the suffix doesn't resolve, an `InvalidViewDefinition` raises at boot — bare refs are not supported in production code (test fixtures using bare ids are accepted via a literal-hit fallback to keep the harness tight).
+A `<view id="..." model="..." parent="<prefix>.<parent_view_id>">` carries one or more `<xpath expr="..." position="...">` patches as **direct children**. (The older nested `<extend ref="...">` element was retired in `foundation.customization` Phase 4B and now raises a `DslParseError`.) **The `parent` MUST be qualified** with a dotted prefix identifying the owning module of the base view — e.g. `foundation.res_organization_form_view` (the `res_organization_form_view` lives in `foundation.base`). The SDK strips the leading prefix and looks up the suffix as a registered view_id. If the suffix doesn't resolve, an `InvalidViewDefinition` raises at boot — bare refs are not supported in production code (test fixtures using bare ids are accepted via a literal-hit fallback to keep the harness tight).
 
 ```xml
-<view id="res_organization_form_ai_section" model="res.organization">
-    <extend ref="foundation.res_organization_form_view">
-        <xpath expr=".//section[@string='Status']" position="after">
-            <section string="AI Assistant">
-                <field name="default_ai_assistant_provider_id"/>
-            </section>
-        </xpath>
-    </extend>
+<view id="res_organization_form_ai_section" model="res.organization"
+      parent="foundation.res_organization_form_view">
+    <xpath expr=".//section[@string='Status']" position="after">
+        <section string="AI Assistant">
+            <field name="default_ai_assistant_provider_id"/>
+        </section>
+    </xpath>
 </view>
 ```
 
@@ -165,14 +166,44 @@ class IrSession(DomainModel):
 
 Any `@api.extend_model("ir.session")` declaration then fails at boot with `ExtensionValidationError`. Reserved for kernel-internal models where extensions would be unsafe.
 
+## What an extension may contribute
+
+**Fields, and the methods those fields need.** A computed field declares its
+behaviour as a method name, and the compute runtime resolves that name on the
+*target* model — so the method is carried across with the field:
+
+```python
+@api.extend_model("crm.quote")
+class QuoteTaxExtension:
+    gross_total = fields.Decimal(
+        method="_compute_gross_total", store=True, depends_on=["net_total", "tax_rate"],
+    )
+
+    def _compute_gross_total(self, env):
+        return (self.net_total or 0) * (1 + (self.tax_rate or 0))
+```
+
+Contributed method names must be **free** on the target. A name already held by
+the model's own method, by something inherited from `DomainModel` (`save`,
+`validate`, `emit`), or by another extension raises `ExtensionMethodCollision`
+at registration. Collisions are refused rather than resolved by precedence:
+letting load order decide whose `_compute_total` wins produces wrong data with
+no error attached to it.
+
 ## Boot-time validation
 
-The boot pipeline calls `registry.validate_extensions()` after every app loads. Failures surface immediately:
+The boot pipeline calls `registry.validate_extensions()` after every app loads.
+Failures surface immediately:
 
-- `@api.extend_model("foo.bar")` where `foo.bar` doesn't exist → likely a missing manifest `depends` entry.
-- `@api.extend_model("foo.bar")` where `foo.bar` is opted out via `__ede_no_extension__=True`.
+| Refused | Why |
+|---|---|
+| Target model not registered | Usually a missing manifest `depends` on the owning module. |
+| Target opted out via `__ede_no_extension__=True` | The model has declared itself closed. |
+| **The extending app does not depend on the app owning the target** | Extending a model *is* a dependency on its owner — the same dependency as importing from it, expressed in the schema instead of in Python. Without the manifest edge the loader has nothing to order the two modules by, and the graph on paper stops matching the real one. Transitive edges count: a module need not restate what its own dependency already declares. |
+| **A field declares `method=` that does not resolve on the target** | The compute runtime looks the method up by name and, finding nothing, logs and returns — leaving the column at its default. Green boot, existing column, quietly wrong value. Refused at boot instead. |
 
-Field-name collisions (extension declares a field name that already exists on the base or on another extension) raise `ExtensionFieldCollision` at decoration time, before boot completes.
+Field- and method-name collisions raise `ExtensionFieldCollision` /
+`ExtensionMethodCollision` at registration, before boot completes.
 
 ## Inspecting extensions at runtime
 
@@ -183,7 +214,7 @@ Field-name collisions (extension declares a field name that already exists on th
 | `view_registry.list_extensions_for_view(view_id=...)` | View extensions registered against a specific parent view. |
 | Settings → Technical → Resources → **Extensions** | Admin UI surface listing all `@api.extend_model` registrations from the live registry mirror. |
 
-The `ir.model.extension` model + table exist as the registry mirror. Population at boot is currently manual (rows seeded by demo data / admin import); a future enhancement will sync rows automatically from `registry.list_extensions()` at every boot.
+`ir.model.extension` is the registry mirror behind that screen, filled by `ExtensionRegistrySync` on every `ede migrate upgrade` — one row per extension, recording target model, owning module, contributed field names and scope. An extension removed from the code is soft-deactivated, never deleted.
 
 ## Consumer adoption checklist
 
@@ -191,10 +222,10 @@ For a downstream module wanting to extend a base model:
 
 1. **Manifest `depends`** — list the owning module (e.g. `foundation.assistant` depends on `foundation.base` + `foundation.ai`).
 2. **Declare the extension class** — anywhere in `src/ede/foundation/<module>/models/` works; the file just needs to be imported during app load.
-3. **Ship the migration** — in the consuming module's `migrations/versions/` folder. Chain it off the consuming module's most recent revision.
-4. **(Optional) Ship a view extension** — `<extend ref="...">` in an XML file under the consuming module's `views/` folder; list it in the consuming module's `__manifest__.py` `data:` list.
+3. **Nothing to ship for the schema** — the column is added by the schema comparison on the next `ede migrate upgrade`, attributed to your module because that is where it is declared.
+4. **(Optional) Ship a view extension** — a `<view ... parent="...">` with `<xpath>` children, in an XML file under the consuming module's `views/` folder; list it in the consuming module's `__manifest__.py` `data:` list.
 5. **(Optional) Provide a `scope` predicate** — only needed for country-scoped / tenant-scoped / custom-gated extensions.
-6. **Tests** — write fixtures that boot just your module + the upstream module; assert the extension fields appear on the target.
+6. **Tests** — write fixtures that boot just your module + the upstream module; assert the extension fields appear on the target. If you contributed a compute, assert the *value*, not just the column — that is the part that used to fail silently.
 
 That's the whole contract. No other infrastructure pieces are needed.
 
@@ -202,5 +233,29 @@ That's the whole contract. No other infrastructure pieces are needed.
 
 - [Phase 2 roadmap](../roadmap/foundation/base/phase-2/README.md) — the full workstream breakdown.
 - [`foundation.l10n` roadmap](../roadmap/foundation/l10n/README.md) — the country-scope predicate consumer; Phase 1 lands the `country_scope("CC")` factory on top of this SDK.
-- [`writing-alembic-migrations` skill](../.claude/skills/writing-alembic-migrations/SKILL.md) — the patterns extension-column migrations must follow.
+- [Runtime Schema Upgrades](runtime-schema-upgrades.md) — how an extension's column reaches a tenant, and where a rename or backfill goes.
 - [CLAUDE.md Model Placement Test](../CLAUDE.md) — when to extend vs lift to platform.
+
+---
+
+## A shipped example
+
+`foundation.storage` contributes the file slot on `foundation.connectors`'
+parameter model. It is the reference implementation of both halves.
+
+| Piece | File |
+|---|---|
+| Field | `src/ede/foundation/storage/models/connector_param_ext.py` |
+| Registration | `src/ede/foundation/storage/models/__init__.py` (import it, or the decorator never runs) |
+| Views | `src/ede/foundation/storage/views/connector_param_file_ext.xml` (three `parent="connectors.…"` patches) |
+| Manifest | `views/connector_param_file_ext.xml` listed in `foundation.storage`'s `data:` |
+
+The reason it is an extension rather than a plain field is the same reason the
+SDK exists: `ir.connector.param` belongs to `foundation.connectors`, which
+depends only on `foundation.base`, while `foundation.storage` depends on
+*connectors*. Declaring `file_id` on the connectors model would have connectors
+reference a table storage owns, closing a cycle in the module graph.
+
+**One thing the consumer has to remember:** a contributed field is absent when
+its contributing module is not active. Read it with `getattr(record, "field", None)`,
+not `record.field`.

@@ -111,7 +111,7 @@ nav:
             -   "4. Commands & Events": tutorial/04-commands-and-events.md
             -   "5. Relationships": tutorial/05-relationships.md
             -   "6. Permissions & Security": tutorial/06-permissions.md
-            -   "7. Migrations": tutorial/07-migrations.md
+            -   "7. Schema Upgrades": tutorial/07-migrations.md
             -   "8. Deploying": tutorial/08-deploying.md
     -   Architecture:
             -   Overview: 01-overview.md
@@ -125,7 +125,7 @@ nav:
             -   Tenancy: 09-tenancy.md
             -   Presentation DSL: 10-presentation-dsl.md
             -   Foundation Apps: 11-foundation-apps.md
-            -   Migrations: 12-migrations.md
+            -   Schema Upgrades: runtime-schema-upgrades.md
             -   Developer Guide: 13-dev-guide.md
             -   Lifecycle Hooks: 14-lifecycle-hooks.md
             -   Command & Event Guide: 15-command-event-guide.md
@@ -158,6 +158,8 @@ nav:
             -   Workflow Engine: features/workflow.md
     -   Guides:
             -   Overview: guides/index.md
+            -   Logistics Domain Restructure: logistics-restructure-guide.md
+            -   NVOCC Domain Enablement: nvocc-domain-enablement.md
             -   Wire a New HTTP Controller: guides/http-controller.md
             -   Scheduled & Background Jobs: guides/scheduled-jobs.md
 

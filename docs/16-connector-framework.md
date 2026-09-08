@@ -216,14 +216,19 @@ into the nested dict passed to `ConnectorProvider.from_config()`.
 | `connector_id` | `Reference(ir.connector, cascade)` | Parent connector. Required. |
 | `key` | `Char(255)` | Dot-notation config key, e.g. `installed.client_id`. Required. |
 | `value` | `Char(multi_line)` | Text value (used when `value_type=text`). |
-| `file_id` | `Reference(storage.document, set null)` | Uploaded file reference (used when `value_type=file`). |
+| `file_id` | `Reference(storage.document, set null)` | Uploaded file reference (used when `value_type=file`). **Contributed by `foundation.storage`** via `@api.extend_model` — absent when that module is not active, so read it with `getattr`. |
 | `value_type` | `Enum` | `text` (default) / `file`. |
 | `sequence` | `Integer` | Processing and display order. Default: `10`. |
 
 **Config assembly** — when `ir.connector.get_config` is called:
 1. Params are fetched ordered by `sequence asc`.
 2. `text` params: value string used directly.
-3. `file` params: file content read from `StorageRouter` as UTF-8 string.
+3. `file` params: the content is fetched by dispatching `storage.document.read_text` — a capability
+   `foundation.storage` owns. This module never imports storage: storage depends on *connectors*
+   (a storage backend is configured as a connector), so importing it here would close a cycle.
+   If storage is not installed the bus raises `CommandHandlerNotFound`, which is logged as a
+   deployment problem and the parameter resolves to `""` rather than taking the whole config
+   assembly down.
 4. The flat `[{key, value}, ...]` list is passed through `unflatten_params()` to reconstruct the
    nested dict (dot-notation keys become nested dicts).
 5. Falls back to the legacy `config` JSON field when no params exist.

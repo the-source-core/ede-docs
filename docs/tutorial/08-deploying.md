@@ -71,7 +71,7 @@ After updating the config, run the full migration chain against the new DB:
 ede migrate upgrade -t system
 ```
 
-The reference DB used by `migrate generate` stays SQLite (it's a local convenience). The runtime DB is whatever you point each tenant at.
+PostgreSQL is the platform's only supported engine, in development as well as production.
 
 ## 3. Run the worker as a separate process
 
@@ -215,7 +215,7 @@ For deeper signals — query timing, slow handlers, queue depth — the [QA Auto
 The standard sequence for promoting changes from dev → prod:
 
 1.  Open a branch. Make the model / view / migration / permission changes.
-2.  `ede migrate generate --app <app>` to scaffold any schema migration. Author the body if autogen wasn't enough.
+2.  `ede migrate check -t <tenant>` to see what the upgrade will change before it changes it.
 3.  Run `mkdocs build --strict` if you touched docs, and the test suite (`./run_tests.sh`) for everything else.
 4.  Merge. Build a container image with the new commit tagged.
 5.  On the production host: pull the new image, `docker compose up -d` (rolling restart).

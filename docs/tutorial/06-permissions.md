@@ -265,7 +265,7 @@ Three modes:
 | `"optional"` | Nullable `organization_id`. Reads include the active org's rows *or* rows where `organization_id is None` (tenant-global). Useful for catalogue-like models. |
 | `"multi"` | Auto-injects an `organization_ids` Many2Many. Reads return rows whose set includes the active org. Use for records shared across multiple orgs. |
 
-The migration adds the FK column for you. Re-run `ede migrate generate` after adding `company_scope=...` and the diff shows the new column with the right index.
+The comparison adds the FK column for you. Run `ede migrate check` after adding `company_scope=...` and it reports the new column with the right index.
 
 ## 9. Switching the active organization at runtime
 
@@ -313,7 +313,7 @@ Apply:
 ede migrate upgrade -t system
 ```
 
-If you added `company_scope=...`, run a `migrate generate` first to produce the column migration, then `upgrade`.
+If you added `company_scope=...`, `ede migrate upgrade` adds the column for you — run `ede migrate check` first if you want to see it coming.
 
 Verify in the web client:
 
@@ -333,4 +333,4 @@ Verify in the web client:
 -   Learned the difference between **permissions** (coarse, role × resource × action) and **record rules** (fine, row-level filter with composition).
 -   Optionally enabled **company scope** with one decorator argument and let the framework do per-org isolation for you.
 
-[:octicons-arrow-right-24: **Next — Migrations**](07-migrations.md)
+[:octicons-arrow-right-24: **Next — Schema Upgrades**](07-migrations.md)

@@ -152,7 +152,7 @@ _none_
 |---|---|---|---|
 | `fields.Monetary` kernel field (decimal-backed, auto `monetary` widget) | — | [fields.py](../src/ede/core/kernel/fields.py), [model.py](../src/ede/core/kernel/model.py) (`_validate_monetary_currency_fields`) | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 | `res.currency` formatting attributes + `display_data_fields` chip plumbing | `res.currency` | [currency.py](../src/ede/foundation/base/models/currency.py), [decorators.py](../src/ede/core/kernel/decorators.py), migration `4d016112d761` | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
-| Frontend default-widget resolution + currency-driven formatting | — | [registry.ts](../src/frontend/src/workspace/views/fields/registry.ts), [MonetaryField.tsx](../src/frontend/src/workspace/views/fields/MonetaryField.tsx) | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
+| Frontend default-widget resolution + currency-driven formatting | — | registry.ts, MonetaryField.tsx | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 | First adopters — 31 money fields across logistics pricing / sales-crm / booking | `pricing.rate`, `pricing.rate.charge.slab`, `pricing.spot.*`, `crm.quote.version`, `crm.quote.line`, `crm.handover`, `crm.opportunity`, `crm.lead`, `logistics.booking`, `logistics.booking.charge` | pricing Enh 01 · sales-crm Enh 12 · booking Enh 04 | [platform/09](../roadmap/platform/09-monetary-field-type.md) |
 <!-- /SYNC-BLOCK -->
 

@@ -110,9 +110,9 @@ Files, as wired today:
 
 | Concern | Owner | Where |
 |---|---|---|
-| `crm.handover` model | `logistics.sales_crm` | [`models/handover.py`](../src/domains/logistics/sales_crm/models/handover.py) |
-| Y-fork FK + path field | `logistics.booking` | [`models/handover_extension.py`](../src/domains/logistics/booking/models/handover_extension.py) — `@api.extend_model("crm.handover")` |
-| Conversion command | `logistics.booking` | [`models/booking.py`](../src/domains/logistics/booking/models/booking.py) — `logistics.booking.create_from_handover` |
+| `crm.handover` model | `logistics.sales_crm` | [`models/handover.py`](../src/domains/logistics_base/sales_crm/models/handover.py) |
+| Y-fork FK + path field | `logistics.booking` | [`models/handover_extension.py`](../src/domains/logistics_base/booking/models/handover_extension.py) — `@api.extend_model("crm.handover")` |
+| Conversion command | `logistics.booking` | [`models/booking.py`](../src/domains/logistics_base/booking/models/booking.py) — `logistics.booking.create_from_handover` |
 | Mutual exclusion (BR-BK-CONV-02) | enforced in the command | rejects when the handover is already routed |
 | "Create Booking" button | **not yet wired** | target: `<extend ref="sales_crm.crm_handover_form_view">` from booking |
 
