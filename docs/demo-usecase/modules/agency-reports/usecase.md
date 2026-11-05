@@ -1,9 +1,16 @@
 # `logistics_nvocc_agency.agency_reports` — Demo Use-Case
 
 **Module:** NVOCC / Agency — Registers, KPIs & Principal Reporting (`src/domains/logistics_nvocc_agency/agency_reports/`)
-**Manifest key:** `demo: ["demo/demo_agency.xml", "demo/demo_agency_commercial.xml", "demo/demo_agency_reports_n9.xml"]`
-**Load:** `ede migrate upgrade -t <tenant> --with-demo=logistics_nvocc_agency.agency_reports`
-**Prerequisite demos:** none beyond this module's own — `demo_agency.xml` creates the Maersk principal the BRD N9 file hangs off, and the manifest loads it first.
+**Manifest key:** `demo: ["demo/demo_agency_reports_n9.xml"]`
+**Load:** `ede migrate upgrade -t <tenant> --with-demo=all` (or `--with-demo=logistics_nvocc_agency.agency_masters,logistics_nvocc_agency.agency_reports`)
+**Prerequisite demos:** `agency_masters` — it ships the Maersk principal (`agency_masters.demo_principal_maersk`) that the BRD N9 records hang off. **`--with-demo` takes app keys literally and does not expand along `depends`**: a declared dependency loads a module's code and its `data`, never its `demo`. So `agency_masters` has to be in the selection too, or the principal `ref=` cannot resolve. What the dependency *does* fix is the order the selected apps load in, so the principal exists before this file reads it.
+
+> **Corrected 2026-11-05.** This module previously declared three demo files, two of
+> which created records it does not own: BRD N1's principals / agents / numbering
+> rules / EDI partners, and BRD N2's quote chain. Each now ships from the module
+> that owns the models — `agency_masters`, `agency_network`, `agency_numbering`,
+> `agency_integration`, `agency_commercial` — so `--with-demo=<that app>` produces
+> its own records instead of nothing. This module keeps only the BRD N9 file.
 **BRD:** N1 (§18 registers, §19 KPIs) · **N9 — Principal Reporting & Agency Finance Integration**
 **Roadmap:** [roadmap/logistics/nvocc-agency/phase-9/README.md](../../../../roadmap/logistics/nvocc-agency/phase-9/README.md)
 

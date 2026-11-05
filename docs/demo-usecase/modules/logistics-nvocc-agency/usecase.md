@@ -1,8 +1,25 @@
 # `logistics_nvocc_agency.agency_masters` — Demo Use-Case
 
 **Module:** NVOCC / Shipping Agency (`src/domains/logistics_nvocc_agency/agency_masters/`)
-**Manifest key:** `demo: ["demo/demo_agency.xml"]`
-**Load:** `ede migrate upgrade -t <tenant> --with-demo=logistics_nvocc_agency.agency_reports`
+**Manifest key:** `demo: ["demo/demo_agency_masters.xml"]`
+**Load:** `ede migrate upgrade -t <tenant> --with-demo=logistics_nvocc_agency.agency_masters` — this module's own file is self-contained apart from `base.*` rows. The sibling files below each `ref=` the principal, so loading one of those alone needs `agency_masters` in the same selection: `--with-demo` takes app keys literally and does not expand along `depends`.
+
+**The records this doc describes ship from four modules, one per owner** (corrected
+2026-11-05 — they were all filed under `agency_reports`, so `--with-demo` on any of
+the owning modules produced nothing, and the masters could not be demoed without
+loading the reporting module last in the chain):
+
+| Records | Module | Demo file |
+|---|---|---|
+| Role bindings · principals · entitlements | `agency_masters` | `demo/demo_agency_masters.xml` |
+| Agent network | `agency_network` | `demo/demo_agency_network.xml` |
+| Numbering rules | `agency_numbering` | `demo/demo_agency_numbering.xml` |
+| EDI / API partners | `agency_integration` | `demo/demo_agency_integration.xml` |
+
+External IDs moved with the records, so each row is now owned by its declaring
+module (`agency_masters.demo_principal_maersk`, not `agency_reports.…`). Load order
+is unchanged: all three of the other modules declare `agency_masters` as a
+dependency, so the principals exist before anything hangs off them.
 **Roadmap:** [roadmap/logistics/nvocc-agency/README.md](../../../../roadmap/logistics/nvocc-agency/README.md)
 
 ---

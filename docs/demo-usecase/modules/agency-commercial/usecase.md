@@ -2,7 +2,10 @@
 
 > **Module:** `logistics_nvocc_agency.agency_commercial` (+ the base-tier models it
 > depends on: `logistics_base.sales_crm`, `logistics_base.commercial_terms`)
-> **Demo file:** `logistics_nvocc_agency/agency_reports/demo/demo_agency_commercial.xml`
+> **Demo file:** `logistics_nvocc_agency/agency_commercial/demo/demo_agency_commercial.xml`
+> (moved here from `agency_reports` on 2026-11-05 — every record is a row on a model
+> this module *extends*, with the agency columns it contributes filled in, so it is
+> this module's demo and `--with-demo=…agency_commercial` now produces it)
 > **Loads with:** `ede migrate upgrade -t <tenant> --with-demo=all`
 > **Scenario:** the one defined in [docs/demo-usecase/README.md](../../README.md)
 
@@ -117,8 +120,10 @@ allows no gate attribute on `<kpi>`. Closing it needs a change to
 
 ## Prerequisites
 
-Load with `--with-demo=all`. The file references `logistics_base.masters` **demo**
-rows (`masters.demo_port_innsa`, `masters.demo_port_sgsin`,
-`masters.demo_commodity_fak`) and the Phase 1 agency demo's principals
-(`agency_reports.demo_principal_maersk`). Referencing them keeps this on the one
+Load with `--with-demo=all`, or an explicit selection that names
+`logistics_nvocc_agency.agency_masters` as well as this module — `--with-demo`
+takes app keys literally and does **not** expand along `depends`. The file
+references `logistics_base.masters` **demo** rows (`masters.demo_port_innsa`,
+`masters.demo_port_sgsin`, `masters.demo_commodity_fak`) and the Phase 1 agency
+demo's principals (`agency_masters.demo_principal_maersk`). Referencing them keeps this on the one
 unifying scenario rather than forking a second set of Nhava Shevas.
