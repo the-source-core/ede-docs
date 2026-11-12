@@ -3,10 +3,10 @@
 
 **Module:** `ede.core.env` + `ede.core.kernel` + `ede.core.services.persistence` + `ede.foundation.base.services` (cross-cutting)
 **Roadmap:** [roadmap/platform/08-active-organization-and-company-scope.md](../roadmap/platform/08-active-organization-and-company-scope.md)
-**Status:** 🔴 Not Started — landing in lockstep with [`foundation.security`](foundation-security.md) Phases 1 + 2.
+**Status:** ✅ Delivered — in lockstep with [`foundation.security`](foundation-security.md) Phases 1 + 2; `scope_parent` added 2026-11-05 (Enh 02).
 **Layer:** Platform-wide
 
-> Source of truth is the roadmap. This doc reflects the *current built state* — currently "nothing shipped". Auto-maintained by the `syncing-roadmap-to-docs` skill.
+> Source of truth is the roadmap. This doc reflects the *current built state* — the mechanism is shipped. Auto-maintained by the `syncing-roadmap-to-docs` skill.
 
 ---
 
@@ -16,7 +16,21 @@
 <!-- SYNC-BLOCK: what -->
 A kernel-level cross-cutting design that adds three things to the framework:
 1. **`Env.active_organization_id` slot + `with_active_organization_id` clone method** in [src/ede/core/env.py](../src/ede/core/env.py).
-2. **`@api.model(..., company_scope="strict|optional|multi"|None)` decorator surface** in [src/ede/core/kernel/decorators.py](../src/ede/core/kernel/decorators.py) that triggers auto-injection of `organization_id` (strict / optional) or `organization_ids` Many2Many (multi) at class-init time.
+2. **`@api.model(..., company_scope="strict|optional|shared|multi"|None)` decorator surface** in [src/ede/core/kernel/decorators.py](../src/ede/core/kernel/decorators.py) that triggers auto-injection of the scope columns at class-init time:
+
+   | Mode | Columns injected | Who can read a row |
+   |---|---|---|
+   | `strict` | `organization_id` (required) | its owner only |
+   | `optional` | `organization_id` (nullable) | its owner — and **everyone**, when unset |
+   | `shared` | `organization_id` (required) + `shared_organization_ids` M2M | its owner, plus each organization named on the row |
+   | `multi` | `organization_ids` M2M, and **no owner column** | each organization linked to the row; nobody, when the list is empty |
+
+   `optional` and `multi` read alike and mean the opposite on an empty value: for
+   `optional`, unset means tenant-global; for `multi`, an empty list means nobody.
+   `shared` exists for the case neither covers — a head-office-owned rate card a
+   named branch may read, where ownership stays put and visibility is per row and
+   opt-in. Being a child in the `res.organization` tree deliberately grants
+   nothing; hierarchy-based visibility would be a separate feature.
 3. **`apply_company_filter(domain, env, model_cls)` helper** at `src/ede/core/services/persistence/company_filter.py`, structurally identical to `apply_active_filter`, wired into every ORM read callsite that already runs `apply_active_filter`.
 
 Plus three foundation-side companions in `foundation.base`:
@@ -129,9 +143,48 @@ src/ede/core/adapters/http/fastapi/
 <!-- SYNC-BLOCK: hooks -->
 | Hook key | Behavior |
 |---|---|
-| `pre.{model_key}.create` | Auto-registered for every model with `__ede_company_scope__`; stamps `organization_id` from `env.active_organization_id` when missing; strict mode rejects null. |
+| `pre.{model_key}.create` | Auto-registered for every model with `__ede_company_scope__`; fills `organization_id` from the model's declared `scope_parent` when missing, then from `env.active_organization_id`; `strict` and `shared` reject null. |
 | `pre.{model_key}.update` | Auto-registered for same models; rejects writes whose target org is outside `$principal.allowed_organization_ids`; gates `organization_id` reassignment behind `res.organization.reassign` permission. |
 <!-- /SYNC-BLOCK -->
+
+#### `scope_parent` — inheriting the branch from a parent record
+
+A child record that something reads **directly** — its own menu, search view or
+register — needs its own `company_scope`, because record rules compose per model
+and a child scoped only through its parent is not filtered at all when read
+alone. But `strict` then refuses every create on a path with no logged-in user: a
+demo file, a seed, an importer, a background job. A child's branch **is** its
+parent's by construction, so the model names the parent to take it from:
+
+```python
+@api.model("nvocc.cro.amendment", company_scope="strict", scope_parent="cro_id")
+```
+
+The parent model is inferred from the Reference field's own target, so it cannot
+drift from the relation. A **polymorphic** parent — one column carrying the target
+model key, another the uuid — takes a pair, resolved per record at create time:
+
+```python
+scope_parent=("subject_model_key", "subject_record_uuid")
+```
+
+Precedence is **caller value → parent → active organization**. Three properties
+worth knowing:
+
+- **It grants nothing.** For a non-system caller the inherited value still passes
+  the allowed-organizations write guard, so naming a parent in a branch you may
+  not write to is refused rather than silently stamped.
+- **The parent read is deliberately unfiltered** (`browse`, not `search`). On the
+  very paths this exists for there is no active organization, so a scoped read
+  would return nothing and the stamp could never happen.
+- **It runs before the system bypass.** `sudo()` exists so system code can choose
+  an organization itself, and the hook honours that — but every caller with no
+  active organization is a system caller, so inheritance must happen for them
+  too. Ordering it after the bypass makes every strict child unloadable from a
+  demo file.
+
+The value is a snapshot: stamped once on create, never recomputed, so reassigning
+a parent later cannot drag a child's history into another branch.
 
 ### State machine
 <!-- SYNC-BLOCK: state-machine -->
@@ -153,7 +206,7 @@ _none_ — pure auto-filter + hook + audit-column work; no new state machines.
 <!-- SYNC-BLOCK: foundation-settings -->
 | Setting Key | Type | Default | Env Var | Purpose |
 |---|---|---|---|---|
-| `SECURITY_REQUIRE_ACTIVE_ORG` | Boolean | `True` | `EDE_SECURITY_REQUIRE_ACTIVE_ORG` | Fail closed when active-org absent on a `company_scope` ∈ {strict, optional} model. |
+| `SECURITY_REQUIRE_ACTIVE_ORG` | Boolean | `True` | `EDE_SECURITY_REQUIRE_ACTIVE_ORG` | Fail closed when active-org absent on a `company_scope` ∈ {strict, optional, shared} model. |
 | `SECURITY_DECISION_LOG_RETAIN_DAYS` | Integer | `365` | `EDE_SECURITY_DECISION_LOG_RETAIN_DAYS` | Retention horizon for `ir.rbac.decision.log` rows. |
 <!-- /SYNC-BLOCK -->
 
