@@ -128,3 +128,94 @@ Each of these is the control working, not a defect:
 * unbind `agency_release_manager` from admin → the override refuses with a role-named 403;
 * set the DO's `valid_until` into the past → release refuses, quoting the expiry date and telling you
   to extend or reissue.
+
+---
+
+## Enhancement 01 — demo-data expansion
+
+**Status:** ✅ Delivered 2026-11-22 — 8 records in 1 file; `--with-demo=all` smoke green and idempotent (see the end of this section).
+**Roadmap:** [nvocc-agency Enhancement 01](../../../../roadmap/logistics/nvocc-agency/enhancements/01-demo-data-expansion.md). The cross-module walkthrough order lives there, and step IDs match it.
+**New demo file** (appended **after** `demo/demo_release.xml`): `demo/demo_release_bluewater_import.xml` (8)
+
+### Use case 1 — a delivery order at Nhava Sheva, through a customs examination
+
+> Wayne Imports wants its two boxes of LED driver boards out of the JNPT container freight station.
+> The B/L was telex-released at Singapore, and the IGM is filed. Customs, however, orders a
+> **100% examination**. The examiner finds the carton marks do not match the B/L and places the
+> entry on **hold**. Three days later customs clears it. The hold does not lift itself, and that is
+> the point.
+
+This is the import end the existing release demo deliberately did not build. That demo releases
+the Sealink export at New York, at the far end of one shipment. This one is a destination agency
+doing its own job: the DO is refused until the **IGM is accepted** (Phase 5's readiness contract,
+consumed by command name), until the box is **discharged** (Phase 4's date contract), and until
+**customs** says so. All three are refused in one message.
+
+#### Records produced — `demo/demo_release_bluewater_import.xml` (8)
+
+| External ID | Model | Key fields | Why it exists |
+|---|---|---|---|
+| `agency_release.demo_facility_innsa_cfs` | `logistics.facility.master` | `code` INNSA-CFS · "JNPT Container Freight Station" · `unlocode_id` `masters.demo_port_innsa` · description | The release location: an examined box is held at a CFS, not at the terminal. The empty return goes to a **different** gate, `agency_booking.demo_facility_nsict_depot` |
+| `agency_release.demo_numbering_rule_do_bluewater` | `nvocc.numbering.rule` | `document_type=delivery_order` · Bluewater · default org · `agency_numbering.sequence_delivery_order` · `prefix_override` BLWD · draft | Issuance refuses by name until it is active (BR-NAM-12) |
+| `agency_release.demo_customs_release_bluewater` | `nvocc.customs.release` | `bl_id` `agency_documentation.demo_bl_bluewater_import` · **`customs_status=pending`** · `declaration_number` BE-2026-INNSA-4471182 (the Bill of Entry) · `broker_partner_id` `base.demo_partner_co_001` (Bharat Logistics, the CHA) · `inspection_required=false` · `country_reference` "Bill of Entry filed on ICEGATE; awaiting RMS assessment" | Pending, not hold; see the first row of the next table. The principal is inherited off the B/L by the create hook |
+| `agency_release.demo_do_bluewater_import` | `nvocc.delivery.order` | `bl_id` the import B/L · Bluewater · default org · `branch_id` MUM · `cargo_mode=fcl` · `is_partial=false` · `release_location_type=cfs` · `release_location_id` the CFS · `port_id` INNSA · `release_instruction` "Release to Wayne Imports' transport against the CHA's out-of-charge copy; empties to DEP-NSICT" | Draft, with no number and no validity. `bl_number_snapshot`, `booking_id`, `shipment_id` and `document_id` are left for the pre-create hook to copy off the B/L |
+| `agency_release.demo_do_line_bluewater_box_1` / `_box_2` | `nvocc.do.line` | `equipment_usage_id` → `agency_booking.demo_usage_bluewater_box_1` / `_2` · 480 packages · 9 200 kg · `release_type=full` | One line per container. Each line's `package_count` is the ceiling a release is measured against |
+| `agency_release.demo_do_party_bluewater_consignee` | `nvocc.do.party` | `role=consignee` · Wayne · contact | Who the B/L names |
+| `agency_release.demo_do_party_bluewater_release_to` | `nvocc.do.party` | `role=release_to` · Wayne · contact · `identification_reference` "IEC 0000000000" (synthetic) | Wayne collects with its own transport. It holds `customer`, one of `nvocc.release_to_required_roles`, so no new role row is needed |
+
+**Block split, same as `demo_release.xml`:** the facility goes in `noupdate="0"`; everything else
+goes in `noupdate="1"`. A reload must not put a cleared customs entry back to `pending`, or rewrite
+an issued DO.
+
+### What this slice deliberately does NOT ship
+
+| Not shipped | Why |
+|---|---|
+| **A customs hold**, although `customs_status` is a plain Enum and *could* be seeded as `hold` | The CUSTOMS hold row on the B/L's `logistics.document` envelope is raised only by `nvocc.customs.release.record`, and that envelope does not exist until the B/L is issued. A seeded `hold` status would be a hold with no hold row behind it: readiness would refuse on the status while the hold register stayed empty. Recording it in the walkthrough raises both |
+| An issued DO | `nvocc.delivery.order.status` is `workflow=True` |
+| Discharge, gate-out or empty-return events | The movement-event stream is append-only and duplicate-checked. The voyage slice records the discharge; this slice records the gate-out through `nvocc.do.record_cargo_release` |
+| A FINANCE hold | It is **derived**: `FINANCE_CLEAR` places one when credit enforcement meets a held customer. See the optional refusal below |
+
+### Walkthrough — the steps this module owns
+
+| Step | Do this | What it shows |
+|---|---|---|
+| UC1-4 | After UC1-3 (B/L telex-released) and before the IGM is filed: Delivery Orders → the Bluewater DO → `nvocc.do.check_readiness` | **NOT READY, three conditions, three desks**: the B/L is not on an accepted manifest (read from Phase 5's contract, never from `nvocc.bl.status`); the box has not been discharged; customs is `pending` |
+| UC1-10 | After UC1-5 and UC1-9 (IGM accepted, both boxes discharged): `nvocc.customs.release.record` with `customs_status=exam` and `inspection_required=true`. Then `record` with `customs_status=hold` and `hold_reason` "RMS 100% examination at JNPT CFS — carton marks do not match the B/L". Try `hold` with **no** reason first | The reasonless hold is **refused** (N6-06). With a reason, readiness refuses **twice**: the customs status, and a CUSTOMS hold now standing on the B/L's document, with the reason quoted verbatim |
+| UC1-11 | `record` with `customs_status=cleared` and `release_date` 2026-10-15T17:00, then re-run readiness | **Still NOT READY.** Clearing customs does not clear the hold, because lifting a block is a decision with a name attached (BR-N6-15). `logistics.document.release_hold` with a reason → **READY** |
+| UC1-12 | `nvocc.do.mark_ready` → `nvocc.do.issue` → `nvocc.do.record_cargo_release` for line 1 with `released_at` 2026-10-16T10:00 and line 2 with 2026-10-16T15:00 | A BLWD number with seven-day validity. Each release writes a `gate_out_full` event **through Phase 4's command**, and demurrage stops there |
+| UC1-13 | `nvocc.do.complete` | **Refused**: both empties are owed. Log `empty_return` at DEP-NSICT, box 1 at 2026-10-19T11:00 and box 2 at 2026-10-26T09:00, then complete again. It passes, and no obligation row was closed because none exists |
+
+**Optional refusals, no extra records:**
+
+* tick Credit Hold on Wayne before UC1-12 → readiness places a **FINANCE** hold on the document
+  (N6-05). This is the release-side twin of the booking-side credit refusal in Use case 3;
+* try `nvocc.do.issue` before activating `demo_numbering_rule_do_bluewater` → refused, naming the
+  rule;
+* after issue, request a validity extension → refused while `nvocc.do_max_extensions = 0`.
+
+### Dependencies and load order
+
+`agency_documentation` (the import B/L) · `agency_booking` (usages; the empty depot). This
+module reaches `agency_booking` **transitively** through `agency_documentation`, which declares
+it in `depends` (the edge was added by Enhancement 01), so booking is guaranteed to load first ·
+`agency_numbering` (`sequence_delivery_order`) · `sales_crm` (Wayne) · `foundation.base`
+(`base.demo_partner_co_001`). The discharge that satisfies *cargo available* comes from the
+`agency_voyage` walkthrough (UC1-8 / UC1-9). Load with `--with-demo=all`.
+
+### Smoke test — ✅ green and idempotent, 2026-11-22
+
+`ede migrate upgrade -t agencydemo3 --with-demo=all` on a fresh PostgreSQL tenant, run twice, exit
+0, zero loader errors. Actual counts match the prediction exactly:
+
+| File | Pass 1 | Pass 2 |
+|---|---|---|
+| `demo_release_bluewater_import.xml` | created=8 | created=0 · updated=1 · skipped=7 |
+
+All 8 external ids are `is_demo = true`, and the customs entry loads as `pending`. The readiness,
+customs and DO-issue steps above were **not** driven live in this delivery. They use the same
+commands the existing, verified release demo walks.
+
+Then check that **Delivery Orders** shows a second draft (Bluewater, CFS release location, two
+lines, Wayne twice in two roles), and that **Customs Releases** shows BE-2026-INNSA-4471182 as
+`pending`.

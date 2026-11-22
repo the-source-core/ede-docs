@@ -88,7 +88,7 @@ ede migrate upgrade -t <tenant> --with-demo=logistics_nvocc_agency.agency_docume
 | 4 | `nvocc.shipping.instruction.apply_to_bl` → the draft B/L | Parties, cargo and containers copy across. **Container and seal numbers do not** — the B/L re-reads them live from the usage (BR-DOC-03), so even a stale number on the SI lands correct. Try applying to an issued B/L instead: refused, naming the amendment path |
 | 5 | B/L: `submit_for_review` → `send_to_customer` → `record_customer_decision(approved)` → `approve` → approve the case → `issue` | Issue allocates the number through the rule from step 2. **Then try editing the consignee — REFUSED**, naming the amendment path (BR-N5-09) |
 | 6 | `nvocc.bl.amendment` → create → `submit` → `record_decision(approved)` → `apply` | `revision_number` → 2, and the result reports `customer_approval_invalidated: true`, because the customer approved revision 1 |
-| 7 | Manifests → `assemble` → `mark_ready` → `submit` → `record_acceptance` | The issued B/L lands; any draft is **skipped and named** in `skipped_not_issued`. Filing refuses while ICEGATE is in `testing` — activate it first (BR-NAM-16) |
+| 7 | Manifests → `assemble` → `mark_ready` → `submit` → `record_acceptance` | The issued B/L lands; any draft is **skipped and named** in `skipped_not_issued`. Filing refuses while ICEGATE is in `testing`: on the demo tenant, set ICEGATE's `environment=production` and activate it (BR-NAM-16). The record has no endpoint or credential, so nothing is actually sent |
 | 8 | `nvocc.bl.cancel` on the manifested B/L | **REFUSED, naming the manifest** that depends on it (BR-N5-10) |
 | 9 | Load / Discharge Lists → the INNSA load list → `assemble` → `record_outcome(TCLU5500001, short_loaded)` → `finalise`. Then record an over-landed box on the discharge list | Discrepancy count is 1. The over-landed box is **appended, not refused** — a container on no list is the definition of over-landed |
 | 10 | Dispatch `nvocc.documentation.readiness` with the booking id, **before and after step 7** | Before: `ready: false` with `missing[]` naming the unaccepted manifest. After: `ready: true`. **This is the contract Phase 6 consumes before it releases cargo** (N5-22) |
@@ -136,3 +136,129 @@ surfaces:
 A fourth was self-inflicted: the XML comment written to explain finding 1 contained the literal
 `--with-demo`, and **an XML comment may not contain a double-hyphen** — the roles file stopped
 parsing entirely.
+
+---
+
+## Enhancement 01 — demo-data expansion
+
+**Status:** ✅ Delivered 2026-11-22 — 15 records in 2 files; `--with-demo=all` smoke green and idempotent (see the end of this section).
+**Roadmap:** [nvocc-agency Enhancement 01](../../../../roadmap/logistics/nvocc-agency/enhancements/01-demo-data-expansion.md). The cross-module walkthrough order lives there, and step IDs match it.
+**New demo files** (appended **after** `demo/demo_documentation.xml`, whose ICEGATE partner the IGM files to):
+`demo/demo_documentation_bluewater_import.xml` (9) · `demo/demo_documentation_special_cargo_si.xml` (6)
+
+### Use case 1 — the import B/L and the IGM at Nhava Sheva
+
+> Bluewater's Singapore office drafted the house B/L for Wayne Imports' two boxes: two 40ft of LED
+> driver boards on *Maersk Madrid* 2614W. At Nhava Sheva, Acme has to get that B/L onto the
+> **Import General Manifest** and the IGM accepted by Indian Customs before any delivery order can
+> issue. Then the customs examination finds that the carton marks say NHAVA SHEVA where the B/L
+> says MUMBAI. That makes a post-issue amendment (Use case 3) and an IGM amendment necessary.
+
+The IGM is the **same model** as the export manifest. `manifest_type = import` makes
+`nvocc.manifest.assemble` match B/Ls on **port of discharge** instead of port of loading, so the
+two ends of one voyage file against one object type. Nothing in the current demo has exercised
+the import branch.
+
+#### Records produced — `demo/demo_documentation_bluewater_import.xml` (9)
+
+| External ID | Model | Key fields | Why it exists |
+|---|---|---|---|
+| `agency_documentation.demo_partner_role_lionasia_shipper` | `res.partner.role` | `base.demo_partner_co_047` (Lion Asia Trading, SG) · `sales_crm.role_master_shipper` | `validate_parties` checks the **role**, not just that the partner exists |
+| `agency_documentation.demo_partner_role_wayne_consignee` | `res.partner.role` | `sales_crm.demo_partner_customer_wayne` · `sales_crm.role_master_consignee` | Wayne is classified only as a customer today |
+| `agency_documentation.demo_partner_role_wayne_notify` | `res.partner.role` | Wayne · `sales_crm.role_master_notify_party` | A notify party that is **set but unclassified is a block**, not a warning |
+| `agency_documentation.demo_numbering_rule_manifest_bluewater` | `nvocc.numbering.rule` | `document_type=manifest` · Bluewater · default org · `agency_numbering.sequence_manifest` · `prefix_override` BLWM · draft | The IGM's number series. The B/L deliberately has **no** Bluewater rule: it numbers from the global fallback `agency_numbering.demo_numbering_bl_global`, so most-specific-wins resolution falls through to the fallback for the first time on demo data |
+| `agency_documentation.demo_bl_bluewater_import` | `nvocc.bl` | `bl_type=nvocc_bl` · Bluewater · `agency_booking.demo_booking_bluewater_import` · `booking_reference` BKG-BLWT-IMP-001 · shipper Lion Asia · consignee + notify Wayne · receipt / loading `masters.demo_port_sgsin` · discharge / delivery `masters.demo_port_innsa` · `masters.demo_vessel_maersk_madrid` · `voyage_number` 2614W · ETD 2026-10-01T18:00 · ETA 2026-10-06T06:00 · `freight_term=collect` · `release_type_code=telex` · 3 originals · place of issue SGSIN · **`marks_and_numbers` "WAYNE IMPORTS / MUMBAI / C/NO 1-960"** | Draft. **The marks are planted wrong**: the cartons say NHAVA SHEVA, and customs finds it at examination. It is a *header* field on purpose, because `nvocc.bl.amendment.apply` writes header fields only |
+| `agency_documentation.demo_bl_cargo_bluewater_import` | `nvocc.bl.cargo` | `masters.demo_commodity_electronics` · "LED driver boards" · HS 8504.40 · `carton` 960 · 18 400 kg · 110 m³ · marks (same planted text) | Seeded directly, unlike the export B/L, because no SI exists at this end: the origin desk drafted the B/L. Lines on a **draft** B/L are writable; the guards bite only after issue |
+| `agency_documentation.demo_bl_container_bluewater_box_1` / `_box_2` | `nvocc.bl.container` | `equipment_usage_id` → `agency_booking.demo_usage_bluewater_box_1` / `_2` · VGM 9 450 / 9 430 kg · `vgm_method=method_1` · 480 packages and 9 200 kg each | **Container and seal numbers are not typed.** `stamp_from_usage` reads them through from the usage and its live seal (BR-DOC-03) |
+| `agency_documentation.demo_manifest_innsa_import_bluewater` | `nvocc.manifest` | **`manifest_type=import`** · Bluewater · default org · Maersk Madrid · 2614W · `port_id` INNSA · `arrival_date` 2026-10-06 · `cut_off_at` 2026-10-05T18:00 · `integration_partner_id` `agency_documentation.demo_integration_partner_indcus` | The IGM: draft, unnumbered, no lines. Lines assemble from **issued** B/Ls only (BR-N5-11) |
+
+**Block split.** The three role rows and the numbering rule go in `noupdate="0"`. The B/L, its
+three lines and the IGM go in **`noupdate="1"`**. Once the walkthrough issues the B/L,
+`pre.nvocc.bl.update` refuses any rewrite on the loader path too (BR-N5-09 has no loader
+carve-out). A second `--with-demo` on a walked tenant would then fail on an updatable B/L, and it
+would also revert the amendment the reviewer applied.
+
+### Use case 2 — two special-cargo shipping instructions, one gap each
+
+> Globex's portal SI for the paint booking arrives complete, except that the cargo line says
+> *hazardous, class 3, packing group II, flash point 18 °C* and **leaves the UN number blank**. Its
+> emailed SI for the reefer booking quotes the **tolerance band** (−20 / −16 °C) and **drops the
+> set-point**. Both bookings had the right values. No B/L exists yet, and that is exactly when
+> this should be caught.
+
+These are the two conditional cargo rules in `services/validation.py`, one fixture each:
+`dg_details_incomplete` (class *and* UN number) and `reefer_setpoint_missing` (a band with no
+set-point). There is no reefer flag anywhere: the set-point *is* the declaration, so a reefer
+line that lacks one would be carried dry and plugged in by nobody.
+
+#### Records produced — `demo/demo_documentation_special_cargo_si.xml` (6)
+
+| External ID | Model | Key fields | Why it exists |
+|---|---|---|---|
+| `agency_documentation.demo_si_dg_globex` | `nvocc.shipping.instruction` | `SI-DEMO-0002` · `customer_reference` GLBX-DG-0412 · Sealink · `agency_booking.demo_booking_dg_sealink` · default org · `source=portal` · `status=received` · `received_at` 2026-11-30T10:15 · from Globex · shipper Globex · consignee + notify Stark · `nvocc_bl` · prepaid · 3 originals | SI `status` is a plain Enum, so demo data legitimately places it. Globex and Stark already hold shipper / consignee / notify roles from `demo_documentation.xml` and `sales_crm` |
+| `agency_documentation.demo_si_cargo_dg` | `nvocc.si.cargo` | "Paint, flammable (industrial coatings in steel drums)" · HS 3208.90 · `drum` 80 · 16 000 kg · 28 m³ (identical to the booking, so SI↔booking reconciliation stays silent) · `hazardous=true` · `hazard_class` 3 · `packing_group` II · `flash_point_c` 18 · **`hazmat_un_number` empty** · marks "GLOBEX / SINGAPORE / DR 1-80" | **The planted error.** It is the only blocking finding the SI produces |
+| `agency_documentation.demo_si_container_dg` | `nvocc.si.container` | `container_number` SEAU2200402 (text only) · seal SLK-DG-0402 · `equipment_type_code` 22GP · VGM 16 600 vs gross 16 000 (3.75%, inside the 5% tolerance) · `vgm_method=method_1` · 80 packages | Without a container line the SI would add a second blocker (`containers_missing`). With no usage it adds one **warning** (`container_not_allocated`), which is true: the box has not been allocated yet |
+| `agency_documentation.demo_si_reefer_globex` | `nvocc.shipping.instruction` | `SI-DEMO-0003` · `customer_reference` GLBX-RF-0413 · Sealink · `agency_booking.demo_booking_reefer_sealink` · default org · `source=email` · `status=received` · `received_at` 2026-11-30T11:40 · from Globex · shipper Globex · consignee + notify Stark · `nvocc_bl` · prepaid · 3 originals | The reefer booking's instruction |
+| `agency_documentation.demo_si_cargo_reefer` | `nvocc.si.cargo` | `masters.demo_commodity_perishable` · "Frozen shrimp, IQF, glazed" · HS 0306.17 · `carton` 1 200 · 24 000 kg · 58 m³ (identical to the booking) · `temperature_min_c` −20 · `temperature_max_c` −16 · **`temperature_setting_c` empty** · marks "GLOBEX / SINGAPORE / CTN 1-1200" | **The planted error.** A band with no set-point is a block, not a warning |
+| `agency_documentation.demo_si_container_reefer` | `nvocc.si.container` | `container_number` SEAU4500501 (text only) · seal SLK-RF-0501 · `equipment_type_code` 42RT · VGM 24 800 vs gross 24 000 (3.3%) · `vgm_method=method_1` · 1 200 packages | Same reasoning as the DG container line: one true warning, no second blocker |
+
+**Block split.** All six SI records sit in **`noupdate="1"`**. The walkthrough validates and
+applies both instructions and fixes their cargo lines, and a reload would put them back to
+`received` with the planted errors. **Known gap, unchanged:** the older `SI-DEMO-0001` in
+`demo_documentation.xml` is updatable, so a reload after its own walkthrough reverts it the same
+way.
+
+### What this slice deliberately does NOT ship
+
+| Not shipped | Why |
+|---|---|
+| An issued B/L, a filed or accepted IGM, or any manifest line | `nvocc.bl.status` and `nvocc.manifest.status` are `workflow=True`, and manifest lines assemble only from issued B/Ls (BR-N5-11) |
+| A B/L amendment | It cannot exist in a fixture by construction: `pre.nvocc.bl.amendment.create` refuses against a non-issued B/L ("edit the draft directly"). The walkthrough walks into that refusal on purpose, then raises the real one after issue |
+| A B/L for the DG booking | It would exist *before* the check whose whole point is to precede it. The walkthrough creates it with `nvocc.bl.create_from_booking` |
+| A corrected DG or reefer SI | Fixing them is the exercise |
+| A Bluewater-specific B/L numbering rule | Leaving it out is what makes the global fallback carry the import B/L |
+
+### Walkthrough — the steps this module owns
+
+| Step | Do this | What it shows |
+|---|---|---|
+| UC1-1 | Documentation → Manifests → the Bluewater IGM (INNSA, *Maersk Madrid* 2614W) → `nvocc.manifest.assemble`, **before** the B/L is issued | `bls_added: 0`. `skipped_not_issued` **names** the draft B/L rather than silently omitting it (BR-N5-11) |
+| UC1-2 | Try to create an `nvocc.bl.amendment` against the import B/L | **Refused**: *"…is not yet a document of title — edit the draft directly"*. This sets up Use case 3 |
+| UC1-3 | B/L: `submit_for_review` → `send_to_customer` → `record_customer_decision(approved)` → `approve` → approve the case → `issue` → `nvocc.bl.telex_release` | Stands in for origin issuance. The number comes from the **global** B/L rule. `telex_released` counts as released for the readiness contract, because the originals were surrendered at Singapore |
+| UC1-5 | IGM → `assemble` → `mark_ready` → `submit` → `record_acceptance` | Two lines (one per container), matched on port of **discharge**. Filing is refused while ICEGATE is in `test`: on the demo tenant, set ICEGATE's `environment=production` and activate it (BR-NAM-16). The record has no endpoint or credential, so nothing is actually sent |
+| UC3-3 | *(during the customs examination, release step UC1-10)* Edit the B/L's marks directly. Then raise `nvocc.bl.amendment`: `amendment_type=cargo`, `requested_by=customs`, reason, `new_values {"marks_and_numbers": "WAYNE IMPORTS / NHAVA SHEVA / C/NO 1-960"}` → `submit` → `record_decision(approved)` → `apply` | The direct edit is **refused** and names the amendment path (BR-N5-09). The amendment lands with `revision_number` 2 and the old value captured from the live record |
+| UC3-4 | IGM → `assemble` again → then `nvocc.manifest.amend` with a reason | `assemble` is **refused**: the IGM is filed, so its lines are frozen. `amend` raises a new manifest linked by `amends_manifest_id` (BR-N5-13). This is the IGM amendment the examination made necessary |
+| UC2-4 | Shipping Instructions → SI-DEMO-0002 → `validate`. No B/L exists for this booking | *(Verified live.)* Status `under_validation`, with **one** blocking finding, `dg_details_incomplete`: *"cargo line 1 is declared hazardous but is missing UN number. A terminal will refuse the box, and the refusal happens after the B/L is issued."* There is one warning, `container_not_allocated`. Validation is a report; it never raises |
+| UC2-5 | Switch the principal switcher to **Sealink** (try it first without: refused, *"No active principal… `nvocc.principal_mandatory` is enabled (BR-NAM-01)"*). Then `nvocc.bl.create_from_booking` on the DG booking, which is **still draft**, and `apply_to_bl` with SI-DEMO-0002 | *(Verified live.)* The B/L is created as a draft and the booking stays draft: B/L creation does not read booking status. The apply is **refused** with the same message as the finding. The block bites at the act |
+| UC2-6 | Set UN 1263 on the SI cargo line → `validate` → `apply_to_bl` | *(Verified live.)* `validated`, then `applied`. The draft B/L's cargo line carries UN 1263 / class 3 / PG II / flash point. Nothing was issued, so nothing needs amending, which is the whole case for catching it at SI stage |
+| UC2-7 | Shipping Instructions → SI-DEMO-0003 → `validate`. Then set `temperature_setting_c` −18 on its cargo line and validate again | *(First run verified live.)* **One** blocking finding, `reefer_setpoint_missing`: *"cargo line 1 declares a temperature tolerance band but no set-point… without it the box will be carried dry."* Plus the same single `container_not_allocated` warning. With the set-point added it becomes `validated`. The booking had −18 all along; the gap was on the document the B/L is built from |
+
+### Dependencies and load order
+
+`agency_booking` (the Bluewater booking, usages and seals; the DG and reefer bookings). This
+module declares `agency_booking` in its manifest `depends`. Enhancement 01 added the edge; before
+that, booking loading first was only an alphabetical tiebreak. ·
+`agency_numbering` (`sequence_manifest`, the global B/L rule) · this module's own
+`demo_documentation.xml` (ICEGATE; Globex's shipper and Stark's notify roles) · `sales_crm`
+(Wayne, Stark, Globex, role masters) · `foundation.base` (`base.demo_partner_co_047`) ·
+`logistics_base.masters` (ports, vessel, commodity). Load with `--with-demo=all`.
+
+### Smoke test — ✅ green and idempotent, 2026-11-22
+
+`ede migrate upgrade -t agencydemo3 --with-demo=all` on a fresh PostgreSQL tenant, run twice, exit
+0, zero loader errors. Actual counts match the prediction exactly:
+
+| File | Pass 1 | Pass 2 |
+|---|---|---|
+| `demo_documentation_bluewater_import.xml` | created=9 | created=0 · updated=4 · skipped=5 (B/L, 3 lines, IGM) |
+| `demo_documentation_special_cargo_si.xml` | created=6 | created=0 · updated=0 · skipped=6 |
+
+All 15 external ids are `is_demo = true`. The loaded B/L container lines read
+`BLWU4200308 / BLW-771201` and `BLWU4200313 / BLW-771202`, stamped from the usages. The IGM is
+`import`, `draft`, voyage 2614W.
+
+**Reload after the walkthrough (agencydemo3):** with the Bluewater tariff approved, the reefer booking confirmed and the DG SI validated through the real commands, a third `--with-demo=all` run exits 0 with zero loader errors, and all three keep their walked state.
+
+Then check: **Manifests** shows a second manifest of type *Import Manifest* for INNSA;
+**Shipping Instructions** shows SI-DEMO-0002 and SI-DEMO-0003 in `received`; the import B/L shows its two
+containers with seal numbers `BLW-771201` / `BLW-771202` that nobody typed.

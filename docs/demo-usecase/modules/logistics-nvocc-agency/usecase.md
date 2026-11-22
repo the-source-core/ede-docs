@@ -62,7 +62,7 @@ would never be written.
 | Model | Records | Illustrates |
 |---|---|---|
 | `nvocc.principal` | 2 — both `draft`, driven by workflow commands | NAM-01, NAM-24, BR-NAM-05/06 |
-| `nvocc.principal.entitlement` | 3 | NAM-02, NAM-03, NAM-04 |
+| `nvocc.principal.entitlement` | 4 — three for the rules, one (Enh 01) so the Bluewater import can be walked | NAM-02, NAM-03, NAM-04 |
 | `nvocc.principal.agent` | 2 | NAM-13 |
 | `nvocc.numbering.rule` | 2 | NAM-19, BR-NAM-12 |
 | `nvocc.integration.partner` | 2 — one `active` production, one `testing` | NAM-18, BR-NAM-16 |
@@ -85,9 +85,9 @@ maker and checker as different people, which is the point of maker-checker.
 install would be a security anti-pattern; the administrator assigns roles under
 Settings → Security → Role Bindings, which is exactly what the error message says.
 
-### Entitlements — the point of the three rows
+### Entitlements — the point of the first three rows
 
-The three entitlement rows exist to make the *rules* visible, not just the model:
+The first three entitlement rows exist to make the *rules* visible, not just the model:
 
 1. `base.admin_user` → Maersk, **no branch** (`organization_id` empty), `full` — the
    head-office administrator who acts for the principal from anywhere.
@@ -98,6 +98,15 @@ The three entitlement rows exist to make the *rules* visible, not just the model
 
 Together they demonstrate: branch-agnostic vs branch-scoped grants, the access-level
 ladder, and the switch/visibility distinction — the three things NAM-02/03/04 turn on.
+
+4. `base.admin_user` → Bluewater, **no branch**, `full`
+   (`agency_masters.demo_entitlement_admin_bluewater`, **added by NVOCC
+   [Enhancement 01](../../../../roadmap/logistics/nvocc-agency/enhancements/01-demo-data-expansion.md),
+   2026-11-22**). This is the head-office administrator acting for Bluewater as its destination
+   agent at Nhava Sheva. Before it, admin held Maersk and Sealink grants only, and every command
+   in the Bluewater import walkthrough would have been refused (BR-NAM-02) before reaching its
+   control. It ships here because this module owns both the entitlement model and the
+   principal. Its external id must not change after a load, or the row is orphaned.
 
 ### Integration partners — why one is `testing`
 
@@ -149,4 +158,4 @@ partners, so run it as part of `--with-demo=all` (or after the base demo) — on
 the cross-module refs cannot resolve.
 
 Then check **Agency → Principals** shows both principals in Draft, and
-**Agency → Entitlements** shows the three grants.
+**Agency → Entitlements** shows the four grants.

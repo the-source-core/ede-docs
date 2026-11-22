@@ -84,6 +84,7 @@ Domain docs co-locate with the domain — they live under `src/domains/<domain>/
 |---|---|---|
 | [Rate Management System (RMS)](../src/domains/logistics_freight_forwarding/docs/pricing.md) | `pricing.*` (logistics) | [roadmap/logistics/pricing/](../roadmap/logistics/pricing/README.md) |
 | [Sales & CRM](../src/domains/logistics_freight_forwarding/docs/sales-crm.md) | `crm.*` (logistics, planned) | [roadmap/logistics/sales-crm/](../roadmap/logistics/sales-crm/README.md) |
+| [NVOCC / Shipping Agency](../src/domains/logistics_nvocc_agency/docs/nvocc-agency.md) | `nvocc.*` (`logistics_nvocc_agency`) | [roadmap/logistics/nvocc-agency/](../roadmap/logistics/nvocc-agency/README.md) |
 | [Servora Integration — External Reference-Data Platform](../src/domains/onemaster/docs/onemaster.md) | `foundation.servora_sync` (the in-house OneMaster hub is **retired**; reference master data — geography, ports, airports, countries, currencies, FX — is now served by **Servora**, a separate self-hosted platform in its own repo. EDE integrates as a **consumer** over HTTPS via `foundation.servora_sync`; all 3 integration phases 🔴 Not Started — geography path unblocked today, financial path waits on Servora's FX connector) | [roadmap/onemaster/](../roadmap/onemaster/README.md) |
 
 > Roadmap is the source of truth. Status, configuration, and built-vs-planned reflected in these docs are mirrored from the roadmap module READMEs and feature files. To refresh, edit the roadmap and invoke the `syncing-roadmap-to-docs` skill.
