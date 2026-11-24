@@ -148,6 +148,14 @@ If you place a fixture in a deliberately-blocked state, add a row above.
 
 Modules with no usecase row (e.g. `foundation.auth`, `foundation.connectors`, `foundation.storage`, `foundation.email`) are pure engines — they consume records produced by other modules' demo files. They get a usecase doc the first time one of their phases introduces records of its own.
 
+## Showcase tenants
+
+Full-volume tenants built by a generator script that drives the real commands, not by `--with-demo` files. Each one has its own scenario, separate from Acme.
+
+| Tenant | Spec | Status |
+|---|---|---|
+| `djlogistics` | [showcase/dj-logistics/usecase.md](./showcase/dj-logistics/usecase.md) — DJ Logistics (US HQ, India agency for 6 principals, Dubai forwarding), Jan–Jun 2026 | 🟡 Phase 1 + Dubai Jan–Jun done; India January verified, Feb–Jun pending (§21) |
+
 ## Workflow — when does demo data get authored?
 
 The canonical process is the [`adding-demo-data`](../../.claude/skills/adding-demo-data/SKILL.md) skill — the full end-to-end guide with three explicit phases:
